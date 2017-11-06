@@ -49,7 +49,7 @@ Tip: Get NeoLoad API information in NeoLoad preferences: Project Preferences / R
 | NeoLoadKeyAPI            | NeoLoad API Key |
 | ENABLE_NEWRELIC_PLUGIN   | If “true”, this Action sends NeoLoad statistics to NewRelic and retrieves NewRelic statistics. Otherwise, this Action retrieves NewRelic statistics only.  |
 | NewRelic_License_Key     | NewRelic plugin License Key    |
-| Insight_AccountID        | (Optional) Newrelic Insights account id. If not specified, NeoLoad statistics are not sent to NewRelic | 
+| Insight_AccountID        | (Optional) Newrelic Insights account id. If not specified, NeoLoad statistics are not sent to NewRelic Insight | 
 | Insight_ApiKey           | (Optional) NewRelic Insights API Key |
 
 

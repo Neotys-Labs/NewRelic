@@ -94,7 +94,7 @@ public class NewRelicIntegration {
 			}
 
 		}
-		http.CloseHttpClient();
+
 		
 	}
 	private boolean ISrelevantMetricName(String Metricname)
@@ -115,10 +115,15 @@ public class NewRelicIntegration {
 		JSONArray array;
 		HashMap<String,String> Hostnames= null;
 		Parameters=null;
-		
-		//----get the list of Hosts of the application-----------
 		Url=NewRelicURL+"applications/"+NewRelicApplicationID+NewRelicHostAPI;
-		http.NewHttpRequest(Url, "GET", Header, Parameters);
+
+		if(! Strings.isNullOrEmpty(PROXYHOST)&&! Strings.isNullOrEmpty(PROXYPORT))
+			http=new HTTPGenerator(Url, "GET",PROXYHOST,PROXYPORT,PROXYUSER,PROXYPASS, Header,Parameters );
+		else
+			http=new HTTPGenerator(Url, "GET", Header,Parameters );
+
+		//----get the list of Hosts of the application-----------
+	//		http.NewHttpRequest(Url, "GET", Header, Parameters);
 		jsoobj=http.GetJSONHTTPresponse();
 		if(jsoobj != null)
 		{
@@ -128,9 +133,11 @@ public class NewRelicIntegration {
 				Hostnames.put(String.valueOf(array.getJSONObject(j).getInt("id")), array.getJSONObject(j).getString("host"));
 		}
 		//-------------------------------------------------------
-		
+		http.CloseHttpClient();
 		return Hostnames;
 	}
+
+
 	private long GetTimeMillisFromDate(String date) throws ParseException
 	{
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss"); 
@@ -154,8 +161,13 @@ public class NewRelicIntegration {
 	  List<String> MetriNames= new ArrayList<String>();
 	  String Url=NewRelicURL+"applications/"+NewRelicApplicationID+"/hosts/"+HostID+NewRelicMetricNameAPI;
 	  Parameters=null;
-	  
-		http.NewHttpRequest(Url, "GET", Header, Parameters);
+
+	  if(! Strings.isNullOrEmpty(PROXYHOST)&&! Strings.isNullOrEmpty(PROXYPORT))
+		  http=new HTTPGenerator(Url, "GET",PROXYHOST,PROXYPORT,PROXYUSER,PROXYPASS, Header,Parameters );
+	  else
+		  http=new HTTPGenerator(Url, "GET", Header,Parameters );
+
+	//  http.NewHttpRequest(Url, "GET", Header, Parameters);
 		jsoobj=http.GetJSONHTTPresponse();
 		if(jsoobj != null)
 		{
@@ -167,6 +179,7 @@ public class NewRelicIntegration {
 			}
 			
 		}
+	  http.CloseHttpClient();
 		return MetriNames;
   }
   private String GetUTCDate()
@@ -206,7 +219,13 @@ public class NewRelicIntegration {
 		 Parameters.put("period", "1");
 		 Parameters.put("summarize", "false");
 		 Parameters.put("raw","true");
-		 http.NewHttpRequest(Url, "GET", Header, Parameters);
+
+	  if(! Strings.isNullOrEmpty(PROXYHOST)&&! Strings.isNullOrEmpty(PROXYPORT))
+		  http=new HTTPGenerator(Url, "GET",PROXYHOST,PROXYPORT,PROXYUSER,PROXYPASS, Header,Parameters );
+	  else
+		  http=new HTTPGenerator(Url, "GET", Header,Parameters );
+
+	  //http.NewHttpRequest(Url, "GET", Header, Parameters);
 			jsoobj=http.GetJSONHTTPresponse();
 			if(jsoobj != null)
 			{		
@@ -239,6 +258,7 @@ public class NewRelicIntegration {
 					}
 				
 			}
+	  http.CloseHttpClient();
   }
 	public  String GetApplicationID() throws NewrelicException, ClientProtocolException, IOException
 	{
@@ -271,7 +291,8 @@ public class NewRelicIntegration {
 		}
 		else
 			NewRelicApplicationID=null;
-		
+
+		http.CloseHttpClient();
 		return NewRelicApplicationID;
 		
 	}

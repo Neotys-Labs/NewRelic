@@ -41,7 +41,9 @@ import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.SingleClientConnManager;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.message.BasicNameValuePair;
@@ -50,6 +52,7 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.entity.ContentType;
+import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -102,7 +105,9 @@ public class HTTPGenerator
     			SSLSocketFactory socketFactory = SSLSocketFactory.getSocketFactory();
     			socketFactory.setHostnameVerifier((X509HostnameVerifier) hostnameVerifier);
     			registry.register(new Scheme("https", socketFactory, 443));
-    			SingleClientConnManager mgr = new SingleClientConnManager(Client.getParams(), registry);
+				ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(Client.getParams(), registry);
+//
+    			//SingleClientConnManager mgr = new SingleClientConnManager(Client.getParams(), registry);
     			httpClient = new DefaultHttpClient(mgr, Client.getParams());
 
     			// Set verifier     
@@ -113,8 +118,10 @@ public class HTTPGenerator
     		}
     		else
     		{
-    			httpClient = new DefaultHttpClient();
-    			httpClient.getConnectionManager();
+				DefaultHttpClient Client = new DefaultHttpClient();
+				ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(Client.getParams(), httpClient.getConnectionManager().getSchemeRegistry());
+				httpClient = new DefaultHttpClient(mgr,Client.getParams());
+
     		}
     	
     	}
@@ -173,7 +180,8 @@ public class HTTPGenerator
     			SSLSocketFactory socketFactory = SSLSocketFactory.getSocketFactory();
     			socketFactory.setHostnameVerifier((X509HostnameVerifier) hostnameVerifier);
     			registry.register(new Scheme("https", socketFactory, 443));
-    			SingleClientConnManager mgr = new SingleClientConnManager(Client.getParams(), registry);
+				ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(Client.getParams(), registry);
+//    			SingleClientConnManager mgr = new SingleClientConnManager(Client.getParams(), registry);
     			httpClient = new DefaultHttpClient(mgr, Client.getParams());
 
     			// Set verifier     
@@ -182,8 +190,9 @@ public class HTTPGenerator
     		}
     		else
     		{
-    			httpClient = new DefaultHttpClient();
-    			httpClient.getConnectionManager();
+				DefaultHttpClient Client = new DefaultHttpClient();
+				ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(Client.getParams(), httpClient.getConnectionManager().getSchemeRegistry());
+				httpClient = new DefaultHttpClient(mgr,Client.getParams());
     		}
     	}
     	catch(Exception e)
@@ -234,7 +243,8 @@ public class HTTPGenerator
     			SSLSocketFactory socketFactory = SSLSocketFactory.getSocketFactory();
     			socketFactory.setHostnameVerifier((X509HostnameVerifier) hostnameVerifier);
     			registry.register(new Scheme("https", socketFactory, 443));
-    			SingleClientConnManager mgr = new SingleClientConnManager(Client.getParams(), registry);
+				ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(Client.getParams(), registry);
+    			//	SingleClientConnManager mgr = new SingleClientConnManager(Client.getParams(), registry);
     			httpClient = new DefaultHttpClient(mgr, Client.getParams());
 
     			// Set verifier     
@@ -243,8 +253,10 @@ public class HTTPGenerator
     		}
     		else
     		{
-    			httpClient = new DefaultHttpClient();
-    			httpClient.getConnectionManager();
+				DefaultHttpClient Client = new DefaultHttpClient();
+
+				ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(Client.getParams(), httpClient.getConnectionManager().getSchemeRegistry());
+				httpClient = new DefaultHttpClient(mgr,Client.getParams());
     		}
     	}
     	catch(Exception e)
@@ -298,6 +310,7 @@ public class HTTPGenerator
 	    			request.setURI(new URL(URL).toURI());
 	    		}
 	    	}
+
 	    }
     	catch(Exception e)
     	{
@@ -409,7 +422,8 @@ public class HTTPGenerator
     
     	JSONArray json = null;
     	HttpResponse response = null;
-    	
+
+
     	Header[] requestHeaders = request.getAllHeaders();
     	
     
@@ -419,8 +433,12 @@ public class HTTPGenerator
     	
     		if(IsJsonConten(response))
         		json=new JSONArray(GetStringResponse(response));
-        	
-    		return json;
+
+
+		EntityUtils.consume(response.getEntity());
+		response.getEntity().getContent().close();
+
+		return json;
     		
     	
     		
@@ -432,7 +450,8 @@ public class HTTPGenerator
     
     	JSONObject json = null;
     	HttpResponse response = null;
-    
+
+
     	Header[] requestHeaders = request.getAllHeaders();
  
     
@@ -445,8 +464,9 @@ public class HTTPGenerator
     				json=new JSONObject(GetStringResponse(response));
         	
     		}
-    		
-    		return json;
+		EntityUtils.consume(response.getEntity());
+		response.getEntity().getContent().close();
+		return json;
     		
     	
     		
@@ -457,7 +477,7 @@ public class HTTPGenerator
     
     	JSONObject json = null;
     	HttpResponse response = null;
-  
+
     	Header[] requestHeaders = request.getAllHeaders();
     
     
@@ -466,8 +486,8 @@ public class HTTPGenerator
 		response=httpClient.execute(request);
 	
 		StatusCode=response.getStatusLine().getStatusCode();
-    		
-    		
+		EntityUtils.consume(response.getEntity());
+		response.getEntity().getContent().close();
     	
 		return StatusCode;
 

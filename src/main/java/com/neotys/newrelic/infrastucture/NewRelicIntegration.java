@@ -47,7 +47,7 @@ public class NewRelicIntegration {
 	private HashMap<String,String> Parameters=null;
 	private static List<String> RelevantMetriNames = Arrays.asList("min", "max", "average","used_mb","percent");
 	private static List<String> NonRelevantMetricname = Arrays.asList("Datastore/statement","Datastore/instance","CPU","Memory","Error/","connects");
-	public NewRelicIntegration(String NewrelicAPIKEY, String NewRelicApplication,String NeoLoadAPIHost,String NeoLoadAPIport,String NeoLoadKeyAPI, long startTS)
+	public NewRelicIntegration(String NewrelicAPIKEY, String NewRelicApplication, final String dataExchangeApiUrl, final com.google.common.base.Optional<String> dataExchangeApiKey, final com.neotys.extensions.action.engine.Context pContext, final com.google.common.base.Optional<String> proxyName, final long startTS)
 	{
 		StartingTS=startTS;
 		Context = new ContextBuilder();
@@ -56,10 +56,12 @@ public class NewRelicIntegration {
 			.script("NewRelicInfrasfructureMonitoring" + System.currentTimeMillis());
 		NewRElicAPIKEY=NewrelicAPIKEY;
 		NewRelic_Application=NewRelicApplication;
+
+		//TODO handle proxy
 	
 
 		try {
-			client = DataExchangeAPIClientFactory.newClient("http://"+NeoLoadAPIHost+":"+NeoLoadAPIport+"/DataExchange/v1/Service.svc/", Context.build(), NeoLoadKeyAPI);
+			client = DataExchangeAPIClientFactory.newClient(dataExchangeApiUrl, Context.build(), dataExchangeApiKey.orNull());
 			
 		} catch (GeneralSecurityException | IOException | ODataException | URISyntaxException | NeotysAPIException e) {
 			// TODO Auto-generated catch block

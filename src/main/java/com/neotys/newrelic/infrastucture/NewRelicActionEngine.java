@@ -1,41 +1,36 @@
 package com.neotys.newrelic.infrastucture;
 
+import com.google.common.base.Optional;
+import com.neotys.action.result.ResultFactory;
+import com.neotys.extensions.action.ActionParameter;
+import com.neotys.extensions.action.engine.ActionEngine;
+import com.neotys.extensions.action.engine.Context;
+import com.neotys.extensions.action.engine.Logger;
+import com.neotys.extensions.action.engine.SampleResult;
+import com.neotys.rest.error.NeotysAPIException;
+import org.apache.http.client.ClientProtocolException;
+import org.json.JSONException;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
 import java.text.ParseException;
 import java.util.List;
+import java.util.Map;
 
-import org.apache.http.client.ClientProtocolException;
-import org.json.JSONException;
-
-import com.google.common.base.Strings;
-import com.neotys.extensions.action.ActionParameter;
-import com.neotys.extensions.action.engine.ActionEngine;
-import com.neotys.extensions.action.engine.Context;
-import com.neotys.extensions.action.engine.SampleResult;
-import com.neotys.rest.error.NeotysAPIException;
-
+import static com.neotys.action.argument.Arguments.getArgumentLogString;
+import static com.neotys.action.argument.Arguments.parseArguments;
 
 public final class NewRelicActionEngine implements ActionEngine {
-	private String NeoLoadAPIHost;
-	private String NeoLoadAPIport;
-	private String NeoLoadKeyAPI;
-	private String NewRelic_APIKEY;
-	private String NewRelic_Application;
-	private String PROXYHOST;
-	private String PROXYPASS;
-	private String PROXYUSER;
-	private String PROXYPORT;
-	private String NewRelic_License_Key;
+
+	private static final String STATUS_CODE_INVALID_PARAMETER = "NL-NEW_RELIC_MONITORING_ACTION-01";
+	private static final String STATUS_CODE_TECHNICAL_ERROR = "NL-NEW_RELIC_MONITORING_ACTION-02";
+	private static final String STATUS_CODE_BAD_CONTEXT = "NL-NEW_RELIC_MONITORING_ACTION-03";
+
 	private String PLUGIN_ENABLED_VALUE;
 	private String ProjectName;
-	private String Insight_APIKEY;
-	private String Insight_AccountID;
 	private String NLScenarioName;
 	NewRelicPluginData pluginData ;
-	
-	private boolean IsNewRelicEnabled=false;
 	
 	private static final String NewRelicMetricDataAPI="/metrics/data.json";
 	
@@ -45,136 +40,57 @@ public final class NewRelicActionEngine implements ActionEngine {
 		final StringBuilder requestBuilder = new StringBuilder();
 		final StringBuilder responseBuilder = new StringBuilder();
 		long Start_TS=0;
+
+		final Map<String, Optional<String>> parsedArgs;
+		try {
+			parsedArgs = parseArguments(parameters, NewRelicOption.values());
+		} catch (final IllegalArgumentException iae) {
+			return ResultFactory.newErrorResult(context, STATUS_CODE_INVALID_PARAMETER, "Could not parse arguments: ", iae);
+		}
+
+		if (context.getWebPlatformRunningTestUrl() == null) {
+			return ResultFactory.newErrorResult(context, STATUS_CODE_BAD_CONTEXT, "Bad context: ", new NewRelicException("No NeoLoad Web test is running"));
+		}
+
+		final Logger logger = context.getLogger();
+		if (logger.isDebugEnabled()) {
+			logger.debug("Executing " + this.getClass().getName() + " with parameters: "
+					+ getArgumentLogString(parsedArgs, NewRelicOption.values()));
+		}
 		
 		NewRelicIntegration newrelic;
 		
 		boolean PluginStored=false;
+
+		final String newRelicApiKey = parsedArgs.get(NewRelicOption.NewRelicApiKey.getName()).get();
+		final String newRelicApplicationName = parsedArgs.get(NewRelicOption.NewRelicApplicationName.getName()).get();
+
+		final boolean isNewRelicPluginEnabled = Boolean.parseBoolean(parsedArgs.get(NewRelicOption.EnableNewRelicPlugin.getName()).get());
+		final Optional<String> licenseKey = parsedArgs.get(NewRelicOption.NewRelicLicenseKey.getName());
+		final Optional<String> insightAccountId = parsedArgs.get(NewRelicOption.InsightAccountId.getName());
+		final Optional<String> insightApiKey = parsedArgs.get(NewRelicOption.InsightApiKey.getName());
+
+		final String dataExchangeApiUrl = parsedArgs.get(NewRelicOption.NeoLoadDataExchangeApiUrl.getName()).get();
+		final Optional<String> dataExchangeApiKey = parsedArgs.get(NewRelicOption.NeoLoadDataExchangeApiKey.getName());
+		final Optional<String> proxyName = parsedArgs.get(NewRelicOption.NeoLoadProxy.getName());
 		
-		for(ActionParameter parameter:parameters) {
-			switch(parameter.getName()) 
-			{
-			case  NewRelicAction.NeoLoadAPIHost:
-				NeoLoadAPIHost = parameter.getValue();
-				break;
-			case  NewRelicAction.NeoLoadAPIport:
-				NeoLoadAPIport = parameter.getValue();
-				break;
-			case  NewRelicAction.NeoLoadKeyAPI:
-				NeoLoadKeyAPI = parameter.getValue();
-				break;
-			
-			case  NewRelicAction.NewRelic_APIKEY:
-				NewRelic_APIKEY = parameter.getValue();
-				break;
-			case  NewRelicAction.NewRelic_ApplicationName:
-				NewRelic_Application = parameter.getValue();
-				break;
-			case  NewRelicAction.HTTP_PROXY_HOST:
-				PROXYHOST = parameter.getValue();
-				break;
-			case  NewRelicAction.HTTP_PROXY_PASSWORD:
-				PROXYPASS = parameter.getValue();
-				break;
-			case  NewRelicAction.HTTP_PROXY_LOGIN:
-				PROXYUSER = parameter.getValue();
-				break;
-			case  NewRelicAction.HTTP_PROXY_PORT:
-				PROXYPORT = parameter.getValue();
-				break;
-			case  NewRelicAction.NewRelic_License_Key:
-				NewRelic_License_Key = parameter.getValue();
-				break;
-			case  NewRelicAction.ENABLE_NEWRELIC_PLUGIN:
-				PLUGIN_ENABLED_VALUE = parameter.getValue();
-				break;
-			
-			case  NewRelicAction.Insight_ApiKey:
-				Insight_APIKEY = parameter.getValue();
-				break;
-			case  NewRelicAction.Insight_AccountID:
-				Insight_AccountID = parameter.getValue();
-					break;
-			}
-		}
-		
-		if (Strings.isNullOrEmpty(NeoLoadAPIHost)) {
-			return getErrorResult(context, sampleResult, "Invalid argument: NeoLoadAPIHost cannot be null "
-					+ NewRelicAction.NeoLoadAPIHost + ".", null);
-		}
-		if (Strings.isNullOrEmpty(NeoLoadAPIport)) {
-			return getErrorResult(context, sampleResult, "Invalid argument: NeoLoadAPIport cannot be null "
-					+ NewRelicAction.NeoLoadAPIport + ".", null);
-		}
-		else
-		{
-			try
-			{
-				int test= Integer.parseInt(NeoLoadAPIport);
-			}
-			catch(Exception e)
-			{
-				return getErrorResult(context, sampleResult, "Invalid argument: NeoLoadAPIport needs to be an Integer "
-						+ NewRelicAction.NeoLoadAPIport + ".", null);
-			}
-			
-		}
-		
-		if (Strings.isNullOrEmpty(NewRelic_APIKEY)) {
-			return getErrorResult(context, sampleResult, "Invalid argument: NewRelic_APIKEY cannot be null "
-					+ NewRelicAction.NewRelic_APIKEY + ".", null);
-		}
-		if (Strings.isNullOrEmpty(NewRelic_Application)) {
-			return getErrorResult(context, sampleResult, "Invalid argument: NewRelic_Application cannot be null "
-					+ NewRelicAction.NewRelic_ApplicationName + ".", null);
-		}
-		if (! Strings.isNullOrEmpty(PROXYHOST) ) {
-			if(Strings.isNullOrEmpty(PROXYPORT))
-				return getErrorResult(context, sampleResult, "Invalid argument: PROXYPORT cannot be null if you specify a Proxy Host"
-						+ NewRelicAction.HTTP_PROXY_PORT + ".", null);
-		}
-		if (! Strings.isNullOrEmpty(PROXYPORT) ) {
-			if(Strings.isNullOrEmpty(PROXYHOST))
-				return getErrorResult(context, sampleResult, "Invalid argument: PROXYHOST cannot be null if you specify a Proxy Host"
-						+ NewRelicAction.HTTP_PROXY_HOST + ".", null	);
-			
-						
-	
-		}
-		
-		if (Strings.isNullOrEmpty(PLUGIN_ENABLED_VALUE) ) 
-			IsNewRelicEnabled=false;
-		else
-		{
-			if(PLUGIN_ENABLED_VALUE.equalsIgnoreCase("true"))
-				IsNewRelicEnabled=true;
-		}
-		
-		if(IsNewRelicEnabled)
+		if(isNewRelicPluginEnabled)
 		{
 			pluginData =(NewRelicPluginData)context.getCurrentVirtualUser().get("PLUGINDATA");
 			
 			if(pluginData == null){
-				if(Strings.isNullOrEmpty(NewRelic_License_Key))
-					return getErrorResult(context, sampleResult, "Invalid argument: NewRelic_License_Key cannot be null if the NewRelic Plugin is enabled"
-							+ NewRelicAction.NewRelic_License_Key + ".", null);
-			
-				if(Strings.isNullOrEmpty(Insight_AccountID))
-					return getErrorResult(context, sampleResult, "Invalid argument: Insight_AccountID cannot be null if the NewRelic Plugin is enabled"
-							+ NewRelicAction.Insight_AccountID + ".", null);
-				if(Strings.isNullOrEmpty(Insight_APIKEY))
-					return getErrorResult(context, sampleResult, "Invalid argument: Insight_ApiKey cannot be null if the NewRelic Plugin is enabled"
-							+ NewRelicAction.Insight_ApiKey + ".", null);
-				
-			    // Delay by two seconds to ensure no conflicts in re-establishing connection
+				if (!licenseKey.isPresent() || licenseKey.get().equals("")) {
+					return ResultFactory.newErrorResult(context, STATUS_CODE_INVALID_PARAMETER, "Invalid argument: " + NewRelicOption.NewRelicLicenseKey.getName() + " cannot null if the NewRelic Plugin is enabled");
+				}
+				if (!insightAccountId.isPresent() || insightAccountId.get().equals("")) {
+					return ResultFactory.newErrorResult(context, STATUS_CODE_INVALID_PARAMETER, "Invalid argument: " + NewRelicOption.InsightAccountId.getName() + " cannot null if the NewRelic Plugin is enabled");
+				}
+				if (!insightApiKey.isPresent() || insightApiKey.get().equals("")) {
+					return ResultFactory.newErrorResult(context, STATUS_CODE_INVALID_PARAMETER, "Invalid argument: " + NewRelicOption.InsightApiKey.getName() + " cannot null if the NewRelic Plugin is enabled");
+				}
+
 				try {
-					if(!Strings.isNullOrEmpty(PROXYPORT))
-					{
-						pluginData=new NewRelicPluginData(NewRelic_License_Key,PROXYHOST,PROXYPORT,PROXYUSER,PROXYPASS,context,Insight_AccountID, Insight_APIKEY,NewRelic_Application,NewRelic_APIKEY);
-					}
-					else
-					{
-						pluginData=new NewRelicPluginData(NewRelic_License_Key,context,Insight_AccountID, Insight_APIKEY,NewRelic_Application,NewRelic_APIKEY);
-					}
+					pluginData=new NewRelicPluginData(licenseKey.get(), context, insightAccountId.get(), insightApiKey.get(), newRelicApiKey, newRelicApplicationName, proxyName);
 				} catch (NewRelicException | IOException e) {
 					// TODO Auto-generated catch block
 					return getErrorResult(context, sampleResult, "Technical Error PLugin/Insight API:", e);
@@ -192,7 +108,7 @@ public final class NewRelicActionEngine implements ActionEngine {
 		
 		
 		try {
-			if(IsNewRelicEnabled)
+			if(isNewRelicPluginEnabled)
 			{
 				if(!PluginStored)
 					pluginData.StartTimer();
@@ -203,10 +119,7 @@ public final class NewRelicActionEngine implements ActionEngine {
 			Start_TS=System.currentTimeMillis()-context.getElapsedTime();
 			appendLineToStringBuilder(requestBuilder, "NewRelicInfraStructureMonitoring request.");
 			
-			if(!Strings.isNullOrEmpty(PROXYPORT))
-				newrelic = new NewRelicIntegration(NewRelic_APIKEY, NewRelic_Application, NeoLoadAPIHost, NeoLoadAPIport, NeoLoadKeyAPI,  PROXYHOST, PROXYPORT, PROXYUSER, PROXYPASS,Start_TS);
-			else
-				newrelic = new NewRelicIntegration(NewRelic_APIKEY, NewRelic_Application, NeoLoadAPIHost, NeoLoadAPIport, NeoLoadKeyAPI, Start_TS);
+			newrelic = new NewRelicIntegration(newRelicApiKey, newRelicApplicationName, dataExchangeApiUrl, dataExchangeApiKey, context,  proxyName, Start_TS);
 			
 			
 			newrelic.StartMonitor(responseBuilder);
@@ -242,7 +155,7 @@ public final class NewRelicActionEngine implements ActionEngine {
 
 		sampleResult.setRequestContent(requestBuilder.toString());
 		sampleResult.setResponseContent(responseBuilder.toString());
-		if(IsNewRelicEnabled)
+		if(isNewRelicPluginEnabled)
 		{
 			pluginData.StopTimer();
 			if(!PluginStored)

@@ -4,6 +4,7 @@ package com.neotys.newrelic.infrastucture;
 import java.io.IOException;
 import java.util.Timer;
 
+import com.google.common.base.Optional;
 import org.apache.http.client.ClientProtocolException;
 
 import com.neotys.extensions.action.engine.Context;
@@ -18,10 +19,6 @@ public class NewRelicPluginData {
 	
 	private String NewRElicLicenseKeyY;
 	private ApiClient NeoLoadWEB_API_CLIENT;
-	private String PROXYHOST=null;
-	private String PROXYPASS=null;
-	private String PROXYUSER=null;
-	private String PROXYPORT=null;
 	private Context NLContext;
 	private ResultsApi NLWEBresult;
 	private String TestID=null;
@@ -38,13 +35,14 @@ public class NewRelicPluginData {
 	static final int TIMERDELAY=0;
 	Timer timerNewRelic = null ;
 	
-	public NewRelicPluginData(String newRElicLicenseKeyY, String pROXYHOST, String pROXYPASS,
-			String pROXYUSER, String pROXYPORT,Context pContext, String Insight_AccountID,String Insight_APIKEY,String ApplicationNAme,String ApplicationAPIKEY) throws NewRelicException, IOException {
+	public NewRelicPluginData(String newRElicLicenseKeyY, Context pContext, String Insight_AccountID, String Insight_APIKEY, String ApplicationNAme, String ApplicationAPIKEY, final Optional<String> proxyName) throws NewRelicException, IOException {
 		super();
 		NewRElicLicenseKeyY = newRElicLicenseKeyY;
 		Insight_Accountid=Insight_AccountID;
 		Insight_APIKey=Insight_APIKEY;
 		NLContext = pContext;
+
+		// TODO handle proxy
 
 		//----define  the NLWEB API-----
 		NeoLoadWEB_API_CLIENT = new ApiClient();
@@ -53,10 +51,6 @@ public class NewRelicPluginData {
 		InitNLAPi();
 		//-------------------------
 		NLContext = pContext;
-		PROXYHOST = pROXYHOST;
-		PROXYPASS = pROXYPASS;
-		PROXYUSER = pROXYUSER;
-		PROXYPORT = pROXYPORT;
 		
 		NLStat=new NLGlobalStat();
 		projectname=GetProjecName();

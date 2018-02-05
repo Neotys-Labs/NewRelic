@@ -3,7 +3,6 @@ package com.neotys.NewRelic.NewRelicInfrastructureAction;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.ZoneOffset;
@@ -16,7 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.SimpleTimeZone;
-import java.util.TimeZone;
 
 import org.apache.http.client.ClientProtocolException;
 import org.apache.olingo.odata2.api.exception.ODataException;

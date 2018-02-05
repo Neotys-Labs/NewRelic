@@ -2,18 +2,10 @@ package com.neotys.NewRelic.NewRelicInfrastructureAction;
 
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Timer;
-import java.util.TimerTask;
 
 import org.apache.http.client.ClientProtocolException;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
-import com.google.common.base.Strings;
-import com.neotys.NewRelic.HttpUtils.HTTPGenerator;
 import com.neotys.extensions.action.engine.Context;
 
 import io.swagger.client.*;

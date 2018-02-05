@@ -4,27 +4,16 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Timer;
 
 import org.apache.http.client.ClientProtocolException;
-import org.apache.olingo.odata2.api.exception.ODataException;
-import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import com.google.common.base.Strings;
-import com.neotys.NewRelic.HttpUtils.HTTPGenerator;
 import com.neotys.extensions.action.ActionParameter;
 import com.neotys.extensions.action.engine.ActionEngine;
 import com.neotys.extensions.action.engine.Context;
 import com.neotys.extensions.action.engine.SampleResult;
-import com.neotys.rest.dataexchange.client.DataExchangeAPIClient;
-import com.neotys.rest.dataexchange.client.DataExchangeAPIClientFactory;
-import com.neotys.rest.dataexchange.model.ContextBuilder;
-import com.neotys.rest.dataexchange.model.EntryBuilder;
 import com.neotys.rest.error.NeotysAPIException;
 
 

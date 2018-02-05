@@ -1,4 +1,17 @@
-package com.neotys.NewRelic.NewRelicInfrastructureAction;
+package com.neotys.newrelic.infrastucture;
+
+import com.google.common.base.Strings;
+import com.neotys.newrelic.http.HTTPGenerator;
+import com.neotys.rest.dataexchange.client.DataExchangeAPIClient;
+import com.neotys.rest.dataexchange.client.DataExchangeAPIClientFactory;
+import com.neotys.rest.dataexchange.model.ContextBuilder;
+import com.neotys.rest.dataexchange.model.EntryBuilder;
+import com.neotys.rest.error.NeotysAPIException;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.olingo.odata2.api.exception.ODataException;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -8,27 +21,8 @@ import java.text.SimpleDateFormat;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.SimpleTimeZone;
-
-import org.apache.http.client.ClientProtocolException;
-import org.apache.olingo.odata2.api.exception.ODataException;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import com.google.common.base.Strings;
-import com.neotys.NewRelic.HttpUtils.HTTPGenerator;
-import com.neotys.rest.dataexchange.client.DataExchangeAPIClient;
-import com.neotys.rest.dataexchange.client.DataExchangeAPIClientFactory;
-import com.neotys.rest.dataexchange.model.ContextBuilder;
-import com.neotys.rest.dataexchange.model.EntryBuilder;
-import com.neotys.rest.error.NeotysAPIException;
 
 public class NewRelicIntegration {
 	private DataExchangeAPIClient client;
@@ -74,7 +68,7 @@ public class NewRelicIntegration {
 		
 		
 	}
-	public void StartMonitor(StringBuilder build) throws ClientProtocolException, NewrelicException, IOException, JSONException, GeneralSecurityException, URISyntaxException, NeotysAPIException, ParseException
+	public void StartMonitor(StringBuilder build) throws NewRelicException, IOException, JSONException, GeneralSecurityException, URISyntaxException, NeotysAPIException, ParseException
 	{
 		HashMap<String,String> Hosts;
 		List<String> Metrics;
@@ -106,7 +100,7 @@ public class NewRelicIntegration {
 		return result;
 	}
 	@SuppressWarnings("null")
-	public HashMap<String,String> GetApplicationsHosts() throws ClientProtocolException, IOException
+	public HashMap<String,String> GetApplicationsHosts() throws IOException
 	{
 		JSONObject jsoobj;
 		String Url;
@@ -258,7 +252,7 @@ public class NewRelicIntegration {
 			}
 	  http.CloseHttpClient();
   }
-	public  String GetApplicationID() throws NewrelicException, ClientProtocolException, IOException
+	public  String GetApplicationID() throws NewRelicException, IOException
 	{
 		JSONObject jsoobj;
 		String Url;
@@ -282,7 +276,7 @@ public class NewRelicIntegration {
 				jsonApplication=jsoobj.getJSONArray("applications");
 				NewRelicApplicationID=String.valueOf(jsonApplication.getJSONObject(0).getInt("id"));
 				if(NewRelicApplicationID ==null)
-					throw new NewrelicException("No Application find in The NewRelic Account"); 
+					throw new NewRelicException("No Application find in The NewRelic Account");
 			}
 			else
 				NewRelicApplicationID=null;
@@ -327,15 +321,4 @@ public class NewRelicIntegration {
 		
 	}
 }
-class NewrelicException extends Exception
-{
-      //Parameterless Constructor
-      public NewrelicException() {}
-
-      //Constructor that accepts a message
-      public NewrelicException(String message)
-      {
-         super(message);
-      }
- }
 

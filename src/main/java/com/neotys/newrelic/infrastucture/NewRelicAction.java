@@ -1,4 +1,4 @@
-package com.neotys.NewRelic.NewRelicInfrastructureAction;
+package com.neotys.newrelic.infrastucture;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -15,7 +15,7 @@ import com.neotys.extensions.action.ActionParameter;
 import com.neotys.extensions.action.engine.ActionEngine;
 
 
-public final class NewRelicInfraStructureMonitoringAction implements Action{
+public final class NewRelicAction implements Action{
 	static final String NeoLoadAPIHost="NeoLoadAPIHost";
 	static final String NeoLoadAPIport="NeoLoadAPIport";
 	static final String NeoLoadKeyAPI="NeoLoadKeyAPI";
@@ -55,7 +55,7 @@ public final class NewRelicInfraStructureMonitoringAction implements Action{
 
 	@Override
 	public Class<? extends ActionEngine> getEngineClass() {
-		return NewRelicInfraStructureMonitoringActionEngine.class;
+		return NewRelicActionEngine.class;
 	}
 
 	@Override
@@ -65,7 +65,7 @@ public final class NewRelicInfraStructureMonitoringAction implements Action{
 	}
 	private static final ImageIcon LOGO_ICON;
 	static {
-		final URL iconURL = NewRelicInfraStructureMonitoringAction.class.getResource("newrelic.png");
+		final URL iconURL = NewRelicAction.class.getResource("newrelic.png");
 		if (iconURL != null) {
 			LOGO_ICON = new ImageIcon(iconURL);
 		}

@@ -1,4 +1,4 @@
-package com.neotys.NewRelic.NewRelicInfrastructureAction;
+package com.neotys.newrelic.infrastucture;
 
 import java.io.IOException;
 
@@ -7,11 +7,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.TimerTask;
 
-import org.apache.http.client.ClientProtocolException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import com.neotys.NewRelic.HttpUtils.HTTPGenerator;
+import com.neotys.newrelic.http.HTTPGenerator;
 
 import io.swagger.client.ApiException;
 import io.swagger.client.api.ResultsApi;
@@ -65,7 +64,7 @@ public class NeoLoadStatAggregator extends TimerTask{
 		Header.put("Accept","application/json");
 		
 	}
-	public NeoLoadStatAggregator(String pNewRElicLicenseKeyY,String pĈomponentName,ResultsApi pNLWEBresult,String pTestID,NLGlobalStat pNLStat,String I_AccountID,String I_APIKEY,String Testname,String ApplicationName, String ApIKEY,String ScenarioName) throws ClientProtocolException, NewrelicException, IOException
+	public NeoLoadStatAggregator(String pNewRElicLicenseKeyY,String pĈomponentName,ResultsApi pNLWEBresult,String pTestID,NLGlobalStat pNLStat,String I_AccountID,String I_APIKEY,String Testname,String ApplicationName, String ApIKEY,String ScenarioName) throws NewRelicException, IOException
 	{
 		ComponentsName="Statistics";
 		NewRElicLicenseKey=pNewRElicLicenseKeyY;
@@ -129,7 +128,7 @@ public class NeoLoadStatAggregator extends TimerTask{
 			try {
 				SendMetricToPluginAPi(metric[0], metric[1], time, metric[2], metric[3]);
 				
-			} catch (NewrelicPLUGINException e) {
+			} catch (NewRelicException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -137,7 +136,7 @@ public class NeoLoadStatAggregator extends TimerTask{
 		try {
 
 		SendMetricToInsightAPI(data,time);
-		} catch (NewrelicPLUGINException e) {
+		} catch (NewRelicException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -145,7 +144,7 @@ public class NeoLoadStatAggregator extends TimerTask{
 		return utc;
 	}
 	
-	public  String GetApplicationID(String ApplicaitoNAme,String APIKEY) throws NewrelicException, ClientProtocolException, IOException
+	public  String GetApplicationID(String ApplicaitoNAme,String APIKEY) throws NewRelicException, IOException
 	{
 		JSONObject jsoobj;
 		String Url;
@@ -174,7 +173,7 @@ public class NeoLoadStatAggregator extends TimerTask{
 				jsonApplication=jsoobj.getJSONArray("applications");
 				NewRelicApplicationID=String.valueOf(jsonApplication.getJSONObject(0).getInt("id"));
 				if(NewRelicApplicationID ==null)
-					throw new NewrelicException("No Application find in The NewRelic Account"); 
+					throw new NewRelicException("No Application find in The NewRelic Account");
 			}
 			else
 				NewRelicApplicationID=null;
@@ -215,7 +214,7 @@ public class NeoLoadStatAggregator extends TimerTask{
 			e.printStackTrace();
 		}
 	}
-	private void SendValueMetricToInsightAPI(String[] data) throws NewrelicPLUGINException
+	private void SendValueMetricToInsightAPI(String[] data) throws NewRelicException
 	{
 		int httpcode;
 		HashMap<String,String> head = null;
@@ -283,7 +282,7 @@ public class NeoLoadStatAggregator extends TimerTask{
 				
 			}
 		    if(Exceptionmessage!=null)
-		    	throw new NewrelicPLUGINException(Exceptionmessage);
+		    	throw new NewRelicException(Exceptionmessage);
 				 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -292,7 +291,7 @@ public class NeoLoadStatAggregator extends TimerTask{
 		Insight_HTTP.CloseHttpClient();
 
 	}
-	private void SendMetricToInsightAPI(List<String[]> data, int time) throws NewrelicPLUGINException
+	private void SendMetricToInsightAPI(List<String[]> data, int time) throws NewRelicException
 	{
 		int httpcode;
 		HashMap<String,String> head = null;
@@ -360,7 +359,7 @@ public class NeoLoadStatAggregator extends TimerTask{
 				
 			}
 		    if(Exceptionmessage!=null)
-		    	throw new NewrelicPLUGINException(Exceptionmessage);
+		    	throw new NewRelicException(Exceptionmessage);
 				 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -369,7 +368,7 @@ public class NeoLoadStatAggregator extends TimerTask{
 		Insight_HTTP.CloseHttpClient();
 
 	}
-	private void SendMetricToPluginAPi(String MetricName,String MetricPath,int Duration,String unit,String Value) throws NewrelicPLUGINException
+	private void SendMetricToPluginAPi(String MetricName,String MetricPath,int Duration,String unit,String Value) throws NewRelicException
 	{
 		int httpcode;
 		String Exceptionmessage=null;
@@ -427,7 +426,7 @@ public class NeoLoadStatAggregator extends TimerTask{
 				
 			}
 		    if(Exceptionmessage!=null)
-		    	throw new NewrelicPLUGINException(Exceptionmessage);
+		    	throw new NewRelicException(Exceptionmessage);
 				 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -447,17 +446,3 @@ public class NeoLoadStatAggregator extends TimerTask{
 		}
 	 }
 }
-class NewrelicPLUGINException extends Exception
-{
-	
-	
-      //Parameterless Constructor
-      public NewrelicPLUGINException() {}
-
-      //Constructor that accepts a message
-      public NewrelicPLUGINException(String message)
-      {
-    	
-         super(message);
-      }
- }

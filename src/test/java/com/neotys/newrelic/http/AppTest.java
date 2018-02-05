@@ -1,4 +1,4 @@
-package com.neotys.NewRelic.HttpUtils;
+package com.neotys.newrelic.http;
 
 import junit.framework.Test;
 import junit.framework.TestCase;

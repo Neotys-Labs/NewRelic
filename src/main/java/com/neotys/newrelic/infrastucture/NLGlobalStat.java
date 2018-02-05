@@ -1,4 +1,4 @@
-package com.neotys.NewRelic.NewRelicInfrastructureAction;
+package com.neotys.newrelic.infrastucture;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;

@@ -1,4 +1,4 @@
-package com.neotys.NewRelic.NewRelicInfrastructureAction;
+package com.neotys.newrelic.infrastucture;
 
 
 import java.io.IOException;
@@ -10,7 +10,6 @@ import com.neotys.extensions.action.engine.Context;
 
 import io.swagger.client.*;
 import io.swagger.client.api.ResultsApi;
-import io.swagger.client.model.*;
 
 
 public class NewRelicPluginData {
@@ -40,7 +39,7 @@ public class NewRelicPluginData {
 	Timer timerNewRelic = null ;
 	
 	public NewRelicPluginData(String newRElicLicenseKeyY, String pROXYHOST, String pROXYPASS,
-			String pROXYUSER, String pROXYPORT,Context pContext, String Insight_AccountID,String Insight_APIKEY,String ApplicationNAme,String ApplicationAPIKEY) throws ClientProtocolException, NewrelicException, IOException {
+			String pROXYUSER, String pROXYPORT,Context pContext, String Insight_AccountID,String Insight_APIKEY,String ApplicationNAme,String ApplicationAPIKEY) throws NewRelicException, IOException {
 		super();
 		NewRElicLicenseKeyY = newRElicLicenseKeyY;
 		Insight_Accountid=Insight_AccountID;
@@ -84,7 +83,7 @@ public class NewRelicPluginData {
 	
 	
 	
-	public NewRelicPluginData(String newRElicLicenseKeyY,Context pContext,String strInsight_AccountID,String strInsight_APIKEY,String ApplicationName,String ApplicationAPIKEY) throws ClientProtocolException, NewrelicException, IOException {
+	public NewRelicPluginData(String newRElicLicenseKeyY,Context pContext,String strInsight_AccountID,String strInsight_APIKEY,String ApplicationName,String ApplicationAPIKEY) throws ClientProtocolException, NewRelicException, IOException {
 		super();
 		NewRElicLicenseKeyY = newRElicLicenseKeyY;
 		Insight_Accountid=strInsight_AccountID;
@@ -120,7 +119,7 @@ public class NewRelicPluginData {
 		timerNewRelic.cancel();
 
 	}
-	public void resumeTimer() throws ClientProtocolException, NewrelicException, IOException
+	public void resumeTimer() throws NewRelicException, IOException
 	{
 		timerNewRelic = new Timer();
 		NLaggregator=new NeoLoadStatAggregator(NewRElicLicenseKeyY, projectname,NLWEBresult,TestID,NLStat,Insight_Accountid,Insight_APIKey,TestName,NewRelicApplicationName,NewRelicApplicationAPIKEY,GetTestScenarioName());

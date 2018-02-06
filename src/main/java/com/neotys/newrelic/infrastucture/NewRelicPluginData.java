@@ -18,9 +18,10 @@ import static com.neotys.newrelic.NewRelicUtils.initProxyForNeoloadWebApiClient;
 
 public class NewRelicPluginData {
 	private static final String NLWEB_VERSION = "v1";
+
 	private final int MAXDURATION_TIME=2000;
-	
-	private String NewRElicLicenseKeyY;
+
+	private String newRelicLicenseKey;
 	private ApiClient neoloadWebApiClient;
 	private Context neoloadContext;
 	private ResultsApi NLWEBresult;
@@ -38,9 +39,9 @@ public class NewRelicPluginData {
 	static final int TIMERDELAY=0;
 	Timer timerNewRelic = null ;
 	
-	public NewRelicPluginData(String newRElicLicenseKeyY, final Context neoloadContext, String Insight_AccountID, String Insight_APIKEY, String ApplicationNAme, String ApplicationAPIKEY, final Optional<String> proxyName) throws NewRelicException, IOException, NoSuchAlgorithmException, KeyManagementException {
+	public NewRelicPluginData(String newRelicLicenseKey, final Context neoloadContext, String Insight_AccountID, String Insight_APIKEY, String ApplicationNAme, String ApplicationAPIKEY, final Optional<String> proxyName) throws NewRelicException, IOException, NoSuchAlgorithmException, KeyManagementException {
 		super();
-		NewRElicLicenseKeyY = newRElicLicenseKeyY;
+		this.newRelicLicenseKey = newRelicLicenseKey;
 		Insight_Accountid=Insight_AccountID;
 		Insight_APIKey=Insight_APIKEY;
 		this.neoloadContext = neoloadContext;
@@ -66,7 +67,7 @@ public class NewRelicPluginData {
 			setTestID(GetTestID());
 			NLStat=new NLGlobalStat();
 			if(NLaggregator==null)
-				NLaggregator=new NeoLoadStatAggregator(NewRElicLicenseKeyY, projectname,NLWEBresult,TestID,NLStat,Insight_Accountid,Insight_APIKey,TestName,NewRelicApplicationName,NewRelicApplicationAPIKEY,GetTestScenarioName());
+				NLaggregator=new NeoLoadStatAggregator(this.newRelicLicenseKey, projectname,NLWEBresult,TestID,NLStat,Insight_Accountid,Insight_APIKey,TestName,NewRelicApplicationName,NewRelicApplicationAPIKEY,GetTestScenarioName());
 		}
 	}
 
@@ -104,7 +105,7 @@ public class NewRelicPluginData {
 	public void resumeTimer() throws NewRelicException, IOException
 	{
 		timerNewRelic = new Timer();
-		NLaggregator=new NeoLoadStatAggregator(NewRElicLicenseKeyY, projectname,NLWEBresult,TestID,NLStat,Insight_Accountid,Insight_APIKey,TestName,NewRelicApplicationName,NewRelicApplicationAPIKEY,GetTestScenarioName());
+		NLaggregator=new NeoLoadStatAggregator(newRelicLicenseKey, projectname,NLWEBresult,TestID,NLStat,Insight_Accountid,Insight_APIKey,TestName,NewRelicApplicationName,NewRelicApplicationAPIKEY,GetTestScenarioName());
 			
 		timerNewRelic.scheduleAtFixedRate(NLaggregator,TIMERDELAY,TIMERFREQUENCY);
 		

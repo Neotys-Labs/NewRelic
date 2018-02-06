@@ -14,6 +14,8 @@ import org.json.JSONException;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
@@ -91,7 +93,7 @@ public final class NewRelicActionEngine implements ActionEngine {
 
 				try {
 					pluginData=new NewRelicPluginData(licenseKey.get(), context, insightAccountId.get(), insightApiKey.get(), newRelicApiKey, newRelicApplicationName, proxyName);
-				} catch (NewRelicException | IOException e) {
+				} catch (NewRelicException | IOException | NoSuchAlgorithmException | KeyManagementException e) {
 					// TODO Auto-generated catch block
 					return getErrorResult(context, sampleResult, "Technical Error PLugin/Insight API:", e);
 				

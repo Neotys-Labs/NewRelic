@@ -1,18 +1,23 @@
 package com.neotys.newrelic.infrastucture;
 
 
+import com.google.common.base.Optional;
+import com.neotys.extensions.action.engine.Context;
+import com.neotys.extensions.action.engine.Proxy;
+import io.swagger.client.ApiClient;
+import io.swagger.client.api.ResultsApi;
+
 import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Timer;
 
-import com.google.common.base.Optional;
-
-import com.neotys.extensions.action.engine.Context;
-
-import io.swagger.client.*;
-import io.swagger.client.api.ResultsApi;
+import static com.neotys.newrelic.NewRelicUtils.getProxy;
+import static com.neotys.newrelic.NewRelicUtils.initProxyForNeoloadWebApiClient;
 
 
 public class NewRelicPluginData {
+	private static final String NLWEB_VERSION = "v1";
 	private final int MAXDURATION_TIME=2000;
 	
 	private String NewRElicLicenseKeyY;
@@ -33,20 +38,23 @@ public class NewRelicPluginData {
 	static final int TIMERDELAY=0;
 	Timer timerNewRelic = null ;
 	
-	public NewRelicPluginData(String newRElicLicenseKeyY, final Context neoloadContext, String Insight_AccountID, String Insight_APIKEY, String ApplicationNAme, String ApplicationAPIKEY, final Optional<String> proxyName) throws NewRelicException, IOException {
+	public NewRelicPluginData(String newRElicLicenseKeyY, final Context neoloadContext, String Insight_AccountID, String Insight_APIKEY, String ApplicationNAme, String ApplicationAPIKEY, final Optional<String> proxyName) throws NewRelicException, IOException, NoSuchAlgorithmException, KeyManagementException {
 		super();
 		NewRElicLicenseKeyY = newRElicLicenseKeyY;
 		Insight_Accountid=Insight_AccountID;
 		Insight_APIKey=Insight_APIKEY;
 		this.neoloadContext = neoloadContext;
 
-		// TODO handle proxy
-
 		//----define  the NLWEB API-----
 		this.neoloadWebApiClient = new ApiClient();
-		neoloadWebApiClient.setApiKey(neoloadContext.getAccountToken());
-		neoloadWebApiClient.setBasePath(neoloadContext.getWebPlatformApiUrl());
-		InitNLAPi();
+		this.neoloadWebApiClient.setApiKey(neoloadContext.getAccountToken());
+		final String basePath = getBasePath(neoloadContext);
+		this.neoloadWebApiClient.setBasePath(basePath);
+		final Optional<Proxy> proxyOptional = getProxy(neoloadContext, proxyName, basePath);
+		if(proxyOptional.isPresent()) {
+			initProxyForNeoloadWebApiClient(neoloadWebApiClient, proxyOptional.get());
+		}
+		initNeoloadWebApi();
 		//-------------------------
 		
 		NLStat=new NLGlobalStat();
@@ -60,7 +68,17 @@ public class NewRelicPluginData {
 			if(NLaggregator==null)
 				NLaggregator=new NeoLoadStatAggregator(NewRElicLicenseKeyY, projectname,NLWEBresult,TestID,NLStat,Insight_Accountid,Insight_APIKey,TestName,NewRelicApplicationName,NewRelicApplicationAPIKEY,GetTestScenarioName());
 		}
-	}	
+	}
+
+	private String getBasePath(final Context context) {
+		final String webPlatformApiUrl = context.getWebPlatformApiUrl();
+		final StringBuilder basePathBuilder = new StringBuilder(webPlatformApiUrl);
+		if(!webPlatformApiUrl.endsWith("/")) {
+			basePathBuilder.append("/");
+		}
+		basePathBuilder.append(NLWEB_VERSION + "/");
+		return basePathBuilder.toString();
+	}
 	
 	private void setTestID(String pTestID)
 	{
@@ -91,7 +109,7 @@ public class NewRelicPluginData {
 		timerNewRelic.scheduleAtFixedRate(NLaggregator,TIMERDELAY,TIMERFREQUENCY);
 		
 	}
-	private void InitNLAPi()
+	private void initNeoloadWebApi()
 	{
 		NLWEBresult=new ResultsApi(neoloadWebApiClient);
 	}

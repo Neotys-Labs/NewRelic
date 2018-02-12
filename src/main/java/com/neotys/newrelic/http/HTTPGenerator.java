@@ -108,7 +108,7 @@ public class HTTPGenerator {
 	public HTTPGenerator(final String url, final Map<String, String> headers, final String jsonString, final Optional<Proxy> proxy) throws UnsupportedEncodingException {
 
 		httpMethod = "POST";
-		StringEntity requestEntity = new StringEntity(jsonString, "application/json");
+		StringEntity requestEntity = new StringEntity(jsonString, "application/json", "UTF-8");
 		this.url = url;
 		try {
 

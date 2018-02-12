@@ -1,5 +1,12 @@
 package com.neotys.newrelic.infrastucture;
 
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+
 import com.google.common.base.Optional;
 import com.neotys.action.argument.Arguments;
 import com.neotys.action.argument.Option;
@@ -7,19 +14,10 @@ import com.neotys.extensions.action.Action;
 import com.neotys.extensions.action.ActionParameter;
 import com.neotys.extensions.action.engine.ActionEngine;
 
-import javax.swing.*;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.ResourceBundle;
-
 
 public final class NewRelicAction implements Action{
-	private static final String BUNDLE_NAME = "com.neotys.newrelic.infrastructure.bundle";
-	private static final String DISPLAY_NAME = ResourceBundle.getBundle(BUNDLE_NAME, Locale.getDefault()).getString("displayName");
-	private static final String DISPLAY_PATH = ResourceBundle.getBundle(BUNDLE_NAME, Locale.getDefault()).getString("displayPath");
-
+	private static final String DISPLAY_NAME = "New Relic Monitoring";
+	private static final String DISPLAY_PATH = "APM/New Relic";
 	private static final ImageIcon LOGO_ICON;
 	static {
 		final URL iconURL = NewRelicAction.class.getResource("newrelic.png");

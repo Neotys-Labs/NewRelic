@@ -36,18 +36,15 @@ public class NeoLoadStatAggregator extends TimerTask {
 	private static final int INTERNAL_SERVER_ERROR = 500;
 	private static final int BAD_GATEWAY = 502;
 	private static final int SERVICE_UNAVAIBLE = 503;
-	private static final int GATEWAY_TIMEOUT = 504;
-	private static final int HTTP_RESPONSE = 200;
+	private static final int GATEWAY_TIMEOUT = 504;	
 	private static final String VERSION = "1.0.0";
-
-
 	private final Context neoloadContext;
 	private final Optional<String> proxyName;
 	private Map<String, String> headers = null;
 	private HTTPGenerator http;
 	private String NewRElicLicenseKey;
 	private String ComponentsName;
-	NLGlobalStat NLStat;
+	NLGlobalStat nlStat;
 	private String Insight_APIKEY;
 	private String Insight_AccountID;
 	private String TestName;
@@ -71,7 +68,7 @@ public class NeoLoadStatAggregator extends TimerTask {
 		this.proxyName = proxyName;
 		ComponentsName = "Statistics";
 		NewRElicLicenseKey = pNewRElicLicenseKeyY;
-		NLStat = pNLStat;
+		nlStat = pNLStat;
 		TestID = pTestID;
 		NLWEBresult = pNLWEBresult;
 		NewRelicAPplicationID = GetApplicationID(ApplicationName, ApIKEY);
@@ -90,7 +87,7 @@ public class NeoLoadStatAggregator extends TimerTask {
 
 		utc = System.currentTimeMillis() / 1000;
 
-		lasduration = NLStat.getLasduration();
+		lasduration = nlStat.getLasduration();
 
 		if (lasduration == 0 || (utc - lasduration) >= MIN_NEW_RELIC_DURATION) {
 
@@ -99,9 +96,9 @@ public class NeoLoadStatAggregator extends TimerTask {
 
 
 			lasduration = SendData(StatsResult, lasduration);
-			NLStat.setLasduration(lasduration);
+			nlStat.setLasduration(lasduration);
 
-			SendValuesToNewRelic();
+			sendValuesToNewRelic();
 		}
 	}
 
@@ -111,12 +108,12 @@ public class NeoLoadStatAggregator extends TimerTask {
 		long utc;
 		utc = System.currentTimeMillis() / 1000;
 
-		if (NLStat == null)
-			NLStat = new NLGlobalStat(stat);
+		if (nlStat == null)
+			nlStat = new NLGlobalStat(stat);
 		else {
-			NLStat.UpdateStat(stat);
+			nlStat.UpdateStat(stat);
 		}
-		data = NLStat.GetNLData();
+		data = nlStat.GetNLData();
 		if (LasDuration == 0)
 			time = 0;
 		else {
@@ -150,13 +147,13 @@ public class NeoLoadStatAggregator extends TimerTask {
 		Map<String, String> head = null;
 
 		HTTPGenerator ApplicationAPI;
-		String NewRelicApplicationID = null;
+		String newRelicApplicationID = null;
 
 		head = new HashMap<>();
 		head.put("X-Api-Key", APIKEY);
 		head.put("Content-Type", "application/json");
 		Url = NewRelicURL + NewRelicApplicationAPI;
-		Parameters = new HashMap<String, String>();
+		Parameters = new HashMap<>();
 		Parameters.put("filter[name]", ApplicaitoNAme);
 
 		final com.google.common.base.Optional<Proxy> proxy = getProxy(neoloadContext, proxyName, Url);
@@ -167,22 +164,19 @@ public class NeoLoadStatAggregator extends TimerTask {
 		if (jsoobj != null) {
 			if (jsoobj.has("applications")) {
 				jsonApplication = jsoobj.getJSONArray("applications");
-				NewRelicApplicationID = String.valueOf(jsonApplication.getJSONObject(0).getInt("id"));
-				if (NewRelicApplicationID == null)
+				newRelicApplicationID = String.valueOf(jsonApplication.getJSONObject(0).getInt("id"));
+				if (newRelicApplicationID == null)
 					throw new NewRelicException("No Application find in The NewRelic Account");
-			} else
-				NewRelicApplicationID = null;
-		} else
-			NewRelicApplicationID = null;
-
-		return NewRelicApplicationID;
+			} 
+		} 
+		return newRelicApplicationID;
 
 	}
 
-	private void SendValuesToNewRelic() throws ApiException {
+	private void sendValuesToNewRelic() {
 		ArrayOfElementDefinition NLElement;
 		ElementValues Values;
-		List<NLGlobalValues> NlValues = new ArrayList<>();
+		List<Metric> NlValues = new ArrayList<>();
 		try {
 
 
@@ -190,12 +184,12 @@ public class NeoLoadStatAggregator extends TimerTask {
 			for (ElementDefinition element : NLElement) {
 				if (element.getType().equalsIgnoreCase("TRANSACTION")) {
 					Values = NLWEBresult.getTestElementsValues(TestID, element.getId());
-					NlValues.add(new NLGlobalValues(element, Values));
+					NlValues.add(new Metric(element, Values));
 				}
 			}
 
-			for (NLGlobalValues val : NlValues)
-				SendValueMetricToInsightAPI(val.GetElementValue());
+			for (Metric val : NlValues)
+				SendValueMetricToInsightAPI(val.getElementValue());
 
 
 		} catch (Exception e) {
@@ -286,7 +280,7 @@ public class NeoLoadStatAggregator extends TimerTask {
 	private void SendMetricToInsightAPI(List<String[]> data, int time) throws NewRelicException {
 		int httpcode;
 		final Map<String, String> head = new HashMap<>();
-		HTTPGenerator Insight_HTTP = null;
+		HTTPGenerator insight_HTTP = null;
 
 		head.put("X-Insert-Key", Insight_APIKEY);
 		head.put("Content-Type", "application/json");
@@ -314,8 +308,8 @@ public class NeoLoadStatAggregator extends TimerTask {
 
 		try {
 			final com.google.common.base.Optional<Proxy> proxy = getProxy(neoloadContext, proxyName, URL);
-			Insight_HTTP = new HTTPGenerator(URL, head, JSON_String, proxy);
-			httpcode = Insight_HTTP.getHttpResponseCodeFromResponse();
+			insight_HTTP = new HTTPGenerator(URL, head, JSON_String, proxy);
+			httpcode = insight_HTTP.getHttpResponseCodeFromResponse();
 			switch (httpcode) {
 
 				case BAD_REQUEST:
@@ -354,7 +348,9 @@ public class NeoLoadStatAggregator extends TimerTask {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} finally {
-			Insight_HTTP.closeHttpClient();
+			if(insight_HTTP!=null){
+				insight_HTTP.closeHttpClient();
+			}
 		}
 	}
 

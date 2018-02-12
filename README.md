@@ -6,7 +6,7 @@ This Advanced Action allows you to integrate [NeoLoad](https://www.neotys.com/ne
 
 The NewRelicMonitoring Advanced Action:
 
-* **NewRelic -> NeoLoad**: Retrieve metrics of the SUT from NewRelic and inject them in NeoLoad (external data)   to correlate graphs in NeoLoad’s Dashboard
+* **NewRelic -> NeoLoad**: Retrieve metrics of the SUT from NewRelic and inject them in NeoLoad (external data) to correlate graphs in NeoLoad’s Dashboard
 * **NeoLoad -> New Relic Plugin**: Send the Global Statistics of a NeoLoad test to NewRelic Plugin to correlate load testing data in NewRelic.
 * **NeoLoad -> New Relic Insight**: Send Global Statistics of a NeoLoad test and the values of NeoLoad’s Transactions to NewRelic Insights to correlate load testing data in NewRelic Insight.
 
@@ -33,8 +33,8 @@ The NewRelicMonitoring Advanced Action:
 Once installed, how to use in a given NeoLoad project:
 
 1. Create a User Path “NewRelic”
-1. Insert NewRelicMonitoring in the ‘End’ block.
-1. Create a Population “NewRelic” that contains 100% of User Path “Dynatrace”
+1. Insert NewRelicMonitoring in the ‘Actions’ block.
+1. Create a Population “NewRelic” that contains 100% of User Path “NewRelic”
 1. In the Runtime section, select your scenario, select the “NewRelic” population and define a constant load of 1 user.
 ## Parameters
 

@@ -25,16 +25,11 @@ import static com.neotys.action.argument.Arguments.parseArguments;
 
 public final class NewRelicActionEngine implements ActionEngine {
 
-	private static final String STATUS_CODE_INVALID_PARAMETER = "NL-NEW_RELIC_MONITORING_ACTION-01";
-	private static final String STATUS_CODE_TECHNICAL_ERROR = "NL-NEW_RELIC_MONITORING_ACTION-02";
+	private static final String STATUS_CODE_INVALID_PARAMETER = "NL-NEW_RELIC_MONITORING_ACTION-01";	
 	private static final String STATUS_CODE_BAD_CONTEXT = "NL-NEW_RELIC_MONITORING_ACTION-03";
 
-	private String PLUGIN_ENABLED_VALUE;
-	private String ProjectName;
-	private String NLScenarioName;
-	NewRelicPluginData pluginData ;
+	private NewRelicPluginData pluginData;
 	
-	private static final String NewRelicMetricDataAPI="/metrics/data.json";
 	
 	@Override
 	public SampleResult execute(Context context, List<ActionParameter> parameters) {
@@ -93,6 +88,7 @@ public final class NewRelicActionEngine implements ActionEngine {
 
 				try {
 					pluginData=new NewRelicPluginData(licenseKey.get(), context, insightAccountId.get(), insightApiKey.get(), newRelicApiKey, newRelicApplicationName, proxyName);
+					context.getCurrentVirtualUser().put("PLUGINDATA",pluginData);	
 				} catch (NewRelicException | IOException | NoSuchAlgorithmException | KeyManagementException e) {
 					// TODO Auto-generated catch block
 					return getErrorResult(context, sampleResult, "Technical Error PLugin/Insight API:", e);
@@ -101,22 +97,9 @@ public final class NewRelicActionEngine implements ActionEngine {
 			} else{
 				PluginStored=true;
 			}
-			
-		//	pluginData.StartTimer();
-
 		}
 		
-				
-		
-		
-		try {
-			if(isNewRelicPluginEnabled)
-			{
-				if(!PluginStored)
-					pluginData.StartTimer();
-				else
-					pluginData.resumeTimer();
-			}
+		try {			
 			sampleResult.sampleStart();
 			Start_TS=System.currentTimeMillis()-context.getElapsedTime();
 			appendLineToStringBuilder(requestBuilder, "NewRelicInfraStructureMonitoring request.");
@@ -150,26 +133,15 @@ public final class NewRelicActionEngine implements ActionEngine {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		// TODO perform execution.
-
 		sampleResult.sampleEnd();
 
 		sampleResult.setRequestContent(requestBuilder.toString());
 		sampleResult.setResponseContent(responseBuilder.toString());
-		if(isNewRelicPluginEnabled)
-		{
-			pluginData.StopTimer();
-			if(!PluginStored)
-				context.getCurrentVirtualUser().put("PLUGINDATA",pluginData);
-			
-		}
-		
 		
 		return sampleResult;
 	}
 
-	private void appendLineToStringBuilder(final StringBuilder sb, final String line){
+	private static void appendLineToStringBuilder(final StringBuilder sb, final String line){
 		sb.append(line).append("\n");
 	}
 

@@ -20,10 +20,10 @@ import static com.neotys.newrelic.NewRelicUtils.getProxy;
 
 public class NeoLoadStatAggregator extends TimerTask {
 	private static final int MIN_NEW_RELIC_DURATION = 30;
-	private static final String NewRelicURL = "https://api.newrelic.com/v2/";
-	private static final String NewRelicApplicationAPI = "applications.json";
-	private static final String NEW_RELIC_PLUG_URL = "https://platform-api.newrelic.com/platform/v1/metrics";
-	private static String NEW_RELIC_INSIGHT_URL = "https://insights-collector.newrelic.com/v1/accounts/";
+	private static final String NEW_RELIC_URL = "https://api.newrelic.com/v2/";
+	private static final String APPLICATIONS_JSON = "applications.json";
+	private static final String NEW_RELIC_PLATFORM_API_URL = "https://platform-api.newrelic.com/platform/v1/metrics";
+	private static final String NEW_RELIC_INSIGHT_URL = "https://insights-collector.newrelic.com/v1/accounts/";
 	private static final String NLGUID = "com.neotys.NeoLoad.plugin";
 	private static final String NLWEB_TRANSACTION = "TRANSACTION";
 	private static final String NLWEB_PAGE = "PAGE";
@@ -38,49 +38,62 @@ public class NeoLoadStatAggregator extends TimerTask {
 	private static final int SERVICE_UNAVAIBLE = 503;
 	private static final int GATEWAY_TIMEOUT = 504;	
 	private static final String VERSION = "1.0.0";
+	
 	private final Context neoloadContext;
-	private final Optional<String> proxyName;
+	private final Optional<String> proxyName;	
+	
+	private final String newRelicLicenseKey;
+	private final String componentsName;	
+	private final String nrInsightApiKey;
+	private final String nrInsightAccountId;
+	private final String nlTestName;
+	private final String testId;
+	private final String nrApplicationId;
+	private final String nlScenarioName;
+	private final String nrApplicationName;
+	private final ResultsApi nlWebResult;
+		
 	private Map<String, String> headers = null;
+	private NLGlobalStat nlStat;
 	private HTTPGenerator http;
-	private String NewRElicLicenseKey;
-	private String ComponentsName;
-	NLGlobalStat nlStat;
-	private String Insight_APIKEY;
-	private String Insight_AccountID;
-	private String TestName;
-	private final String TestID;
-	private String NewRelicAPplicationID;
-	private String NLScenarioName;
-	private String ApplicationNAme;
-	ResultsApi NLWEBresult;
-
-
-	private void InitHttpClient() {
+	
+	private void initHttpClient() {
 		headers = new HashMap<>();
-		headers.put("X-License-Key", NewRElicLicenseKey);
+		headers.put("X-License-Key", newRelicLicenseKey);
 		headers.put("Content-Type", "application/json");
 		headers.put("Accept", "application/json");
 
 	}
 
-	public NeoLoadStatAggregator(String pNewRElicLicenseKeyY, ResultsApi pNLWEBresult, String pTestID, NLGlobalStat pNLStat, String I_AccountID, String I_APIKEY, String Testname, String ApplicationName, String ApIKEY, String ScenarioName, final Context neoloadContext, final Optional<String> proxyName) throws NewRelicException, IOException {
+	public NeoLoadStatAggregator(final String newRelicLicenseKey, 
+			final ResultsApi nlWebResult, 
+			final String testId, 
+			final NLGlobalStat nlStat, 
+			final String nrInsightAccountId, 
+			final String nrInsightApiKey, 
+			final String Testname, 
+			final String applicationName, 
+			final String apiKey, 
+			final String ScenarioName, 
+			final Context neoloadContext, 
+			final Optional<String> proxyName) throws NewRelicException, IOException {
 		this.neoloadContext = neoloadContext;
 		this.proxyName = proxyName;
-		ComponentsName = "Statistics";
-		NewRElicLicenseKey = pNewRElicLicenseKeyY;
-		nlStat = pNLStat;
-		TestID = pTestID;
-		NLWEBresult = pNLWEBresult;
-		NewRelicAPplicationID = GetApplicationID(ApplicationName, ApIKEY);
-		NLScenarioName = ScenarioName;
-		TestName = Testname;
-		Insight_AccountID = I_AccountID;
-		Insight_APIKEY = I_APIKEY;
-		ApplicationNAme = ApplicationName;
-		InitHttpClient();
+		this.componentsName = "Statistics";
+		this.newRelicLicenseKey = newRelicLicenseKey;
+		this.nlStat = nlStat;
+		this.testId = testId;
+		this.nlWebResult = nlWebResult;
+		this.nrApplicationId = getApplicationID(applicationName, apiKey);
+		this.nlScenarioName = ScenarioName;
+		this.nlTestName = Testname;
+		this.nrInsightAccountId = nrInsightAccountId;
+		this.nrInsightApiKey = nrInsightApiKey;
+		this.nrApplicationName = applicationName;
+		initHttpClient();
 	}
 
-	private void SendStatsToNewRelic() throws ApiException {
+	private void sendStatsToNewRelic() throws ApiException {
 		TestStatistics StatsResult;
 		long utc;
 		long lasduration;
@@ -92,17 +105,17 @@ public class NeoLoadStatAggregator extends TimerTask {
 		if (lasduration == 0 || (utc - lasduration) >= MIN_NEW_RELIC_DURATION) {
 
 
-			StatsResult = NLWEBresult.getTestStatistics(TestID);
+			StatsResult = nlWebResult.getTestStatistics(testId);
 
 
-			lasduration = SendData(StatsResult, lasduration);
+			lasduration = sendData(StatsResult, lasduration);
 			nlStat.setLasduration(lasduration);
 
 			sendValuesToNewRelic();
 		}
 	}
 
-	public long SendData(TestStatistics stat, long LasDuration) {
+	public long sendData(TestStatistics stat, long LasDuration) {
 		int time = 0;
 		List<String[]> data;
 		long utc;
@@ -121,7 +134,7 @@ public class NeoLoadStatAggregator extends TimerTask {
 		}
 		for (String[] metric : data) {
 			try {
-				SendMetricToPluginAPi(metric[0], metric[1], time, metric[2], metric[3]);
+				sendMetricToPluginAPI(metric[0], metric[1], time, metric[2], metric[3]);
 
 			} catch (NewRelicException e) {
 				// TODO Auto-generated catch block
@@ -130,7 +143,7 @@ public class NeoLoadStatAggregator extends TimerTask {
 		}
 		try {
 
-			SendMetricToInsightAPI(data, time);
+			sendMetricToInsightAPI(data, time);
 		} catch (NewRelicException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -139,7 +152,7 @@ public class NeoLoadStatAggregator extends TimerTask {
 		return utc;
 	}
 
-	public String GetApplicationID(String ApplicaitoNAme, String APIKEY) throws NewRelicException, IOException {
+	public String getApplicationID(String ApplicaitoNAme, String APIKEY) throws NewRelicException, IOException {
 		JSONObject jsoobj;
 		String Url;
 		JSONArray jsonApplication;
@@ -152,7 +165,7 @@ public class NeoLoadStatAggregator extends TimerTask {
 		head = new HashMap<>();
 		head.put("X-Api-Key", APIKEY);
 		head.put("Content-Type", "application/json");
-		Url = NewRelicURL + NewRelicApplicationAPI;
+		Url = NEW_RELIC_URL + APPLICATIONS_JSON;
 		Parameters = new HashMap<>();
 		Parameters.put("filter[name]", ApplicaitoNAme);
 
@@ -180,16 +193,16 @@ public class NeoLoadStatAggregator extends TimerTask {
 		try {
 
 
-			NLElement = NLWEBresult.getTestElements(TestID, NLWEB_TRANSACTION);
+			NLElement = nlWebResult.getTestElements(testId, NLWEB_TRANSACTION);
 			for (ElementDefinition element : NLElement) {
 				if (element.getType().equalsIgnoreCase("TRANSACTION")) {
-					Values = NLWEBresult.getTestElementsValues(TestID, element.getId());
+					Values = nlWebResult.getTestElementsValues(testId, element.getId());
 					NlValues.add(new Metric(element, Values));
 				}
 			}
 
 			for (Metric val : NlValues)
-				SendValueMetricToInsightAPI(val.getElementValue());
+				sendValueMetricToInsightAPI(val.getElementValue());
 
 
 		} catch (Exception e) {
@@ -197,27 +210,27 @@ public class NeoLoadStatAggregator extends TimerTask {
 		}
 	}
 
-	private void SendValueMetricToInsightAPI(String[] data) throws NewRelicException {
+	private void sendValueMetricToInsightAPI(String[] data) throws NewRelicException {
 		int httpcode;
 		final Map<String, String> head = new HashMap<>();
 		HTTPGenerator Insight_HTTP = null;
 
 
-		head.put("X-Insert-Key", Insight_APIKEY);
+		head.put("X-Insert-Key", nrInsightApiKey);
 		head.put("Content-Type", "application/json");
 		String URL;
 		long ltime = System.currentTimeMillis();
 
-		URL = NEW_RELIC_INSIGHT_URL + Insight_AccountID + "/events";
+		URL = NEW_RELIC_INSIGHT_URL + nrInsightAccountId + "/events";
 		String Exceptionmessage = null;
 
 		String JSON_String = "[{\"eventType\":\"NeoLoadValues\","
-				+ "\"account\" : \"" + Insight_AccountID + "\","
-				+ "\"appId\" : \"" + NewRelicAPplicationID + "\","
-				+ "\"testName\" : \"" + TestName + "\","
-				+ "\"scenarioName\" : \"" + NLScenarioName + "\","
-				+ "\"applicationName\" : \"" + ApplicationNAme + "\","
-				+ "\"trendfield\": \"" + ApplicationNAme + NLScenarioName + TestName + "\","
+				+ "\"account\" : \"" + nrInsightAccountId + "\","
+				+ "\"appId\" : \"" + nrApplicationId + "\","
+				+ "\"testName\" : \"" + nlTestName + "\","
+				+ "\"scenarioName\" : \"" + nlScenarioName + "\","
+				+ "\"applicationName\" : \"" + nrApplicationName + "\","
+				+ "\"trendfield\": \"" + nrApplicationName + nlScenarioName + nlTestName + "\","
 				+ "\"userPathName\" :\"" + data[1] + "\","
 				+ "\"type\" :\"" + data[6] + "\","
 				+ "\"transactionName\" :\"" + data[0] + "\","
@@ -277,26 +290,26 @@ public class NeoLoadStatAggregator extends TimerTask {
 
 	}
 
-	private void SendMetricToInsightAPI(List<String[]> data, int time) throws NewRelicException {
+	private void sendMetricToInsightAPI(List<String[]> data, int time) throws NewRelicException {
 		int httpcode;
 		final Map<String, String> head = new HashMap<>();
 		HTTPGenerator insight_HTTP = null;
 
-		head.put("X-Insert-Key", Insight_APIKEY);
+		head.put("X-Insert-Key", nrInsightApiKey);
 		head.put("Content-Type", "application/json");
 		String URL;
 		long ltime = System.currentTimeMillis();
 
-		URL = NEW_RELIC_INSIGHT_URL + Insight_AccountID + "/events";
+		URL = NEW_RELIC_INSIGHT_URL + nrInsightAccountId + "/events";
 		String Exceptionmessage = null;
 
 		String JSON_String = "[{\"eventType\":\"NeoLoadData\","
-				+ "\"account\" : \"" + Insight_AccountID + "\","
-				+ "\"appId\" : \"" + NewRelicAPplicationID + "\","
-				+ "\"testName\" : \"" + TestName + "\","
-				+ "\"scenarioName\" : \"" + NLScenarioName + "\","
-				+ "\"applicationName\" : \"" + ApplicationNAme + "\","
-				+ "\"trendfield\": \"" + ApplicationNAme + NLScenarioName + TestName + "\",";
+				+ "\"account\" : \"" + nrInsightAccountId + "\","
+				+ "\"appId\" : \"" + nrApplicationId + "\","
+				+ "\"testName\" : \"" + nlTestName + "\","
+				+ "\"scenarioName\" : \"" + nlScenarioName + "\","
+				+ "\"applicationName\" : \"" + nrApplicationName + "\","
+				+ "\"trendfield\": \"" + nrApplicationName + nlScenarioName + nlTestName + "\",";
 
 		for (String[] metric : data) {
 			JSON_String += "\"" + metric[1] + "\" : " + metric[3] + ",";
@@ -354,11 +367,11 @@ public class NeoLoadStatAggregator extends TimerTask {
 		}
 	}
 
-	private void SendMetricToPluginAPi(String MetricName, String MetricPath, int Duration, String unit, String Value) throws NewRelicException {
+	private void sendMetricToPluginAPI(final String MetricName, final String MetricPath, final int Duration, final String unit, final String value) throws NewRelicException {
 		int httpcode;
 		String Exceptionmessage = null;
 
-		String JSON_String = "{\"agent\":{"
+		String jsonString = "{\"agent\":{"
 				+ "\"host\" : \"" + NLGUID + "\","
 				+ "\"version\" : \"" + VERSION + "\""
 				+ "},"
@@ -368,15 +381,15 @@ public class NeoLoadStatAggregator extends TimerTask {
 				+ "\"guid\": \"" + NLGUID + "\","
 				+ " \"duration\" : " + String.valueOf(Duration) + ","
 				+ " \"metrics\" : {"
-				+ " \"Component/NeoLoad/" + ComponentsName + "/" + MetricPath + "[" + unit + "]\": " + Value + ""
+				+ " \"Component/NeoLoad/" + componentsName + "/" + MetricPath + "[" + unit + "]\": " + value + ""
 				+ "}"
 				+ "}"
 				+ "]"
 				+ "}";
 
 		try {
-			final com.google.common.base.Optional<Proxy> proxy = getProxy(neoloadContext, proxyName, NEW_RELIC_PLUG_URL);
-			http = new HTTPGenerator(NEW_RELIC_PLUG_URL, headers, JSON_String, proxy);
+			final com.google.common.base.Optional<Proxy> proxy = getProxy(neoloadContext, proxyName, NEW_RELIC_PLATFORM_API_URL);
+			http = new HTTPGenerator(NEW_RELIC_PLATFORM_API_URL, headers, jsonString, proxy);
 			httpcode = http.getHttpResponseCodeFromResponse();
 			switch (httpcode) {
 
@@ -424,7 +437,7 @@ public class NeoLoadStatAggregator extends TimerTask {
 	@Override
 	public void run() {
 		try {
-			SendStatsToNewRelic();
+			sendStatsToNewRelic();
 		} catch (ApiException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

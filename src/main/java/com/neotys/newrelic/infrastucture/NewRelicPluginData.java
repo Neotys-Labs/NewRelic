@@ -23,19 +23,12 @@ public class NewRelicPluginData {
 	
 	private final NLGlobalStat nlStat;		
 	private final Timer timerNewRelic;	
-	private final String newRelicLicenseKey;
 	private final ApiClient neoloadWebApiClient;
-	private final Context neoloadContext;		
 	
-		
-	private final String testId;
 	private final NeoLoadStatAggregator nlAggregator;
 	
 	public NewRelicPluginData(String newRelicLicenseKey, final Context neoloadContext, final String insightAccountId, final String insightApiKey, final String applicationName, final String applicationApiKey, final Optional<String> proxyName) throws NewRelicException, IOException, NoSuchAlgorithmException, KeyManagementException {
-		super();
-		this.newRelicLicenseKey = newRelicLicenseKey;		
-		this.testId = neoloadContext.getTestId();
-		this.neoloadContext = neoloadContext;
+		super();	
 
 		//----define  the NLWEB API-----
 		this.neoloadWebApiClient = new ApiClient();
@@ -46,10 +39,8 @@ public class NewRelicPluginData {
 		if(proxyOptional.isPresent()) {
 			initProxyForNeoloadWebApiClient(neoloadWebApiClient, proxyOptional.get());
 		}	
-		this.nlStat=new NLGlobalStat();		
-		
-		
-		this.nlAggregator=new NeoLoadStatAggregator(this.newRelicLicenseKey,new ResultsApi(neoloadWebApiClient),testId,nlStat,insightAccountId,insightApiKey,neoloadContext.getTestName(),applicationName,applicationApiKey,GetTestScenarioName(), neoloadContext, proxyName);
+		this.nlStat=new NLGlobalStat();				
+		this.nlAggregator=new NeoLoadStatAggregator(newRelicLicenseKey,new ResultsApi(neoloadWebApiClient),neoloadContext.getTestId(),nlStat,insightAccountId,insightApiKey,neoloadContext.getTestName(),applicationName,applicationApiKey,neoloadContext.getScenarioName(), neoloadContext, proxyName);
 		this.timerNewRelic = new Timer();
 		timerNewRelic.scheduleAtFixedRate(nlAggregator,TIMERDELAY,TIMERFREQUENCY);
 	
@@ -64,9 +55,6 @@ public class NewRelicPluginData {
 		basePathBuilder.append(NLWEB_VERSION + "/");
 		return basePathBuilder.toString();
 	}
-		 
-	 private String GetTestScenarioName(){
-		return neoloadContext.getScenarioName();
-	 }
+	
 	
 }

@@ -7,9 +7,6 @@ import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -39,12 +36,12 @@ import com.neotys.rest.error.NeotysAPIException;
 public class NewRelicIntegration {
 	private DataExchangeAPIClient client;
 	private HTTPGenerator http;
-	private static final String NewRelicURL="https://api.newrelic.com/v2/";
-	private static final String NewRelicApplicationAPI="applications.json";
-	private static final String NewRelicMetricNameAPI="/metrics.json";
-	private static final String NewRelicHostAPI="/hosts.json";
-	private static final String NewRelicMetricDataAPI="/metrics/data.json";
-	private static final String NeoLoadLocation="NewRelic";
+	private static final String NewRelicURL = "https://api.newrelic.com/v2/";
+	private static final String NewRelicApplicationAPI = "applications.json";
+	private static final String NewRelicMetricNameAPI = "/metrics.json";
+	private static final String NewRelicHostAPI = "/hosts.json";
+	private static final String NewRelicMetricDataAPI = "/metrics/data.json";
+	private static final String NeoLoadLocation = "NewRelic";
 	private EntryBuilder entry;
 	private String NewRElicAPIKEY;
 	private String NewRelic_Application;
@@ -52,86 +49,82 @@ public class NewRelicIntegration {
 	private final Context context;
 	private final com.google.common.base.Optional<String> proxyName;
 	private long StartingTS;
-	private HashMap<String,String> Header = null;
-	private HashMap<String,String> Parameters=null;
-	private static List<String> RelevantMetriNames = Arrays.asList("min", "max", "average","used_mb","percent");
-	private static List<String> NonRelevantMetricname = Arrays.asList("Datastore/statement","Datastore/instance","CPU","Memory","Error/","connects");
+	private HashMap<String, String> Header = null;
+	private HashMap<String, String> Parameters = null;
+	private static List<String> RELEVANT_METRIC_NAMES = Arrays.asList("min", "max", "average", "used_mb", "percent");
+	private static List<String> RELEVANT_METRIC_NAMES_FOR_HOST = Arrays.asList("Datastore/statement", "Datastore/instance", "CPU", "Memory", "Error/",
+			"connects");
 
-
-	public NewRelicIntegration(String NewrelicAPIKEY, String NewRelicApplication, final String dataExchangeApiUrl, final com.google.common.base.Optional<String> dataExchangeApiKey, final com.neotys.extensions.action.engine.Context context, final com.google.common.base.Optional<String> proxyName, final long startTS)
-	{
+	public NewRelicIntegration(String NewrelicAPIKEY, String NewRelicApplication, final String dataExchangeApiUrl,
+			final com.google.common.base.Optional<String> dataExchangeApiKey, final com.neotys.extensions.action.engine.Context context,
+			final com.google.common.base.Optional<String> proxyName, final long startTS) {
 		this.context = context;
 		this.proxyName = proxyName;
-		StartingTS=startTS;
+		StartingTS = startTS;
 		final ContextBuilder contextBuilder = new ContextBuilder();
 		contextBuilder.hardware("NewRelic").location(NeoLoadLocation).software("NewRelic")
 
-			.script("NewRelicInfrasfructureMonitoring" + System.currentTimeMillis());
-		NewRElicAPIKEY=NewrelicAPIKEY;
-		NewRelic_Application=NewRelicApplication;
+				.script("NewRelicInfrasfructureMonitoring" + System.currentTimeMillis());
+		NewRElicAPIKEY = NewrelicAPIKEY;
+		NewRelic_Application = NewRelicApplication;
 
 		try {
 			client = DataExchangeAPIClientFactory.newClient(dataExchangeApiUrl, contextBuilder.build(), dataExchangeApiKey.orNull());
-			
+
 		} catch (GeneralSecurityException | IOException | ODataException | URISyntaxException | NeotysAPIException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
-	}
-	public void startMonitor(StringBuilder build) throws NewRelicException, IOException, JSONException, GeneralSecurityException, URISyntaxException, NeotysAPIException, ParseException
-	{
 
-		List<String> Metrics;
-		
+	}
+
+	public void startMonitor(StringBuilder build)
+			throws NewRelicException, IOException, JSONException, GeneralSecurityException, URISyntaxException, NeotysAPIException, ParseException {
+
 		initHttpClient();
-  	    NewRelicApplicationID=GetApplicationID();
-		final Map<String,String> Hosts=GetApplicationsHosts();
-		for (Entry<String, String> entry : Hosts.entrySet())
-		{
-			Metrics=GetMetricNameByHost(entry.getKey());
-			for (int i = 0; i < Metrics.size(); i++) 
-			{
-				 build.append("Sending Metrics Data for Application" + NewRelic_Application+" on the host "+ entry.getValue()+ " metrics name "+ Metrics.get(i)+"\n");
-				 SendMetricDataFromMetricsNameToNL(Metrics.get(i), entry.getKey(), NewRelic_Application, entry.getValue());
+		NewRelicApplicationID = GetApplicationID();
+		final Map<String, String> Hosts = GetApplicationsHosts();
+		for (Entry<String, String> entry : Hosts.entrySet()) {
+			final List<String> metrics = getMetricNameByHost(entry.getKey());
+			for (int i = 0 ; i < metrics.size() ; i++) {
+				build.append("Sending Metrics Data for Application" + NewRelic_Application + " on the host " + entry.getValue() + " metrics name "
+						+ metrics.get(i) + "\n");
+				sendMetricDataFromMetricsNameToNL(metrics.get(i), entry.getKey(), NewRelic_Application, entry.getValue());
 			}
 
 		}
 
-		
 	}
-	private boolean ISrelevantMetricName(String Metricname)
-	{
-		boolean result=false;
-		  for(String listItem : NonRelevantMetricname){
-			   if(Metricname.contains(listItem)){
-			      return true;
-			   }
+
+	private static boolean isRelevantMetricNameForHost(final String metricname) {
+		boolean result = false;
+		for (String listItem : RELEVANT_METRIC_NAMES_FOR_HOST) {
+			if (metricname.contains(listItem)) {
+				return true;
 			}
+		}
 		return result;
 	}
+
 	@SuppressWarnings("null")
-	public Map<String,String> GetApplicationsHosts() throws IOException
-	{
+	public Map<String, String> GetApplicationsHosts() throws IOException {
 		JSONObject jsoobj;
 		String Url;
 		JSONArray array;
-		HashMap<String,String> Hostnames= null;
-		Parameters=null;
-		Url=NewRelicURL+"applications/"+NewRelicApplicationID+NewRelicHostAPI;
+		HashMap<String, String> Hostnames = null;
+		Parameters = null;
+		Url = NewRelicURL + "applications/" + NewRelicApplicationID + NewRelicHostAPI;
 
 		final Optional<Proxy> proxy = getProxy(context, proxyName, Url);
-		http=new HTTPGenerator(Url, "GET", Header,Parameters, proxy );
+		http = new HTTPGenerator(Url, "GET", Header, Parameters, proxy);
 
 		//----get the list of Hosts of the application-----------
-	//		http.NewHttpRequest(Url, "GET", Header, Parameters);
-		jsoobj=http.getJSONHTTPresponse();
-		if(jsoobj != null)
-		{
-			Hostnames=new HashMap<String,String>();
-			array=jsoobj.getJSONArray("application_hosts");
-			for(int j=0;j<array.length();j++)
+		//		http.NewHttpRequest(Url, "GET", Header, Parameters);
+		jsoobj = http.getJSONHTTPresponse();
+		if (jsoobj != null) {
+			Hostnames = new HashMap<String, String>();
+			array = jsoobj.getJSONArray("application_hosts");
+			for (int j = 0 ; j < array.length() ; j++)
 				Hostnames.put(String.valueOf(array.getJSONObject(j).getInt("id")), array.getJSONObject(j).getString("host"));
 		}
 		//-------------------------------------------------------
@@ -139,166 +132,142 @@ public class NewRelicIntegration {
 		return Hostnames;
 	}
 
-
-	private long GetTimeMillisFromDate(String date) throws ParseException
-	{
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss"); 
+	private long GetTimeMillisFromDate(String date) throws ParseException {
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss");
 		formatter.setTimeZone(new SimpleTimeZone(SimpleTimeZone.UTC_TIME, "UTC"));
 		Date d = formatter.parse(date);
 		long timestamp = d.getTime();
-		
-		return timestamp;	
+
+		return timestamp;
 	}
-	private void CreateEntry(String ApplicationName,String HostName,String MetricName,String MetricValueName,double value,String unit,String ValueDate) throws GeneralSecurityException, IOException, URISyntaxException, NeotysAPIException, ParseException
-	{
-	  entry=new EntryBuilder(Arrays.asList("NewRelic", ApplicationName, HostName,MetricName,MetricValueName), Long.parseLong(ValueDate));
+
+	private void CreateEntry(String ApplicationName, String HostName, String MetricName, String MetricValueName, double value, String unit,
+			String ValueDate) throws GeneralSecurityException, IOException, URISyntaxException, NeotysAPIException, ParseException {
+		entry = new EntryBuilder(Arrays.asList("NewRelic", ApplicationName, HostName, MetricName, MetricValueName), Long.parseLong(ValueDate));
 		entry.unit(unit);
 		entry.value(value);
 		client.addEntry(entry.build());
 	}
-  public List<String> GetMetricNameByHost(String HostID) throws ClientProtocolException, IOException
-  {
-	  JSONObject jsoobj;
-	  JSONArray array;
-	  List<String> MetriNames= new ArrayList<String>();
-	  String Url=NewRelicURL+"applications/"+NewRelicApplicationID+"/hosts/"+HostID+NewRelicMetricNameAPI;
-	  Parameters=null;
 
-	  final Optional<Proxy> proxy = getProxy(context, proxyName, Url);
-	  http=new HTTPGenerator(Url, "GET", Header,Parameters, proxy );
+	public List<String> getMetricNameByHost(final String hostId) throws ClientProtocolException, IOException {
+		JSONObject jsoobj;
+		JSONArray array;
+		final List<String> metriNames = new ArrayList<>();
+		String Url = NewRelicURL + "applications/" + NewRelicApplicationID + "/hosts/" + hostId + NewRelicMetricNameAPI;
+		Parameters = null;
 
-	//  http.NewHttpRequest(Url, "GET", Header, Parameters);
-		jsoobj=http.getJSONHTTPresponse();
-		if(jsoobj != null)
-		{
+		final Optional<Proxy> proxy = getProxy(context, proxyName, Url);
+		http = new HTTPGenerator(Url, "GET", Header, Parameters, proxy);
+
+		jsoobj = http.getJSONHTTPresponse();
+		if (jsoobj != null) {
 			array = jsoobj.getJSONArray("metrics");
-			for(int i = 0 ; i < array.length() ; i++)
-			{
-			  if(ISrelevantMetricName(array.getJSONObject(i).getString("name")))
-				  MetriNames.add( array.getJSONObject(i).getString("name"));
+			for (int i = 0 ; i < array.length() ; i++) {
+				if (isRelevantMetricNameForHost(array.getJSONObject(i).getString("name")))
+					metriNames.add(array.getJSONObject(i).getString("name"));
 			}
-			
+
 		}
-	  http.closeHttpClient();
-		return MetriNames;
-  }
-  private String GetUTCDate()
-  {
-	  ZonedDateTime utc = ZonedDateTime.now(ZoneOffset.UTC);
-	  //utc=utc.minusSeconds(60);
-	  return utc.toInstant().toString();
-  }
-  private boolean IsMetricrelevant(String Metriname)
-  {
-	  boolean result= false;
-	  for(String listItem : RelevantMetriNames){
-		   if(Metriname.contains(listItem)){
-		      return true;
-		   }
+		http.closeHttpClient();
+		return metriNames;
+	}
+
+	private static boolean isMetricRelevant(final String name) {
+		boolean result = false;
+		for (String listItem : RELEVANT_METRIC_NAMES) {
+			if (name.contains(listItem)) {
+				return true;
+			}
 		}
-	  return result;
-  }
-  
-  public void SendMetricDataFromMetricsNameToNL(String MetricName,String HostID,String Applicationname,String Hostname) throws ClientProtocolException, IOException, JSONException, GeneralSecurityException, URISyntaxException, NeotysAPIException, ParseException
-  {
-	  JSONObject jsoobj;
+		return result;
+	}
+
+	public void sendMetricDataFromMetricsNameToNL(String MetricName, String HostID, String Applicationname, String Hostname)
+			throws ClientProtocolException, IOException, JSONException, GeneralSecurityException, URISyntaxException, NeotysAPIException,
+			ParseException {
+		JSONObject jsoobj;
 		String Url;
 		JSONArray array;
 		JSONArray timeslices;
 		JSONObject values;
-		JSONObject metric_data;
-		String now=GetUTCDate();
+		JSONObject metric_data;		
 		String MetricDate;
 		String MetricValueName;
 		long metricdate;
-		
-		 Url=NewRelicURL+"applications/"+NewRelicApplicationID+"/hosts/"+HostID+NewRelicMetricDataAPI;
-		 Parameters= new HashMap<>();
-		 Parameters.put("names[]",MetricName);
-		 //Parameters.put("from", now);
-		 Parameters.put("period", "1");
-		 Parameters.put("summarize", "false");
-		 Parameters.put("raw","true");
 
-	  final Optional<Proxy> proxy = getProxy(context, proxyName, Url);
-	  http=new HTTPGenerator(Url, "GET", Header,Parameters, proxy );
+		Url = NewRelicURL + "applications/" + NewRelicApplicationID + "/hosts/" + HostID + NewRelicMetricDataAPI;
+		Parameters = new HashMap<>();
+		Parameters.put("names[]", MetricName);
+		Parameters.put("period", "1");
+		Parameters.put("summarize", "false");
+		Parameters.put("raw", "true");
 
-	  //http.NewHttpRequest(Url, "GET", Header, Parameters);
-			jsoobj=http.getJSONHTTPresponse();
-			if(jsoobj != null)
-			{		
-					if(jsoobj.has("metric_data"))
-					{
-						metric_data=jsoobj.getJSONObject("metric_data");
-					
-					
-						array = metric_data.getJSONArray("metrics");
-						for(int i = 0 ; i < array.length() ; i++)
-						{
-								timeslices=array.getJSONObject(i).getJSONArray("timeslices");
-								for(int j=0;j<timeslices.length();j++)
-								{
-										MetricDate=timeslices.getJSONObject(j).getString("from");
-										metricdate=GetTimeMillisFromDate(MetricDate);
-										if(metricdate>=StartingTS)
-										{
-											MetricDate=String.valueOf(metricdate);
-											values=timeslices.getJSONObject(j).getJSONObject("values");
-											final Iterator<String> it = values.keys();
-											while(it.hasNext()){											
-												MetricValueName=it.next();
-												if(IsMetricrelevant(MetricValueName))
-														CreateEntry(Applicationname, Hostname, MetricName,MetricValueName, values.getDouble(MetricValueName), "", MetricDate);
-											}
-										}
-								}
+		final Optional<Proxy> proxy = getProxy(context, proxyName, Url);
+		http = new HTTPGenerator(Url, "GET", Header, Parameters, proxy);
+
+		jsoobj = http.getJSONHTTPresponse();
+		if (jsoobj != null) {
+			if (jsoobj.has("metric_data")) {
+				metric_data = jsoobj.getJSONObject("metric_data");
+
+				array = metric_data.getJSONArray("metrics");
+				for (int i = 0 ; i < array.length() ; i++) {
+					timeslices = array.getJSONObject(i).getJSONArray("timeslices");
+					for (int j = 0 ; j < timeslices.length() ; j++) {
+						MetricDate = timeslices.getJSONObject(j).getString("from");
+						metricdate = GetTimeMillisFromDate(MetricDate);
+						if (metricdate >= StartingTS) {
+							MetricDate = String.valueOf(metricdate);
+							values = timeslices.getJSONObject(j).getJSONObject("values");
+							final Iterator<String> it = values.keys();
+							while (it.hasNext()) {
+								MetricValueName = it.next();
+								if (isMetricRelevant(MetricValueName))
+									CreateEntry(Applicationname, Hostname, MetricName, MetricValueName, values.getDouble(MetricValueName), "",
+											MetricDate);
+							}
 						}
 					}
-				
+				}
 			}
-	  http.closeHttpClient();
-  }
-	public  String GetApplicationID() throws NewRelicException, IOException
-	{
+
+		}
+		http.closeHttpClient();
+	}
+
+	public String GetApplicationID() throws NewRelicException, IOException {
 		JSONObject jsoobj;
 		String Url;
 		JSONArray jsonApplication;
-		
 
-		Url=NewRelicURL+NewRelicApplicationAPI;
-		Parameters= new HashMap<>();
-		Parameters.put("filter[name]",NewRelic_Application);
+		Url = NewRelicURL + NewRelicApplicationAPI;
+		Parameters = new HashMap<>();
+		Parameters.put("filter[name]", NewRelic_Application);
 
 		final Optional<Proxy> proxy = getProxy(context, proxyName, Url);
-		http=new HTTPGenerator(Url, "GET", Header,Parameters, proxy );
-		
-		jsoobj=http.getJSONHTTPresponse();
-		if(jsoobj != null)
-		{
-			if(jsoobj.has("applications"))
-			{
-				jsonApplication=jsoobj.getJSONArray("applications");
-				NewRelicApplicationID=String.valueOf(jsonApplication.getJSONObject(0).getInt("id"));
-				if(NewRelicApplicationID ==null)
+		http = new HTTPGenerator(Url, "GET", Header, Parameters, proxy);
+
+		jsoobj = http.getJSONHTTPresponse();
+		if (jsoobj != null) {
+			if (jsoobj.has("applications")) {
+				jsonApplication = jsoobj.getJSONArray("applications");
+				NewRelicApplicationID = String.valueOf(jsonApplication.getJSONObject(0).getInt("id"));
+				if (NewRelicApplicationID == null)
 					throw new NewRelicException("No Application find in The NewRelic Account");
-			}
-			else
-				NewRelicApplicationID=null;
-		}
-		else
-			NewRelicApplicationID=null;
+			} else
+				NewRelicApplicationID = null;
+		} else
+			NewRelicApplicationID = null;
 
 		http.closeHttpClient();
 		return NewRelicApplicationID;
-		
+
 	}
-	private void initHttpClient()
-	{
-		Header= new HashMap<>();
+
+	private void initHttpClient() {
+		Header = new HashMap<>();
 		Header.put("X-Api-Key", NewRElicAPIKEY);
 		Header.put("Content-Type", "application/json");
-		
-		
+
 	}
 }
-

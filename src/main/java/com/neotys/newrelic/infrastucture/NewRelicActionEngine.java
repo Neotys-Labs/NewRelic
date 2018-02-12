@@ -56,9 +56,7 @@ public final class NewRelicActionEngine implements ActionEngine {
 		}
 		
 		NewRelicIntegration newrelic;
-		
-		boolean PluginStored=false;
-
+				
 		final String newRelicApiKey = parsedArgs.get(NewRelicOption.NewRelicApiKey.getName()).get();
 		final String newRelicApplicationName = parsedArgs.get(NewRelicOption.NewRelicApplicationName.getName()).get();
 
@@ -94,9 +92,7 @@ public final class NewRelicActionEngine implements ActionEngine {
 					return getErrorResult(context, sampleResult, "Technical Error PLugin/Insight API:", e);
 				
 				}
-			} else{
-				PluginStored=true;
-			}
+			} 
 		}
 		
 		try {			

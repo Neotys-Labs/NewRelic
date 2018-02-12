@@ -33,7 +33,9 @@ The NewRelicMonitoring Advanced Action:
 Once installed, how to use in a given NeoLoad project:
 
 1. Create a User Path “NewRelic”
-1. Insert NewRelicMonitoring in the ‘Actions’ block.
+1. Insert Custom action “New Relic Monitoring” in the “Actions” container.
+1. Set a 60 seconds pacing on the “Actions” container.
+1. Set the “Actions” container to not reset the user session.
 1. Create a Population “NewRelic” that contains 100% of User Path “NewRelic”
 1. In the Runtime section, select your scenario, select the “NewRelic” population and define a constant load of 1 user.
 ## Parameters

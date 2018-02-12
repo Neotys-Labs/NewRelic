@@ -1,19 +1,6 @@
 package com.neotys.newrelic.infrastucture;
 
-import com.google.common.base.Optional;
-import com.neotys.extensions.action.engine.Context;
-import com.neotys.extensions.action.engine.Proxy;
-import com.neotys.newrelic.http.HTTPGenerator;
-import com.neotys.rest.dataexchange.client.DataExchangeAPIClient;
-import com.neotys.rest.dataexchange.client.DataExchangeAPIClientFactory;
-import com.neotys.rest.dataexchange.model.ContextBuilder;
-import com.neotys.rest.dataexchange.model.EntryBuilder;
-import com.neotys.rest.error.NeotysAPIException;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.olingo.odata2.api.exception.ODataException;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import static com.neotys.newrelic.NewRelicUtils.getProxy;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -23,10 +10,31 @@ import java.text.SimpleDateFormat;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.SimpleTimeZone;
 
-import static com.neotys.newrelic.NewRelicUtils.getProxy;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.olingo.odata2.api.exception.ODataException;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import com.google.common.base.Optional;
+import com.neotys.extensions.action.engine.Context;
+import com.neotys.extensions.action.engine.Proxy;
+import com.neotys.newrelic.http.HTTPGenerator;
+import com.neotys.rest.dataexchange.client.DataExchangeAPIClient;
+import com.neotys.rest.dataexchange.client.DataExchangeAPIClientFactory;
+import com.neotys.rest.dataexchange.model.ContextBuilder;
+import com.neotys.rest.dataexchange.model.EntryBuilder;
+import com.neotys.rest.error.NeotysAPIException;
 
 public class NewRelicIntegration {
 	private DataExchangeAPIClient client;
@@ -177,8 +185,8 @@ public class NewRelicIntegration {
   private String GetUTCDate()
   {
 	  ZonedDateTime utc = ZonedDateTime.now(ZoneOffset.UTC);
-	  utc=utc.minusSeconds(60);
-	  return utc.format(DateTimeFormatter.ofPattern("yyyy-MM-dd+hh:mm:ss"));
+	  //utc=utc.minusSeconds(60);
+	  return utc.toInstant().toString();
   }
   private boolean IsMetricrelevant(String Metriname)
   {
@@ -207,7 +215,7 @@ public class NewRelicIntegration {
 		 Url=NewRelicURL+"applications/"+NewRelicApplicationID+"/hosts/"+HostID+NewRelicMetricDataAPI;
 		 Parameters= new HashMap<>();
 		 Parameters.put("names[]",MetricName);
-		 Parameters.put("from", now);
+		 //Parameters.put("from", now);
 		 Parameters.put("period", "1");
 		 Parameters.put("summarize", "false");
 		 Parameters.put("raw","true");
@@ -236,9 +244,9 @@ public class NewRelicIntegration {
 										{
 											MetricDate=String.valueOf(metricdate);
 											values=timeslices.getJSONObject(j).getJSONObject("values");
-											for(Object key : values.keySet())
-											{
-												MetricValueName=(String)key;
+											final Iterator<String> it = values.keys();
+											while(it.hasNext()){											
+												MetricValueName=it.next();
 												if(IsMetricrelevant(MetricValueName))
 														CreateEntry(Applicationname, Hostname, MetricName,MetricValueName, values.getDouble(MetricValueName), "", MetricDate);
 											}

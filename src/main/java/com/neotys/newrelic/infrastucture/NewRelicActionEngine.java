@@ -124,7 +124,7 @@ public final class NewRelicActionEngine implements ActionEngine {
 			newrelic = new NewRelicIntegration(newRelicApiKey, newRelicApplicationName, dataExchangeApiUrl, dataExchangeApiKey, context,  proxyName, Start_TS);
 			
 			
-			newrelic.StartMonitor(responseBuilder);
+			newrelic.startMonitor(responseBuilder);
 		} catch (ClientProtocolException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

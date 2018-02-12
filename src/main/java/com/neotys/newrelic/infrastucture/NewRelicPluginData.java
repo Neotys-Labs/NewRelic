@@ -24,6 +24,7 @@ public class NewRelicPluginData {
 	private String newRelicLicenseKey;
 	private ApiClient neoloadWebApiClient;
 	private Context neoloadContext;
+	private final Optional<String> proxyName;
 	private ResultsApi NLWEBresult;
 	private String TestID=null;
 	private NeoLoadStatAggregator NLaggregator=null;
@@ -45,6 +46,7 @@ public class NewRelicPluginData {
 		Insight_Accountid=Insight_AccountID;
 		Insight_APIKey=Insight_APIKEY;
 		this.neoloadContext = neoloadContext;
+		this.proxyName = proxyName;
 
 		//----define  the NLWEB API-----
 		this.neoloadWebApiClient = new ApiClient();
@@ -67,7 +69,7 @@ public class NewRelicPluginData {
 			setTestID(GetTestID());
 			NLStat=new NLGlobalStat();
 			if(NLaggregator==null)
-				NLaggregator=new NeoLoadStatAggregator(this.newRelicLicenseKey, projectname,NLWEBresult,TestID,NLStat,Insight_Accountid,Insight_APIKey,TestName,NewRelicApplicationName,NewRelicApplicationAPIKEY,GetTestScenarioName());
+				NLaggregator=new NeoLoadStatAggregator(this.newRelicLicenseKey,NLWEBresult,TestID,NLStat,Insight_Accountid,Insight_APIKey,TestName,NewRelicApplicationName,NewRelicApplicationAPIKEY,GetTestScenarioName(), neoloadContext, proxyName);
 		}
 	}
 
@@ -105,7 +107,7 @@ public class NewRelicPluginData {
 	public void resumeTimer() throws NewRelicException, IOException
 	{
 		timerNewRelic = new Timer();
-		NLaggregator=new NeoLoadStatAggregator(newRelicLicenseKey, projectname,NLWEBresult,TestID,NLStat,Insight_Accountid,Insight_APIKey,TestName,NewRelicApplicationName,NewRelicApplicationAPIKEY,GetTestScenarioName());
+		NLaggregator=new NeoLoadStatAggregator(newRelicLicenseKey,NLWEBresult,TestID,NLStat,Insight_Accountid,Insight_APIKey,TestName,NewRelicApplicationName,NewRelicApplicationAPIKEY,GetTestScenarioName(), neoloadContext, proxyName);
 			
 		timerNewRelic.scheduleAtFixedRate(NLaggregator,TIMERDELAY,TIMERFREQUENCY);
 		

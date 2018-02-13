@@ -13,14 +13,14 @@ import com.neotys.action.argument.Option;
 import com.neotys.extensions.action.Action;
 import com.neotys.extensions.action.ActionParameter;
 import com.neotys.extensions.action.engine.ActionEngine;
+import com.neotys.newrelic.Constants;
 
 
 public final class NewRelicAction implements Action{
-	private static final String DISPLAY_NAME = "New Relic Monitoring";
-	private static final String DISPLAY_PATH = "APM/New Relic";
+	
 	private static final ImageIcon LOGO_ICON;
 	static {
-		final URL iconURL = NewRelicAction.class.getResource("newrelic.png");
+		final URL iconURL = NewRelicAction.class.getResource(Constants.CUSTOM_ACTION_ICON);
 		if (iconURL != null) {
 			LOGO_ICON = new ImageIcon(iconURL);
 		}
@@ -31,7 +31,7 @@ public final class NewRelicAction implements Action{
 
 	@Override
 	public String getType() {
-		return "NewRelicMonitoringAction";
+		return Constants.CUSTOM_ACTION_TYPE;
 	}
 
 	@Override
@@ -69,12 +69,12 @@ public final class NewRelicAction implements Action{
 
 	@Override
 	public String getDisplayName() {
-		return DISPLAY_NAME;
+		return Constants.CUSTOM_ACTION_DISPLAY_NAME;
 	}
 
 	@Override
 	public String getDisplayPath() {
-		return DISPLAY_PATH;
+		return Constants.CUSTOM_ACTION_DISPLAY_PATH;
 	}
 
 	@Override

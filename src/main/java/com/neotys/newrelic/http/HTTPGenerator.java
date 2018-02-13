@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.security.KeyManagementException;
@@ -26,6 +25,7 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpOptions;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -50,10 +50,6 @@ import com.google.common.base.Strings;
 import com.neotys.extensions.action.engine.Proxy;
 
 public class HTTPGenerator {
-	private final static String HTTP_GET_METHOD = "GET";
-	private final static String HTTP_POST_METHOD = "POST";
-	private final static String HTTP_OPTION_METHOD = "OPTION";
-	private final static String HTTP_PUT_METHOD = "PUT";
 
 	private DefaultHttpClient httpClient;
 	private String httpMethod;
@@ -91,14 +87,8 @@ public class HTTPGenerator {
 				socketFactory.setHostnameVerifier((X509HostnameVerifier) hostnameVerifier);
 				registry.register(new Scheme("https", socketFactory, 443));
 				ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(Client.getParams(), registry);
-//
-				//SingleClientConnManager mgr = new SingleClientConnManager(Client.getParams(), registry);
 				httpClient = new DefaultHttpClient(mgr, Client.getParams());
-
-				// Set verifier
 				HttpsURLConnection.setDefaultHostnameVerifier(hostnameVerifier);
-
-
 			} else {
 				DefaultHttpClient Client = new DefaultHttpClient();
 				ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(Client.getParams(), httpClient.getConnectionManager().getSchemeRegistry());
@@ -117,8 +107,7 @@ public class HTTPGenerator {
 	}
 
 	public HTTPGenerator(final String url, final Map<String, String> headers, final String jsonString, final Optional<Proxy> proxy) throws UnsupportedEncodingException {
-
-		httpMethod = "POST";
+		httpMethod = HttpPost.METHOD_NAME;
 		StringEntity requestEntity = new StringEntity(jsonString, "application/json", "UTF-8");
 		this.url = url;
 		try {
@@ -136,10 +125,7 @@ public class HTTPGenerator {
 				socketFactory.setHostnameVerifier((X509HostnameVerifier) hostnameVerifier);
 				registry.register(new Scheme("https", socketFactory, 443));
 				ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(Client.getParams(), registry);
-//    			SingleClientConnManager mgr = new SingleClientConnManager(Client.getParams(), registry);
 				httpClient = new DefaultHttpClient(mgr, Client.getParams());
-
-				// Set verifier
 				HttpsURLConnection.setDefaultHostnameVerifier(hostnameVerifier);
 
 			} else {
@@ -166,17 +152,18 @@ public class HTTPGenerator {
 		}
 	}
 
-	private HttpParams generateParams(final Map<String, String> params) {
+	private static HttpParams generateParams(final Map<String, String> params) {
 		if (params != null) {
 			HttpParams result = new BasicHttpParams();
 			for (Map.Entry<String, String> entry : params.entrySet()) {
 				result.setParameter(entry.getKey(), entry.getValue());
 			}
 			return result;
-		} else return null;
+		}
+		return null;		
 	}
 
-	private HttpRequestBase generateHeaders(final Map<String, String> head, final HttpRequestBase request) {
+	private static HttpRequestBase generateHeaders(final Map<String, String> head, final HttpRequestBase request) {
 		if (head != null) {
 			for (Map.Entry<String, String> entry : head.entrySet()) {
 				request.setHeader(entry.getKey(), entry.getValue());
@@ -189,15 +176,15 @@ public class HTTPGenerator {
 	private HttpRequestBase generateHTTPRequest(final String url) {
 		HttpRequestBase request = null;
 		switch (httpMethod) {
-			case HTTP_GET_METHOD:
+			case HttpGet.METHOD_NAME:
 				request = new HttpGet(url);
 				break;
-			case HTTP_POST_METHOD:
+			case HttpPost.METHOD_NAME:
 				request = new HttpPost(url);
 				break;
-			case HTTP_OPTION_METHOD:
+			case HttpOptions.METHOD_NAME:
 				break;
-			case HTTP_PUT_METHOD:
+			case HttpPut.METHOD_NAME:
 				request = new HttpPut(url);
 				break;
 
@@ -209,7 +196,7 @@ public class HTTPGenerator {
 		httpClient.getConnectionManager().shutdown();
 	}
 
-	private String addGetParametersToUrl(String url, final Map<String, String> params) {
+	private static String addGetParametersToUrl(String url, final Map<String, String> params) {
 
 		if (!url.endsWith("?"))
 			url += "?";
@@ -229,10 +216,10 @@ public class HTTPGenerator {
 		return url;
 	}
 
-	public void SetAllowHostnameSSL() throws NoSuchAlgorithmException {
+	public void setAllowHostnameSSL() {
 		SSLSocketFactory sf = null;
 		SSLContext sslContext = null;
-		StringWriter writer;
+		
 		try {
 			sslContext = SSLContext.getInstance("TLS");
 			sslContext.init(null, null, null);
@@ -326,11 +313,7 @@ public class HTTPGenerator {
 
 				// A Simple JSON Response Read
 				InputStream instream = entity.getContent();
-				result = convertStreamToString(instream);
-				// now you have the string representation of the HTML request
-				// Headers
-				org.apache.http.Header[] headers = resp.getAllHeaders();
-
+				result = convertStreamToString(instream);			
 
 				instream.close();
 				if (resp.getStatusLine().getStatusCode() != 200) {

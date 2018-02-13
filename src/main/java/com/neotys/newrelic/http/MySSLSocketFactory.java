@@ -1,4 +1,4 @@
-package com.neotys.newrelic;
+package com.neotys.newrelic.http;
 
 import java.io.IOException;
 import java.net.Socket;

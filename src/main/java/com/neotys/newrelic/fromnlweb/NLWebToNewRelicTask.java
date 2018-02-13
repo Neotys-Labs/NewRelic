@@ -15,10 +15,10 @@ import org.json.JSONObject;
 import com.neotys.extensions.action.engine.Context;
 import com.neotys.extensions.action.engine.Proxy;
 import com.neotys.newrelic.Constants;
-import com.neotys.newrelic.HTTPGenerator;
 import com.neotys.newrelic.NewRelicActionArguments;
 import com.neotys.newrelic.NewRelicException;
 import com.neotys.newrelic.NewRelicUtils;
+import com.neotys.newrelic.http.HTTPGenerator;
 
 import io.swagger.client.ApiException;
 import io.swagger.client.api.ResultsApi;

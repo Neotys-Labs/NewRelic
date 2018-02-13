@@ -5,8 +5,7 @@ import com.google.common.base.Optional;
 import com.neotys.extensions.action.engine.Context;
 import com.neotys.extensions.action.engine.Proxy;
 import com.neotys.newrelic.NewRelicActionArguments;
-import com.neotys.newrelic.infrastucture.NLGlobalStat;
-import com.neotys.newrelic.infrastucture.NewRelicException;
+import com.neotys.newrelic.NewRelicException;
 
 import io.swagger.client.ApiClient;
 import io.swagger.client.api.ResultsApi;
@@ -25,7 +24,7 @@ public class NLWebToNewRelic {
 	private static final int TIMERFREQUENCY=30000;
 	private static final int TIMERDELAY=0;
 	
-	private final NLGlobalStat nlStat;		
+	private final NLWebStats nlStat;		
 	private final Timer timerNewRelic;	
 	private final ApiClient neoloadWebApiClient;
 	
@@ -42,7 +41,7 @@ public class NLWebToNewRelic {
 		if(proxyOptional.isPresent()) {
 			initProxyForNeoloadWebApiClient(neoloadWebApiClient, proxyOptional.get());
 		}	
-		this.nlStat=new NLGlobalStat();				
+		this.nlStat=new NLWebStats();				
 		this.nlAggregator=new NLWebToNewRelicTask(neoloadContext, newRelicActionArguments, new ResultsApi(neoloadWebApiClient),nlStat);
 		this.timerNewRelic = new Timer();
 		timerNewRelic.scheduleAtFixedRate(nlAggregator,TIMERDELAY,TIMERFREQUENCY);

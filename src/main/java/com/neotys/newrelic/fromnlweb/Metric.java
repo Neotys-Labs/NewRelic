@@ -1,4 +1,4 @@
-package com.neotys.newrelic.infrastucture;
+package com.neotys.newrelic.fromnlweb;
 
 import java.text.DecimalFormat;
 import java.util.List;

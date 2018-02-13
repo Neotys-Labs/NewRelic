@@ -1,4 +1,4 @@
-package com.neotys.newrelic.infrastucture;
+package com.neotys.newrelic.tonldataexchange;
 
 import static com.neotys.newrelic.NewRelicUtils.getProxy;
 
@@ -30,6 +30,7 @@ import com.neotys.extensions.action.engine.Proxy;
 import com.neotys.newrelic.Constants;
 import com.neotys.newrelic.HTTPGenerator;
 import com.neotys.newrelic.NewRelicActionArguments;
+import com.neotys.newrelic.NewRelicException;
 import com.neotys.rest.dataexchange.client.DataExchangeAPIClient;
 import com.neotys.rest.dataexchange.client.DataExchangeAPIClientFactory;
 import com.neotys.rest.dataexchange.model.ContextBuilder;

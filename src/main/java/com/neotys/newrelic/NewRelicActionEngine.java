@@ -1,4 +1,4 @@
-package com.neotys.newrelic.infrastucture;
+package com.neotys.newrelic;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -16,9 +16,8 @@ import com.neotys.extensions.action.ActionParameter;
 import com.neotys.extensions.action.engine.ActionEngine;
 import com.neotys.extensions.action.engine.Context;
 import com.neotys.extensions.action.engine.SampleResult;
-import com.neotys.newrelic.Constants;
-import com.neotys.newrelic.NewRelicActionArguments;
 import com.neotys.newrelic.fromnlweb.NLWebToNewRelic;
+import com.neotys.newrelic.tonldataexchange.NewRelicToNLDataExchange;
 import com.neotys.rest.error.NeotysAPIException;
 
 public final class NewRelicActionEngine implements ActionEngine {

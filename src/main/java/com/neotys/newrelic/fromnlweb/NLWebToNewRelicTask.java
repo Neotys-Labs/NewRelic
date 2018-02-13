@@ -17,10 +17,8 @@ import com.neotys.extensions.action.engine.Proxy;
 import com.neotys.newrelic.Constants;
 import com.neotys.newrelic.HTTPGenerator;
 import com.neotys.newrelic.NewRelicActionArguments;
+import com.neotys.newrelic.NewRelicException;
 import com.neotys.newrelic.NewRelicUtils;
-import com.neotys.newrelic.infrastucture.Metric;
-import com.neotys.newrelic.infrastucture.NLGlobalStat;
-import com.neotys.newrelic.infrastucture.NewRelicException;
 
 import io.swagger.client.ApiException;
 import io.swagger.client.api.ResultsApi;
@@ -36,11 +34,11 @@ public class NLWebToNewRelicTask extends TimerTask {
 	private final String componentsName;	
 	private final ResultsApi nlWebResult;		
 	private final Map<String, String> headers = new HashMap<>();
-	private NLGlobalStat nlStat;	
+	private NLWebStats nlStat;	
 	private final String newRelicApplicationId;
 	
 
-	public NLWebToNewRelicTask(final Context neoloadContext, final NewRelicActionArguments newRelicActionArguments, final ResultsApi nlWebResult, final NLGlobalStat nlStat) throws NewRelicException, IOException {
+	public NLWebToNewRelicTask(final Context neoloadContext, final NewRelicActionArguments newRelicActionArguments, final ResultsApi nlWebResult, final NLWebStats nlStat) throws NewRelicException, IOException {
 		this.neoloadContext = neoloadContext;
 		this.newRelicActionArguments = newRelicActionArguments;
 		this.componentsName = "Statistics";		
@@ -76,7 +74,7 @@ public class NLWebToNewRelicTask extends TimerTask {
 		utc = System.currentTimeMillis() / 1000;
 
 		if (nlStat == null)
-			nlStat = new NLGlobalStat(stat);
+			nlStat = new NLWebStats(stat);
 		else {
 			nlStat.UpdateStat(stat);
 		}

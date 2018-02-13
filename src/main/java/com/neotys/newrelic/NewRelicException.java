@@ -1,4 +1,4 @@
-package com.neotys.newrelic.infrastucture;
+package com.neotys.newrelic;
 
 /**
  * Created by anouvel on 05/02/2018.

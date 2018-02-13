@@ -1,4 +1,4 @@
-package com.neotys.newrelic.infrastucture;
+package com.neotys.newrelic.fromnlweb;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -6,7 +6,7 @@ import java.util.List;
 
 import io.swagger.client.model.TestStatistics;
 
-public class NLGlobalStat {
+public class NLWebStats {
 
 	private float LastRequestCountPerSecond=0;
 	private float LastRequestDurationAverage=0;
@@ -90,7 +90,7 @@ public class NLGlobalStat {
 	private long lasduration=0;
 
 	
-	public NLGlobalStat()
+	public NLWebStats()
 	{
 		lasduration=0;
 	}
@@ -105,7 +105,7 @@ public class NLGlobalStat {
 		LastRequestDurationAverage = lastRequestDurationAverage/1000;
 	}
 
-	public NLGlobalStat(float lastRequestCountPerSecond, float lastTransactionDurationAverage, int lastVirtualUserCount,
+	public NLWebStats(float lastRequestCountPerSecond, float lastTransactionDurationAverage, int lastVirtualUserCount,
 			long totalGlobalCountFailure, float totalGlobalDownloadedBytes, float totalGlobalDownloadedBytesPerSecond,
 			long totalIterationCountFailure, long totalIterationCountSuccess, long totalRequestCountFailure,
 			float totalRequestCountPerSecond, long totalRequestCountSuccess,
@@ -186,7 +186,7 @@ public class NLGlobalStat {
 	}
 	
 	
-	public NLGlobalStat(TestStatistics response)
+	public NLWebStats(TestStatistics response)
 	{
 		
 		

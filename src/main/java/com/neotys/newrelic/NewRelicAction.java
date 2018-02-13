@@ -1,4 +1,4 @@
-package com.neotys.newrelic.infrastucture;
+package com.neotys.newrelic;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -13,8 +13,6 @@ import com.neotys.action.argument.Option;
 import com.neotys.extensions.action.Action;
 import com.neotys.extensions.action.ActionParameter;
 import com.neotys.extensions.action.engine.ActionEngine;
-import com.neotys.newrelic.Constants;
-import com.neotys.newrelic.NewRelicOption;
 
 
 public final class NewRelicAction implements Action{

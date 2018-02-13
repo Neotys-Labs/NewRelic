@@ -8,10 +8,6 @@ import io.swagger.client.model.TestStatistics;
 
 public class NLGlobalStat {
 
-
-	
-
-
 	private float LastRequestCountPerSecond=0;
 	private float LastRequestDurationAverage=0;
 	

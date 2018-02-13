@@ -44,14 +44,15 @@ public class NewRelicActionArguments {
 		this.dataExchangeApiUrl = parsedArgs.get(NewRelicOption.NeoLoadDataExchangeApiUrl.getName()).get();
 		
 		// Optional
-		this.sendNLWebDataToNewRelic = parsedArgs.get(NewRelicOption.SendNLWebDataToNewRelic.getName()).transform(a -> Boolean.parseBoolean(a)).or(false);
+		final Optional<String> sendNLWebDataToNewRelicArg = parsedArgs.get(NewRelicOption.SendNLWebDataToNewRelic.getName());		
+		this.sendNLWebDataToNewRelic = sendNLWebDataToNewRelicArg.isPresent() && "true".equals(sendNLWebDataToNewRelicArg.get());
 		this.newRelicLicenseKey = parsedArgs.get(NewRelicOption.NewRelicLicenseKey.getName());
 		this.newRelicAccountId = parsedArgs.get(NewRelicOption.NewRelicAccountId.getName());
 		this.newRelicInsightsAPIKey = parsedArgs.get(NewRelicOption.NewRelicInsightsAPIKey.getName());
 		this.dataExchangeApiKey = parsedArgs.get(NewRelicOption.NeoLoadDataExchangeApiKey.getName());
 		this.proxyName = parsedArgs.get(NewRelicOption.NeoLoadProxy.getName());
 
-		// Additional checks when sendNLWebDataToNewRelic is true...
+		// Additional checks when sendNLWebDataToNewRelic is true
 		if(sendNLWebDataToNewRelic){
 			// 3 other parameters should be present
 			if(!newRelicLicenseKey.isPresent()){ throw new IllegalArgumentException("The New Relic license key is required when argument 'sendNLWebDataToNewRelic' is true.");}

@@ -25,7 +25,7 @@ public enum NewRelicOption implements Option {
 	SendNLWebDataToNewRelic("sendNLWebDataToNewRelic", Optional, True, TEXT, "true", "When set to 'true', sends NeoLoad Web data to New Relic (requires NeoLoad Web module). When set to 'false', only retrieves data from New Relic.", BOOLEAN_VALIDATOR),
 	NewRelicLicenseKey("newRelicLicenseKey", Optional, True, PASSWORD, "", "The New Relic license key. Required when argument 'sendNLWebDataToNewRelic' is true.", NON_EMPTY),
 	NewRelicAccountId("newRelicAccountId", Optional, True, TEXT, "", "The New Relic Account Id. It appears in the URL when going on New Relic menu Account settings 'https://rpm.newrelic.com/accounts/<accountId>'. Required when argument 'sendNLWebDataToNewRelic' is true.", NON_EMPTY),
-	NewRelicInsightsAPIKey("newRelicInsightsAPIKey", Optional, True, TEXT, "", "The New Relic Insights API key. List of New Relic Insights API keys are defined on New Relic menu Insights, section 'Manage data', subsection API Keys. Required when argument 'sendNLWebDataToNewRelic' is true.", NON_EMPTY),
+	NewRelicInsightsAPIKey("newRelicInsightsAPIKey", Optional, True, PASSWORD, "", "The New Relic Insights API key. List of New Relic Insights API keys are defined on New Relic menu Insights, section 'Manage data', subsection API Keys. Required when argument 'sendNLWebDataToNewRelic' is true.", NON_EMPTY),
 
 	// Optional, not visible by default	
 	NeoLoadDataExchangeApiKey("dataExchangeApiKey", Optional, False, PASSWORD, "", "Identification key specified in NeoLoad.", NON_EMPTY),

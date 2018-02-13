@@ -1,5 +1,20 @@
 package com.neotys.newrelic;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
+import org.apache.http.HttpStatus;
+
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.neotys.extensions.action.engine.Context;
@@ -8,19 +23,8 @@ import com.squareup.okhttp.Authenticator;
 import com.squareup.okhttp.Credentials;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
-import io.swagger.client.ApiClient;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
+import io.swagger.client.ApiClient;
 
 /**
  * Created by anouvel on 06/02/2018.
@@ -88,5 +92,20 @@ public class NewRelicUtils {
 
 	private static java.net.Proxy toOkHttpProxy(final Proxy proxy) {
 		return new java.net.Proxy(java.net.Proxy.Type.HTTP, new InetSocketAddress(proxy.getHost(), proxy.getPort()));
+	}
+
+	public static String getExceptionmessage(final int httpcode) {
+		switch (httpcode) {
+			case HttpStatus.SC_BAD_REQUEST:	return "The request or headers are in the wrong format, or the URL is incorrect, or the GUID does not meet the validation requirements.";
+			case HttpStatus.SC_FORBIDDEN: return "Authentication error (no license key header, or invalid license key).";
+			case HttpStatus.SC_NOT_FOUND: return "Invalid URL.";
+			case HttpStatus.SC_METHOD_NOT_ALLOWED: return "Returned if the method is an invalid or unexpected type (GET/POST/PUT/etc.).";				
+			case HttpStatus.SC_REQUEST_TOO_LONG: return "Too many metrics were sent in one request, or too many components (instances) were specified in one request, or other single-request limits were reached.";
+			case HttpStatus.SC_INTERNAL_SERVER_ERROR: return "Unexpected server error";
+			case HttpStatus.SC_BAD_GATEWAY: return "All 50X errors mean there is a transient problem in the server completing requests, and no data has been retained. Clients are expected to resend the data after waiting one minute. The data should be aggregated appropriately, combining multiple timeslice data values for the same metric into a single aggregate timeslice data value.";				
+			case HttpStatus.SC_SERVICE_UNAVAILABLE: return "All 50X errors mean there is a transient problem in the server completing requests, and no data has been retained. Clients are expected to resend the data after waiting one minute. The data should be aggregated appropriately, combining multiple timeslice data values for the same metric into a single aggregate timeslice data value.";
+			case HttpStatus.SC_GATEWAY_TIMEOUT: return "All 50X errors mean there is a transient problem in the server completing requests, and no data has been retained. Clients are expected to resend the data after waiting one minute. The data should be aggregated appropriately, combining multiple timeslice data values for the same metric into a single aggregate timeslice data value.";
+		}
+		return null;
 	}
 }

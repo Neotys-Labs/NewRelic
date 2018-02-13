@@ -1,8 +1,5 @@
 package com.neotys.newrelic.infrastucture;
 
-import static com.neotys.action.argument.Arguments.getArgumentLogString;
-import static com.neotys.action.argument.Arguments.parseArguments;
-
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
@@ -10,25 +7,22 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.http.client.ClientProtocolException;
 import org.json.JSONException;
 
-import com.google.common.base.Optional;
 import com.neotys.action.result.ResultFactory;
 import com.neotys.extensions.action.ActionParameter;
 import com.neotys.extensions.action.engine.ActionEngine;
 import com.neotys.extensions.action.engine.Context;
-import com.neotys.extensions.action.engine.Logger;
 import com.neotys.extensions.action.engine.SampleResult;
 import com.neotys.newrelic.Constants;
 import com.neotys.newrelic.NewRelicActionArguments;
-import com.neotys.newrelic.NewRelicOption;
+import com.neotys.newrelic.fromnlweb.NLWebToNewRelic;
 import com.neotys.rest.error.NeotysAPIException;
 
 public final class NewRelicActionEngine implements ActionEngine {
-	private NewRelicPluginData pluginData;	
+	private NLWebToNewRelic pluginData;	
 	
 	@Override
 	public SampleResult execute(Context context, List<ActionParameter> parameters) {
@@ -44,16 +38,16 @@ public final class NewRelicActionEngine implements ActionEngine {
 		}
 		long startTimestamp=0;
 			
-		final NewRelicIntegration newrelic;
+		final NewRelicToNLDataExchange newrelic;
 						
 		if(newRelicActionArguments.isSendNLWebDataToNewRelic())
 		{
-			pluginData =(NewRelicPluginData)context.getCurrentVirtualUser().get("PLUGINDATA");
+			pluginData =(NLWebToNewRelic)context.getCurrentVirtualUser().get("PLUGINDATA");
 			
 			if(pluginData == null){			
 
 				try {
-					pluginData=new NewRelicPluginData(context, newRelicActionArguments);
+					pluginData=new NLWebToNewRelic(context, newRelicActionArguments);
 					context.getCurrentVirtualUser().put("PLUGINDATA",pluginData);	
 				} catch (NewRelicException | IOException | NoSuchAlgorithmException | KeyManagementException e) {
 					// TODO Auto-generated catch block
@@ -67,7 +61,7 @@ public final class NewRelicActionEngine implements ActionEngine {
 			startTimestamp=System.currentTimeMillis()-context.getElapsedTime();
 			appendLineToStringBuilder(requestBuilder, "NewRelicInfraStructureMonitoring request.");
 			
-			newrelic = new NewRelicIntegration(context, newRelicActionArguments, startTimestamp);		
+			newrelic = new NewRelicToNLDataExchange(context, newRelicActionArguments, startTimestamp);		
 			newrelic.startMonitor(responseBuilder);
 		} catch (ClientProtocolException e) {
 			// TODO Auto-generated catch block

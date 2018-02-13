@@ -388,7 +388,7 @@ public class NLWebStats {
 
 	public List<String[]> GetNLData()
 	{
-		List<String[]> result = new ArrayList<String[]>();
+		final List<String[]> result = new ArrayList<>();
 		result.add(GetRequestCountData());
 		result.add(GetTotalGlobalCountFailureData());
 		result.add(GetTotalGlobalDownloadedBytesData());		

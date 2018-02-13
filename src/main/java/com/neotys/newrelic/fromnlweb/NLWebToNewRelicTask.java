@@ -61,13 +61,13 @@ public class NLWebToNewRelicTask extends TimerTask {
 
 		if (lasduration == 0 || (utc - lasduration) >= Constants.MIN_NEW_RELIC_DURATION) {
 			StatsResult = nlWebResult.getTestStatistics(neoloadContext.getTestId());
-			lasduration = sendData(StatsResult, lasduration);
+			lasduration = sendMetricsToNewRelic(StatsResult, lasduration);
 			nlStat.setLasduration(lasduration);
-			sendValuesToNewRelic();
+			sendNLWebMetricsToInsightsAPI();
 		}
 	}
 
-	public long sendData(TestStatistics stat, long LasDuration) {
+	private long sendMetricsToNewRelic(final TestStatistics stat, final long LasDuration) {
 		int time = 0;
 		List<String[]> data;
 		long utc;
@@ -94,8 +94,7 @@ public class NLWebToNewRelicTask extends TimerTask {
 			}
 		}
 		try {
-
-			sendMetricToInsightAPI(data, time);
+			sendMetricsToInsightAPI(data, time);
 		} catch (NewRelicException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -138,25 +137,25 @@ public class NLWebToNewRelicTask extends TimerTask {
 
 	}
 
-	private void sendValuesToNewRelic() {		
-		final List<Metric> NlValues = new ArrayList<>();
+	private void sendNLWebMetricsToInsightsAPI() {		
+		final List<NLWebElementValue> nlWebElementValues = new ArrayList<>();
 		try {
 			final ArrayOfElementDefinition NLElement = nlWebResult.getTestElements(neoloadContext.getTestId(), Constants.NLWEB_TRANSACTION);
 			for (ElementDefinition element : NLElement) {
 				if (element.getType().equalsIgnoreCase("TRANSACTION")) {
 					final ElementValues Values = nlWebResult.getTestElementsValues(neoloadContext.getTestId(), element.getId());
-					NlValues.add(new Metric(element, Values));
+					nlWebElementValues.add(new NLWebElementValue(element, Values));
 				}
 			}
-			for (Metric val : NlValues){
-				sendValueMetricToInsightAPI(val.getElementValue());
+			for (final NLWebElementValue val : nlWebElementValues){
+				sendValueMetricToInsightsAPI(val);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	private void sendValueMetricToInsightAPI(final String[] data) throws NewRelicException {
+	private void sendValueMetricToInsightsAPI(final NLWebElementValue nlWebElementValue) throws NewRelicException {
 		final Map<String, String> head = new HashMap<>();
 		head.put("X-Insert-Key", newRelicActionArguments.getNewRelicInsightsAPIKey().get());
 		head.put("Content-Type", "application/json");		
@@ -168,13 +167,13 @@ public class NLWebToNewRelicTask extends TimerTask {
 				+ "\"scenarioName\" : \"" + neoloadContext.getScenarioName() + "\","
 				+ "\"applicationName\" : \"" + newRelicActionArguments.getNewRelicApplicationName() + "\","
 				+ "\"trendfield\": \"" + newRelicActionArguments.getNewRelicApplicationName() + neoloadContext.getScenarioName() + neoloadContext.getTestName() + "\","
-				+ "\"userPathName\" :\"" + data[1] + "\","
-				+ "\"type\" :\"" + data[6] + "\","
-				+ "\"transactionName\" :\"" + data[0] + "\","
-				+ "\"path\" :\"" + data[2] + "\","
-				+ "\"responseTime\":" + data[3] + ","
-				+ "\"elementPerSecond\":" + data[5] + ","
-				+ "\"downloadedBytesPerSecond\":" + data[4] + ","
+				+ "\"userPathName\" :\"" + nlWebElementValue.getUserPath() + "\","
+				+ "\"type\" :\"TRANSACTION\","
+				+ "\"transactionName\" :\"" + nlWebElementValue.getName() + "\","
+				+ "\"path\" :\"" + nlWebElementValue.getPath() + "\","
+				+ "\"responseTime\":" + Constants.DECIMAL_FORMAT.format(nlWebElementValue.getResponsetime())+ ","
+				+ "\"elementPerSecond\":" + Constants.DECIMAL_FORMAT.format(nlWebElementValue.getHitPerSecond()) + ","
+				+ "\"downloadedBytesPerSecond\":" + Constants.DECIMAL_FORMAT.format(nlWebElementValue.getThroughput()) + ","
 				+ "\"timestamp\" : " + System.currentTimeMillis() + "}]";
 		HTTPGenerator http = null;
 		try {
@@ -194,7 +193,7 @@ public class NLWebToNewRelicTask extends TimerTask {
 
 	}
 
-	private void sendMetricToInsightAPI(List<String[]> data, int time) throws NewRelicException {
+	private void sendMetricsToInsightAPI(List<String[]> data, int time) throws NewRelicException {
 		
 		final Map<String, String> head = new HashMap<>();
 		head.put("X-Insert-Key", newRelicActionArguments.getNewRelicInsightsAPIKey().get());

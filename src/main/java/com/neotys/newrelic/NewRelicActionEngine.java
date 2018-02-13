@@ -1,15 +1,9 @@
 package com.neotys.newrelic;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.GeneralSecurityException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.text.ParseException;
 import java.util.List;
-
-import org.apache.http.client.ClientProtocolException;
-import org.json.JSONException;
 
 import com.neotys.action.result.ResultFactory;
 import com.neotys.extensions.action.ActionParameter;
@@ -18,7 +12,6 @@ import com.neotys.extensions.action.engine.Context;
 import com.neotys.extensions.action.engine.SampleResult;
 import com.neotys.newrelic.fromnlweb.NLWebToNewRelic;
 import com.neotys.newrelic.tonldataexchange.NewRelicToNLDataExchange;
-import com.neotys.rest.error.NeotysAPIException;
 
 public final class NewRelicActionEngine implements ActionEngine {
 	private NLWebToNewRelic pluginData;	
@@ -34,8 +27,7 @@ public final class NewRelicActionEngine implements ActionEngine {
 			newRelicActionArguments = new NewRelicActionArguments(context, parameters);
 		} catch (final IllegalArgumentException iae) {
 			return ResultFactory.newErrorResult(context, Constants.STATUS_CODE_INVALID_PARAMETER, "Could not parse arguments: ", iae);
-		}
-		long startTimestamp=0;
+		}		
 			
 		final NewRelicToNLDataExchange newrelic;
 						
@@ -56,45 +48,18 @@ public final class NewRelicActionEngine implements ActionEngine {
 		}
 		
 		try {			
-			sampleResult.sampleStart();
-			startTimestamp=System.currentTimeMillis()-context.getElapsedTime();
-			appendLineToStringBuilder(requestBuilder, "NewRelicInfraStructureMonitoring request.");
-			
-			newrelic = new NewRelicToNLDataExchange(context, newRelicActionArguments, startTimestamp);		
+			sampleResult.sampleStart();	
+			requestBuilder.append("NewRelicInfraStructureMonitoring request.\n");			
+			newrelic = new NewRelicToNLDataExchange(context, newRelicActionArguments, System.currentTimeMillis()-context.getElapsedTime());		
 			newrelic.startMonitor(responseBuilder);
-		} catch (ClientProtocolException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (NewRelicException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (GeneralSecurityException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (NeotysAPIException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
+		} catch (final Exception e) {
+			// TODO 
 			e.printStackTrace();
 		}
 		sampleResult.sampleEnd();
 		sampleResult.setRequestContent(requestBuilder.toString());
 		sampleResult.setResponseContent(responseBuilder.toString());		
 		return sampleResult;
-	}
-
-	private static void appendLineToStringBuilder(final StringBuilder sb, final String line){
-		sb.append(line).append("\n");
 	}
 
 	/**

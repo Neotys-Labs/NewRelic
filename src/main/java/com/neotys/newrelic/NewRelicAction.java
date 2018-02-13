@@ -1,32 +1,17 @@
 package com.neotys.newrelic;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 
 import com.google.common.base.Optional;
-import com.neotys.action.argument.Arguments;
 import com.neotys.action.argument.Option;
 import com.neotys.extensions.action.Action;
 import com.neotys.extensions.action.ActionParameter;
 import com.neotys.extensions.action.engine.ActionEngine;
 
-
-public final class NewRelicAction implements Action{
-	
-	private static final ImageIcon LOGO_ICON;
-	static {
-		final URL iconURL = NewRelicAction.class.getResource(Constants.CUSTOM_ACTION_ICON);
-		if (iconURL != null) {
-			LOGO_ICON = new ImageIcon(iconURL);
-		}
-		else {
-			LOGO_ICON = null;
-		}
-	}
+public final class NewRelicAction implements Action {
 
 	@Override
 	public String getType() {
@@ -36,16 +21,12 @@ public final class NewRelicAction implements Action{
 	@Override
 	public List<ActionParameter> getDefaultActionParameters() {
 		final List<ActionParameter> parameters = new ArrayList<>();
-
 		for (final NewRelicOption option : NewRelicOption.values()) {
 			if (Option.AppearsByDefault.True.equals(option.getAppearsByDefault())) {
-				parameters.add(new ActionParameter(option.getName(), option.getDefaultValue(),
-						option.getType()));
+				parameters.add(new ActionParameter(option.getName(), option.getDefaultValue(), option.getType()));
 			}
 		}
-
 		return parameters;
-	
 	}
 
 	@Override
@@ -55,15 +36,12 @@ public final class NewRelicAction implements Action{
 
 	@Override
 	public Icon getIcon() {
-		return LOGO_ICON;
+		return Constants.CUSTOM_ACTION_ICON;
 	}
+
 	@Override
 	public String getDescription() {
-		final StringBuilder description = new StringBuilder();
-		// TODO validate description
-		description.append("NewRelicMonitoring Action will retrieve all the counters measured by NewRelic Infrastructure\n")
-				.append(Arguments.getArgumentDescriptions(NewRelicOption.values()));
-		return description.toString();
+		return Constants.CUSTOM_ACTION_DESCRIPTION;		
 	}
 
 	@Override
@@ -78,11 +56,16 @@ public final class NewRelicAction implements Action{
 
 	@Override
 	public Optional<String> getMinimumNeoLoadVersion() {
-		return Optional.of("6.3");
+		return Constants.CUSTOM_ACTION_MINIMUM_VERSION;
 	}
 
 	@Override
 	public Optional<String> getMaximumNeoLoadVersion() {
-		return Optional.absent();
+		return Constants.CUSTOM_ACTION_MAXIMIM_VERSION;
+	}
+
+	@Override
+	public boolean getDefaultIsHit() {
+		return false;
 	}
 }

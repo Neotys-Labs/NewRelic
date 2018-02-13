@@ -24,9 +24,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Strings;
 import com.neotys.extensions.action.engine.Context;
 import com.neotys.extensions.action.engine.Proxy;
 import com.neotys.newrelic.Constants;
+import com.neotys.newrelic.NewRelicActionArguments;
 import com.neotys.newrelic.http.HTTPGenerator;
 import com.neotys.rest.dataexchange.client.DataExchangeAPIClient;
 import com.neotys.rest.dataexchange.client.DataExchangeAPIClientFactory;
@@ -38,22 +40,19 @@ public class NewRelicIntegration {
 	private DataExchangeAPIClient client;
 	private HTTPGenerator http;
 	
-	private String newRelicApplication;
-	private String newRelicApplicationId;
-	private final Context context;
-	private final com.google.common.base.Optional<String> proxyName;
-	private long startingTS;
+	private final NewRelicActionArguments newRelicActionArguments;
+	private final String newRelicApplicationId;
+	private final Context context;	
+	private final long startTimestamp;
 	private HashMap<String, String> header = null;
 	private HashMap<String, String> Parameters = null;
 	
-	public NewRelicIntegration(final String newRelicApiKey, String NewRelicApplication, final String dataExchangeApiUrl,
-			final com.google.common.base.Optional<String> dataExchangeApiKey, final com.neotys.extensions.action.engine.Context context,
-			final com.google.common.base.Optional<String> proxyName, final long startTS) {
-		this.context = context;
-		this.proxyName = proxyName;
-		startingTS = startTS;
+	public NewRelicIntegration(final Context context, final NewRelicActionArguments newRelicActionArguments, final long startTimestamp) throws NewRelicException, IOException {
+		this.context = context;	
+		this.newRelicActionArguments = newRelicActionArguments;
+		this.startTimestamp = startTimestamp;
 		header = new HashMap<>();
-		header.put("X-Api-Key", newRelicApiKey);
+		header.put("X-Api-Key", newRelicActionArguments.getNewRelicAPIKey());
 		header.put("Content-Type", "application/json");
 		final ContextBuilder contextBuilder = new ContextBuilder();
 		contextBuilder.hardware(Constants.NEOLOAD_CONTEXT_HARDWARE)
@@ -61,27 +60,26 @@ public class NewRelicIntegration {
 			.software(Constants.NEOLOAD_CONTEXT_SOFTWARE)
 			.script("NewRelicInfrasfructureMonitoring" + System.currentTimeMillis());
 
-		newRelicApplication = NewRelicApplication;
-
 		try {
-			client = DataExchangeAPIClientFactory.newClient(dataExchangeApiUrl, contextBuilder.build(), dataExchangeApiKey.orNull());
+			client = DataExchangeAPIClientFactory.newClient(newRelicActionArguments.getDataExchangeApiUrl(), contextBuilder.build(), newRelicActionArguments.getDataExchangeApiKey().orNull());
 		} catch (GeneralSecurityException | IOException | ODataException | URISyntaxException | NeotysAPIException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		this.newRelicApplicationId = getApplicationID();
 	}
 
 	public void startMonitor(StringBuilder build)
-			throws NewRelicException, IOException, JSONException, GeneralSecurityException, URISyntaxException, NeotysAPIException, ParseException {
+			throws IOException, JSONException, GeneralSecurityException, URISyntaxException, NeotysAPIException, ParseException {
 
-		newRelicApplicationId = getApplicationID();
+		
 		final Map<String, String> Hosts = getApplicationsHosts();
 		for (Entry<String, String> entry : Hosts.entrySet()) {
 			final List<String> metrics = getMetricNameByHost(entry.getKey());
 			for (int i = 0 ; i < metrics.size() ; i++) {
-				build.append("Sending Metrics Data for Application" + newRelicApplication + " on the host " + entry.getValue() + " metrics name "
+				build.append("Sending Metrics Data for Application" + newRelicActionArguments.getNewRelicApplicationName() + " on the host " + entry.getValue() + " metrics name "
 						+ metrics.get(i) + "\n");
-				sendMetricDataFromMetricsNameToNL(metrics.get(i), entry.getKey(), newRelicApplication, entry.getValue());
+				sendMetricDataFromMetricsNameToNL(metrics.get(i), entry.getKey(), newRelicActionArguments.getNewRelicApplicationName(), entry.getValue());
 			}
 
 		}
@@ -106,7 +104,7 @@ public class NewRelicIntegration {
 		Parameters = null;
 		Url = Constants.NEW_RELIC_URL + "applications/" + newRelicApplicationId + Constants.NEW_RELIC_HOST_API;
 
-		final Optional<Proxy> proxy = getProxy(context, proxyName, Url);
+		final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), Url);
 		http = new HTTPGenerator(Url, "GET", header, Parameters, proxy);
 
 		jsoobj = http.getJSONHTTPresponse();
@@ -144,11 +142,11 @@ public class NewRelicIntegration {
 		JSONObject jsoobj;
 		JSONArray array;
 		final List<String> metriNames = new ArrayList<>();
-		String Url = Constants.NEW_RELIC_URL + "applications/" + newRelicApplicationId + "/hosts/" + hostId + Constants.NEW_RELIC_METRIC_NAME_API;
+		final String url = Constants.NEW_RELIC_URL + "applications/" + newRelicApplicationId + "/hosts/" + hostId + Constants.NEW_RELIC_METRIC_NAME_API;
 		Parameters = null;
 
-		final Optional<Proxy> proxy = getProxy(context, proxyName, Url);
-		http = new HTTPGenerator(Url, "GET", header, Parameters, proxy);
+		final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
+		http = new HTTPGenerator(url, "GET", header, Parameters, proxy);
 
 		jsoobj = http.getJSONHTTPresponse();
 		if (jsoobj != null) {
@@ -185,7 +183,7 @@ public class NewRelicIntegration {
 		Parameters.put("summarize", "false");
 		Parameters.put("raw", "true");
 		final String url = Constants.NEW_RELIC_URL + "applications/" + newRelicApplicationId + "/hosts/" + HostID + Constants.NEW_RELIC_METRIC_DATA_API;
-		final Optional<Proxy> proxy = getProxy(context, proxyName, url);
+		final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
 		http = new HTTPGenerator(url, "GET", header, Parameters, proxy);
 
 		final List<com.neotys.rest.dataexchange.model.Entry> entries = new ArrayList<>();
@@ -200,7 +198,7 @@ public class NewRelicIntegration {
 					for (int j = 0 ; j < timeslices.length() ; j++) {
 						metricDate = timeslices.getJSONObject(j).getString("from");
 						final long metricdate = getTimeMillisFromDate(metricDate);
-						if (metricdate >= startingTS) {
+						if (metricdate >= startTimestamp) {
 							metricDate = String.valueOf(metricdate);
 							final JSONObject values = timeslices.getJSONObject(j).getJSONObject("values");
 							final Iterator<String> it = values.keys();
@@ -221,32 +219,32 @@ public class NewRelicIntegration {
 	}
 
 	public String getApplicationID() throws NewRelicException, IOException {
-		JSONObject jsoobj;
-		String Url;
+		JSONObject jsoobj;		
 		JSONArray jsonApplication;
 
-		Url = Constants.NEW_RELIC_URL + Constants.APPLICATIONS_JSON;
+		final String url = Constants.NEW_RELIC_URL + Constants.APPLICATIONS_JSON;
 		Parameters = new HashMap<>();
-		Parameters.put("filter[name]", newRelicApplication);
+		Parameters.put("filter[name]", newRelicActionArguments.getNewRelicApplicationName());
 
-		final Optional<Proxy> proxy = getProxy(context, proxyName, Url);
-		http = new HTTPGenerator(Url, "GET", header, Parameters, proxy);
-
-		jsoobj = http.getJSONHTTPresponse();
-		if (jsoobj != null) {
-			if (jsoobj.has("applications")) {
-				jsonApplication = jsoobj.getJSONArray("applications");
-				newRelicApplicationId = String.valueOf(jsonApplication.getJSONObject(0).getInt("id"));
-				if (newRelicApplicationId == null)
-					throw new NewRelicException("No Application find in The NewRelic Account");
-			} else {
-				newRelicApplicationId = null;
+		final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
+		try{
+			http = new HTTPGenerator(url, "GET", header, Parameters, proxy);
+			jsoobj = http.getJSONHTTPresponse();
+			if (jsoobj != null) {
+				if (jsoobj.has("applications")) {
+					jsonApplication = jsoobj.getJSONArray("applications");
+					final String id = String.valueOf(jsonApplication.getJSONObject(0).getInt("id"));
+					if(!Strings.isNullOrEmpty(id)){
+						return id;
+					} 
+				}
 			}
-		} else {
-			newRelicApplicationId = null;
+		} finally {
+			if(http != null){
+				http.closeHttpClient();
+			}
 		}
-		http.closeHttpClient();
-		return newRelicApplicationId;
+		throw new NewRelicException("No Application found for name '" + newRelicActionArguments.getNewRelicApplicationName() + "'.");
 	}
 
 }

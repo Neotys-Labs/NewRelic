@@ -4,12 +4,19 @@ package com.neotys.newrelic.infrastucture;
  * Created by anouvel on 05/02/2018.
  */
 public class NewRelicException extends Exception {
-	//Parameterless Constructor
+	
 	public NewRelicException() {
 	}
 
-	//Constructor that accepts a message
-	public NewRelicException(String message) {
+	public NewRelicException(final String message) {
 		super(message);
+	}
+	
+	public NewRelicException(final String message, final Throwable throwable) {
+		super(message, throwable);
+	}
+	
+	public NewRelicException(final Throwable throwable) {
+		super(throwable);
 	}
 }

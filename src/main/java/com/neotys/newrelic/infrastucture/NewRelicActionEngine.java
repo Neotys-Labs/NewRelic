@@ -23,6 +23,8 @@ import com.neotys.extensions.action.engine.Context;
 import com.neotys.extensions.action.engine.Logger;
 import com.neotys.extensions.action.engine.SampleResult;
 import com.neotys.newrelic.Constants;
+import com.neotys.newrelic.NewRelicActionArguments;
+import com.neotys.newrelic.NewRelicOption;
 import com.neotys.rest.error.NeotysAPIException;
 
 public final class NewRelicActionEngine implements ActionEngine {
@@ -33,56 +35,25 @@ public final class NewRelicActionEngine implements ActionEngine {
 		final SampleResult sampleResult = new SampleResult();
 		final StringBuilder requestBuilder = new StringBuilder();
 		final StringBuilder responseBuilder = new StringBuilder();
-		long Start_TS=0;
-
-		final Map<String, Optional<String>> parsedArgs;
+		
+		final NewRelicActionArguments newRelicActionArguments;
 		try {
-			parsedArgs = parseArguments(parameters, NewRelicOption.values());
+			newRelicActionArguments = new NewRelicActionArguments(context, parameters);
 		} catch (final IllegalArgumentException iae) {
 			return ResultFactory.newErrorResult(context, Constants.STATUS_CODE_INVALID_PARAMETER, "Could not parse arguments: ", iae);
 		}
-
-		if (context.getWebPlatformRunningTestUrl() == null) {
-			return ResultFactory.newErrorResult(context, Constants.STATUS_CODE_BAD_CONTEXT, "Bad context: ", new NewRelicException("No NeoLoad Web test is running"));
-		}
-
-		final Logger logger = context.getLogger();
-		if (logger.isDebugEnabled()) {
-			logger.debug("Executing " + this.getClass().getName() + " with parameters: "
-					+ getArgumentLogString(parsedArgs, NewRelicOption.values()));
-		}
-		
-		NewRelicIntegration newrelic;
-				
-		final String newRelicApiKey = parsedArgs.get(NewRelicOption.NewRelicApiKey.getName()).get();
-		final String newRelicApplicationName = parsedArgs.get(NewRelicOption.NewRelicApplicationName.getName()).get();
-
-		final boolean isNewRelicPluginEnabled = Boolean.parseBoolean(parsedArgs.get(NewRelicOption.EnableNewRelicPlugin.getName()).get());
-		final Optional<String> licenseKey = parsedArgs.get(NewRelicOption.NewRelicLicenseKey.getName());
-		final Optional<String> insightAccountId = parsedArgs.get(NewRelicOption.InsightAccountId.getName());
-		final Optional<String> insightApiKey = parsedArgs.get(NewRelicOption.InsightApiKey.getName());
-
-		final String dataExchangeApiUrl = parsedArgs.get(NewRelicOption.NeoLoadDataExchangeApiUrl.getName()).get();
-		final Optional<String> dataExchangeApiKey = parsedArgs.get(NewRelicOption.NeoLoadDataExchangeApiKey.getName());
-		final Optional<String> proxyName = parsedArgs.get(NewRelicOption.NeoLoadProxy.getName());
-		
-		if(isNewRelicPluginEnabled)
+		long startTimestamp=0;
+			
+		final NewRelicIntegration newrelic;
+						
+		if(newRelicActionArguments.isSendNLWebDataToNewRelic())
 		{
 			pluginData =(NewRelicPluginData)context.getCurrentVirtualUser().get("PLUGINDATA");
 			
-			if(pluginData == null){
-				if (!licenseKey.isPresent() || licenseKey.get().equals("")) {
-					return ResultFactory.newErrorResult(context, Constants.STATUS_CODE_INVALID_PARAMETER, "Invalid argument: " + NewRelicOption.NewRelicLicenseKey.getName() + " cannot null if the NewRelic Plugin is enabled");
-				}
-				if (!insightAccountId.isPresent() || insightAccountId.get().equals("")) {
-					return ResultFactory.newErrorResult(context, Constants.STATUS_CODE_INVALID_PARAMETER, "Invalid argument: " + NewRelicOption.InsightAccountId.getName() + " cannot null if the NewRelic Plugin is enabled");
-				}
-				if (!insightApiKey.isPresent() || insightApiKey.get().equals("")) {
-					return ResultFactory.newErrorResult(context, Constants.STATUS_CODE_INVALID_PARAMETER, "Invalid argument: " + NewRelicOption.InsightApiKey.getName() + " cannot null if the NewRelic Plugin is enabled");
-				}
+			if(pluginData == null){			
 
 				try {
-					pluginData=new NewRelicPluginData(licenseKey.get(), context, insightAccountId.get(), insightApiKey.get(), newRelicApiKey, newRelicApplicationName, proxyName);
+					pluginData=new NewRelicPluginData(context, newRelicActionArguments);
 					context.getCurrentVirtualUser().put("PLUGINDATA",pluginData);	
 				} catch (NewRelicException | IOException | NoSuchAlgorithmException | KeyManagementException e) {
 					// TODO Auto-generated catch block
@@ -93,10 +64,10 @@ public final class NewRelicActionEngine implements ActionEngine {
 		
 		try {			
 			sampleResult.sampleStart();
-			Start_TS=System.currentTimeMillis()-context.getElapsedTime();
+			startTimestamp=System.currentTimeMillis()-context.getElapsedTime();
 			appendLineToStringBuilder(requestBuilder, "NewRelicInfraStructureMonitoring request.");
 			
-			newrelic = new NewRelicIntegration(newRelicApiKey, newRelicApplicationName, dataExchangeApiUrl, dataExchangeApiKey, context,  proxyName, Start_TS);		
+			newrelic = new NewRelicIntegration(context, newRelicActionArguments, startTimestamp);		
 			newrelic.startMonitor(responseBuilder);
 		} catch (ClientProtocolException e) {
 			// TODO Auto-generated catch block

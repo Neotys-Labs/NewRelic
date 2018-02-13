@@ -14,6 +14,7 @@ import com.neotys.extensions.action.Action;
 import com.neotys.extensions.action.ActionParameter;
 import com.neotys.extensions.action.engine.ActionEngine;
 import com.neotys.newrelic.Constants;
+import com.neotys.newrelic.NewRelicOption;
 
 
 public final class NewRelicAction implements Action{

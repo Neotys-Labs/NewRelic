@@ -27,7 +27,7 @@ import java.security.cert.CertificateException;
  */
 public class NewRelicUtils {
 
-	private NewRelicUtils(){
+	private NewRelicUtils() {
 
 	}
 
@@ -39,30 +39,27 @@ public class NewRelicUtils {
 	}
 
 	// FIXME should be in common with dynatrace Advanced action.
-	public static void initProxyForNeoloadWebApiClient(final ApiClient neoloadWebApiClient, final Proxy proxy) throws KeyManagementException, NoSuchAlgorithmException {
+	public static void initProxyForNeoloadWebApiClient(final ApiClient neoloadWebApiClient, final Proxy proxy)
+			throws KeyManagementException, NoSuchAlgorithmException {
 		neoloadWebApiClient.getHttpClient().setProxy(toOkHttpProxy(proxy));
 		if (!Strings.isNullOrEmpty(proxy.getLogin())) {
 			Authenticator proxyAuthenticator = new Authenticator() {
 				@Override
 				public Request authenticate(java.net.Proxy p, Response response) throws IOException {
 					final String credential = Credentials.basic(proxy.getLogin(), proxy.getPassword());
-					return response.request().newBuilder()
-							.header("Proxy-Authorization", credential)
-							.build();
+					return response.request().newBuilder().header("Proxy-Authorization", credential).build();
 				}
 
 				@Override
 				public Request authenticateProxy(java.net.Proxy p, Response response) throws IOException {
 					final String credential = Credentials.basic(proxy.getLogin(), proxy.getPassword());
-					return response.request().newBuilder()
-							.header("Proxy-Authorization", credential)
-							.build();
+					return response.request().newBuilder().header("Proxy-Authorization", credential).build();
 				}
 			};
 			neoloadWebApiClient.getHttpClient().setAuthenticator(proxyAuthenticator);
 		}
 		// Create a trust manager that does not validate certificate chains
-		final TrustManager[] trustAllCerts = new TrustManager[]{
+		final TrustManager[] trustAllCerts = new TrustManager[] {
 				new X509TrustManager() {
 					@Override
 					public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {

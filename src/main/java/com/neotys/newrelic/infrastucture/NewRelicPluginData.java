@@ -4,6 +4,8 @@ package com.neotys.newrelic.infrastucture;
 import com.google.common.base.Optional;
 import com.neotys.extensions.action.engine.Context;
 import com.neotys.extensions.action.engine.Proxy;
+import com.neotys.newrelic.NewRelicActionArguments;
+
 import io.swagger.client.ApiClient;
 import io.swagger.client.api.ResultsApi;
 
@@ -27,20 +29,19 @@ public class NewRelicPluginData {
 	
 	private final NeoLoadStatAggregator nlAggregator;
 	
-	public NewRelicPluginData(String newRelicLicenseKey, final Context neoloadContext, final String insightAccountId, final String insightApiKey, final String applicationName, final String applicationApiKey, final Optional<String> proxyName) throws NewRelicException, IOException, NoSuchAlgorithmException, KeyManagementException {
+	public NewRelicPluginData(final Context neoloadContext, final NewRelicActionArguments newRelicActionArguments) throws NewRelicException, IOException, NoSuchAlgorithmException, KeyManagementException {
 		super();	
 
-		//----define  the NLWEB API-----
 		this.neoloadWebApiClient = new ApiClient();
 		this.neoloadWebApiClient.setApiKey(neoloadContext.getAccountToken());
 		final String basePath = getBasePath(neoloadContext);
 		this.neoloadWebApiClient.setBasePath(basePath);
-		final Optional<Proxy> proxyOptional = getProxy(neoloadContext, proxyName, basePath);
+		final Optional<Proxy> proxyOptional = getProxy(neoloadContext, newRelicActionArguments.getProxyName(), basePath);
 		if(proxyOptional.isPresent()) {
 			initProxyForNeoloadWebApiClient(neoloadWebApiClient, proxyOptional.get());
 		}	
 		this.nlStat=new NLGlobalStat();				
-		this.nlAggregator=new NeoLoadStatAggregator(newRelicLicenseKey,new ResultsApi(neoloadWebApiClient),neoloadContext.getTestId(),nlStat,insightAccountId,insightApiKey,neoloadContext.getTestName(),applicationName,applicationApiKey,neoloadContext.getScenarioName(), neoloadContext, proxyName);
+		this.nlAggregator=new NeoLoadStatAggregator(neoloadContext, newRelicActionArguments, new ResultsApi(neoloadWebApiClient),nlStat);
 		this.timerNewRelic = new Timer();
 		timerNewRelic.scheduleAtFixedRate(nlAggregator,TIMERDELAY,TIMERFREQUENCY);
 	

@@ -65,8 +65,9 @@ public final class Constants {
 	/*** Send Data from NLWeb to New Relic ***/
 	public static final int MIN_NEW_RELIC_DURATION = 30;
 	
-	/*** Retrieve Data from New Relic to NeoLoad ***/	
-	public static final List<String> RELEVANT_METRIC_NAME_VALUES = Arrays.asList("min", "max", "average", "used_mb", "percent");
-	public static final List<String> RELEVANT_METRIC_NAMES = Arrays.asList("Datastore/statement", "Datastore/instance", "CPU", "Memory", "Error/", "connects");	
+	/*** Retrieve Data from New Relic to NeoLoad ***/
+	public static final List<String> RELEVANT_METRIC_NAMES = Arrays.asList("Datastore/statement", "Datastore/instance", "CPU", "Memory", "Error/", "connects");
+	public static final List<String> RELEVANT_METRIC_VALUES = Arrays.asList("min", "max", "average", "used_mb", "percent");
+		
 	
 }

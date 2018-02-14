@@ -30,7 +30,7 @@ public class NLWebToNewRelic {
 	
 	private final NLWebToNewRelicTask nlAggregator;
 	
-	public NLWebToNewRelic(final Context neoloadContext, final NewRelicActionArguments newRelicActionArguments) throws NewRelicException, IOException, NoSuchAlgorithmException, KeyManagementException {
+	public NLWebToNewRelic(final Context neoloadContext, final NewRelicActionArguments newRelicActionArguments, final String newRelicApplicationId) throws NewRelicException, IOException, NoSuchAlgorithmException, KeyManagementException {
 		super();	
 
 		this.neoloadWebApiClient = new ApiClient();
@@ -42,7 +42,7 @@ public class NLWebToNewRelic {
 			initProxyForNeoloadWebApiClient(neoloadWebApiClient, proxyOptional.get());
 		}	
 		this.nlStat=new NLWebStats();				
-		this.nlAggregator=new NLWebToNewRelicTask(neoloadContext, newRelicActionArguments, new ResultsApi(neoloadWebApiClient),nlStat);
+		this.nlAggregator=new NLWebToNewRelicTask(newRelicApplicationId, neoloadContext, newRelicActionArguments, new ResultsApi(neoloadWebApiClient),nlStat);
 		this.timerNewRelic = new Timer();
 		timerNewRelic.scheduleAtFixedRate(nlAggregator,TIMERDELAY,TIMERFREQUENCY);
 	

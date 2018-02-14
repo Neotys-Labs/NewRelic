@@ -1,4 +1,4 @@
-package com.neotys.newrelic.http;
+package com.neotys.newrelic.rest;
 
 import java.io.BufferedReader;
 import java.io.IOException;

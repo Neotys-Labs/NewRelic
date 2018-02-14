@@ -9,16 +9,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimerTask;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import com.neotys.extensions.action.engine.Context;
 import com.neotys.extensions.action.engine.Proxy;
 import com.neotys.newrelic.Constants;
 import com.neotys.newrelic.NewRelicActionArguments;
 import com.neotys.newrelic.NewRelicException;
 import com.neotys.newrelic.NewRelicUtils;
-import com.neotys.newrelic.http.HTTPGenerator;
+import com.neotys.newrelic.rest.HTTPGenerator;
 
 import io.swagger.client.ApiException;
 import io.swagger.client.api.ResultsApi;
@@ -38,13 +35,13 @@ public class NLWebToNewRelicTask extends TimerTask {
 	private final String newRelicApplicationId;
 	
 
-	public NLWebToNewRelicTask(final Context neoloadContext, final NewRelicActionArguments newRelicActionArguments, final ResultsApi nlWebResult, final NLWebStats nlStat) throws NewRelicException, IOException {
+	public NLWebToNewRelicTask(final String newRelicApplicationId, final Context neoloadContext, final NewRelicActionArguments newRelicActionArguments, final ResultsApi nlWebResult, final NLWebStats nlStat) throws NewRelicException, IOException {
 		this.neoloadContext = neoloadContext;
 		this.newRelicActionArguments = newRelicActionArguments;
 		this.componentsName = "Statistics";		
 		this.nlStat = nlStat;		
 		this.nlWebResult = nlWebResult;
-		this.newRelicApplicationId = getApplicationID(newRelicActionArguments);		 
+		this.newRelicApplicationId = newRelicApplicationId;		 
 		headers.put("X-License-Key", newRelicActionArguments.getNewRelicLicenseKey().get());
 		headers.put("Content-Type", "application/json");
 		headers.put("Accept", "application/json");
@@ -103,40 +100,7 @@ public class NLWebToNewRelicTask extends TimerTask {
 		return utc;
 	}
 
-	public String getApplicationID(final NewRelicActionArguments newRelicActionArguments) throws NewRelicException, IOException {
-		JSONObject jsoobj;
-		String Url;
-		JSONArray jsonApplication;
-		Map<String, String> Parameters = null;
-		Map<String, String> head = null;
-
-		HTTPGenerator ApplicationAPI;
-		String newRelicApplicationID = null;
-
-		head = new HashMap<>();
-		head.put("X-Api-Key", newRelicActionArguments.getNewRelicAPIKey());
-		head.put("Content-Type", "application/json");
-		Url = Constants.NEW_RELIC_API_URL + Constants.APPLICATIONS_JSON;
-		Parameters = new HashMap<>();
-		Parameters.put("filter[name]", newRelicActionArguments.getNewRelicApplicationName());
-
-		final com.google.common.base.Optional<Proxy> proxy = getProxy(neoloadContext, newRelicActionArguments.getProxyName(), Url);
-		ApplicationAPI = new HTTPGenerator(Url, "GET", head, Parameters, proxy);
-
-
-		jsoobj = ApplicationAPI.getJSONHTTPresponse();
-		if (jsoobj != null) {
-			if (jsoobj.has("applications")) {
-				jsonApplication = jsoobj.getJSONArray("applications");
-				newRelicApplicationID = String.valueOf(jsonApplication.getJSONObject(0).getInt("id"));
-				if (newRelicApplicationID == null)
-					throw new NewRelicException("No Application find in The NewRelic Account");
-			} 
-		} 
-		return newRelicApplicationID;
-
-	}
-
+	
 	private void sendNLWebMetricsToInsightsAPI() {		
 		final List<NLWebElementValue> nlWebElementValues = new ArrayList<>();
 		try {

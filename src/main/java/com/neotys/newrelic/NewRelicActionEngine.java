@@ -11,6 +11,7 @@ import com.neotys.extensions.action.engine.ActionEngine;
 import com.neotys.extensions.action.engine.Context;
 import com.neotys.extensions.action.engine.SampleResult;
 import com.neotys.newrelic.fromnlweb.NLWebToNewRelic;
+import com.neotys.newrelic.rest.NewRelicRestClient;
 import com.neotys.newrelic.tonldataexchange.NewRelicToNLDataExchange;
 
 public final class NewRelicActionEngine implements ActionEngine {
@@ -26,11 +27,17 @@ public final class NewRelicActionEngine implements ActionEngine {
 		try {
 			newRelicActionArguments = new NewRelicActionArguments(context, parameters);
 		} catch (final IllegalArgumentException iae) {
-			return ResultFactory.newErrorResult(context, Constants.STATUS_CODE_INVALID_PARAMETER, "Could not parse arguments: ", iae);
+			return ResultFactory.newErrorResult(context, Constants.STATUS_CODE_INVALID_PARAMETER, "Issue while parsing advanced action arguments: ", iae);
 		}		
 			
 		final NewRelicToNLDataExchange newrelic;
-						
+		String newRelicApplicationId = null;
+		try {	
+			newRelicApplicationId = NewRelicRestClient.getApplicationId(newRelicActionArguments, context);
+		} catch (final Exception e) {
+			// TODO 
+			e.printStackTrace();
+		}
 		if(newRelicActionArguments.isSendNLWebDataToNewRelic())
 		{
 			pluginData =(NLWebToNewRelic)context.getCurrentVirtualUser().get("PLUGINDATA");
@@ -38,7 +45,7 @@ public final class NewRelicActionEngine implements ActionEngine {
 			if(pluginData == null){			
 
 				try {
-					pluginData=new NLWebToNewRelic(context, newRelicActionArguments);
+					pluginData=new NLWebToNewRelic(context, newRelicActionArguments, newRelicApplicationId);
 					context.getCurrentVirtualUser().put("PLUGINDATA",pluginData);	
 				} catch (NewRelicException | IOException | NoSuchAlgorithmException | KeyManagementException e) {
 					// TODO Auto-generated catch block
@@ -50,7 +57,7 @@ public final class NewRelicActionEngine implements ActionEngine {
 		try {			
 			sampleResult.sampleStart();	
 			requestBuilder.append("NewRelicInfraStructureMonitoring request.\n");			
-			newrelic = new NewRelicToNLDataExchange(context, newRelicActionArguments, System.currentTimeMillis()-context.getElapsedTime());		
+			newrelic = new NewRelicToNLDataExchange(newRelicApplicationId, context, newRelicActionArguments, System.currentTimeMillis()-context.getElapsedTime());		
 			newrelic.startMonitor(responseBuilder);
 		} catch (final Exception e) {
 			// TODO 

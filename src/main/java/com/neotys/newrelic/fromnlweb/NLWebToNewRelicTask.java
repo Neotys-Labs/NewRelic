@@ -30,19 +30,7 @@ public class NLWebToNewRelicTask extends TimerTask {
 		this.nlWebStats = nlWebStats;			
 	}
 
-	private void sendStatsToNewRelic() throws ApiException, IOException {
-		long lastduration;
-		final long utc = System.currentTimeMillis() / 1000;
-		lastduration = nlWebStats.getLasduration();
-		if (lastduration == 0 || (utc - lastduration) >= Constants.MIN_NEW_RELIC_DURATION) {
-			final TestStatistics qtatsResult = resultsApi.getTestStatistics(testId);
-			lastduration = sendMetricsToNewRelic(qtatsResult, lastduration);
-			nlWebStats.setLasduration(lastduration);
-			sendNLWebMetricsToInsightsAPI();
-		}
-	}
-
-	private long sendMetricsToNewRelic(final TestStatistics testStatistics, final long lastDuration) throws IOException {
+	private long sendNLWebMainStatisticsToNewRelic(final TestStatistics testStatistics, final long lastDuration) throws IOException {
 		int time = 0;
 		List<String[]> data;
 		final long utc = System.currentTimeMillis() / 1000;
@@ -59,14 +47,14 @@ public class NLWebToNewRelicTask extends TimerTask {
 		}
 		for (String[] metric : data) {
 			try {
-				newRelicRestClient.sendDataMetricToPlateformAPI(metric[0], metric[1], time, metric[2], metric[3]);
+				newRelicRestClient.sendNLWebMainStatisticsToPlateformAPI(metric[0], metric[1], time, metric[2], metric[3]);
 			} catch (NewRelicException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 		try {
-			newRelicRestClient.sendDataMetricToInsightsAPI(data);
+			newRelicRestClient.sendNLWebMainStatisticsToInsightsAPI(data);
 		} catch (NewRelicException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -76,7 +64,7 @@ public class NLWebToNewRelicTask extends TimerTask {
 	}
 
 	
-	private void sendNLWebMetricsToInsightsAPI() {		
+	private void sendNLWebElementValuesToInsightsAPI() {		
 		final List<NLWebElementValue> nlWebElementValues = new ArrayList<>();
 		try {
 			final ArrayOfElementDefinition NLElement = resultsApi.getTestElements(testId, Constants.NLWEB_TRANSACTION);
@@ -97,7 +85,15 @@ public class NLWebToNewRelicTask extends TimerTask {
 	@Override
 	public void run() {
 		try {
-			sendStatsToNewRelic();
+			long lastduration;
+			final long utc = System.currentTimeMillis() / 1000;
+			lastduration = nlWebStats.getLasduration();
+			if (lastduration == 0 || (utc - lastduration) >= Constants.MIN_NEW_RELIC_DURATION) {
+				final TestStatistics qtatsResult = resultsApi.getTestStatistics(testId);
+				lastduration = sendNLWebMainStatisticsToNewRelic(qtatsResult, lastduration);
+				nlWebStats.setLasduration(lastduration);
+				sendNLWebElementValuesToInsightsAPI();
+			}
 		} catch (ApiException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

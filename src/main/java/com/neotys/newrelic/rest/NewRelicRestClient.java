@@ -296,8 +296,8 @@ public class NewRelicRestClient {
 	 * @throws IOException
 	 * @throws ParseException 
 	 */
-	public void sendDataMetricToInsightsAPI(final List<String[]> data) throws IOException, NewRelicException {
-		final String url = Constants.NEW_RELIC_INSIGHT_URL + newRelicActionArguments.getNewRelicAccountId() + "/events";
+	public void sendNLWebMainStatisticsToInsightsAPI(final List<String[]> data) throws IOException, NewRelicException {
+		final String url = Constants.NEW_RELIC_INSIGHT_URL + newRelicActionArguments.getNewRelicAccountId().get() + "/events";
 		final StringBuilder jsonString = new StringBuilder();
 		jsonString.append("[{\"eventType\":\"NeoLoadData\","
 				+ "\"account\" : \"" + newRelicActionArguments.getNewRelicAccountId() + "\","
@@ -338,7 +338,7 @@ public class NewRelicRestClient {
 	 * @throws IOException
 	 * @throws ParseException 
 	 */
-	public void sendDataMetricToPlateformAPI(final String metricName, final String metricPath, final int duration, final String unit, final String value) throws NewRelicException, MalformedURLException {
+	public void sendNLWebMainStatisticsToPlateformAPI(final String metricName, final String metricPath, final int duration, final String unit, final String value) throws NewRelicException, MalformedURLException {
 		final String url = Constants.NEW_RELIC_PLATFORM_API_URL;
 		final String jsonString = "{\"agent\":{"
 				+ "\"host\" : \"" + Constants.CUSTOM_ACTION_HOST + "\","

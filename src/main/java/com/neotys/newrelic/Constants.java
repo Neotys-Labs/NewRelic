@@ -19,12 +19,15 @@ public final class Constants {
 	public static final String NEW_RELIC_API_APPLICATIONS_JSON_URL = NEW_RELIC_API_URL+"applications.json";
 	public static final String NEW_RELIC_PLATFORM_API_URL = "https://platform-api.newrelic.com/platform/v1/metrics";
 	public static final String NEW_RELIC_INSIGHT_URL = "https://insights-collector.newrelic.com/v1/accounts/";
-	public static final String METRICS_JSON = "metrics.json";
-	public static final String HOSTS_JSON = "/hosts.json";
-	public static final String HOSTS = "/hosts/";
-	public static final String DATA_JSON = "/metrics/data.json";	
-	public static final String APPLICATION_HOSTS = "application_hosts";
-	public static final String METRICS = "metrics";
+	public static final String NEW_RELIC_METRICS_JSON = "/metrics.json";
+	public static final String NEW_RELIC_HOSTS_JSON = "/hosts.json";
+	public static final String NEW_RELIC_HOSTS = "/hosts/";
+	public static final String NEW_RELIC_DATA_JSON = "/metrics/data.json";	
+	public static final String NEW_RELIC_APPLICATION_HOSTS = "application_hosts";	
+	public static final String NEW_RELIC_METRICS = "metrics";
+	public static final String NEW_RELIC_X_API_KEY = "X-Api-Key";
+	public static final String NEW_RELIC_X_INSERT_KEY = "X-Insert-Key";
+	public static final String NEW_RELIC_X_LICENSE_KEY = "X-License-Key";
 	
 	/*** NeoLoad Web ***/
 	public static final String NLWEB_TRANSACTION = "TRANSACTION";
@@ -64,6 +67,11 @@ public final class Constants {
 	
 	/*** Send Data from NLWeb to New Relic ***/
 	public static final int MIN_NEW_RELIC_DURATION = 30;
+	
+	/*** HTTP ***/
+	public static final String HTTP_APPLICATION_JSON = "application/json";
+	public static final String HTTP_CONTENT_TYPE = "Content-Type";
+	public static final String HTTP_ACCEPT = "Accept";
 	
 	/*** Retrieve Data from New Relic to NeoLoad ***/
 	public static final List<String> RELEVANT_METRIC_NAMES = Arrays.asList("Datastore/statement", "Datastore/instance", "CPU", "Memory", "Error/", "connects");

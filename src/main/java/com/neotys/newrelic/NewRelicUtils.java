@@ -15,7 +15,7 @@ import javax.net.ssl.X509TrustManager;
 
 import org.apache.http.HttpStatus;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
 import com.google.common.base.Strings;
 import com.neotys.extensions.action.engine.Context;
 import com.neotys.extensions.action.engine.Proxy;
@@ -37,9 +37,9 @@ public class NewRelicUtils {
 
 	public static Optional<Proxy> getProxy(final Context context, final Optional<String> proxyName, final String url) throws MalformedURLException {
 		if (proxyName.isPresent()) {
-			return Optional.fromNullable(context.getProxyByName(proxyName.get(), new URL(url)));
+			return Optional.ofNullable(context.getProxyByName(proxyName.get(), new URL(url)));
 		}
-		return Optional.absent();
+		return Optional.empty();
 	}
 
 	// FIXME should be in common with dynatrace Advanced action.

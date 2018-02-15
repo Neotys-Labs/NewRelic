@@ -15,7 +15,8 @@ import com.neotys.newrelic.rest.NewRelicRestClient;
 import com.neotys.newrelic.tonldataexchange.NewRelicToNLDataExchange;
 
 public final class NewRelicActionEngine implements ActionEngine {
-	private NLWebToNewRelic pluginData;	
+	private NLWebToNewRelic nlWebToNewRelic;
+	private NewRelicRestClient newRelicRestClient;
 	
 	@Override
 	public SampleResult execute(Context context, List<ActionParameter> parameters) {
@@ -29,25 +30,24 @@ public final class NewRelicActionEngine implements ActionEngine {
 		} catch (final IllegalArgumentException iae) {
 			return ResultFactory.newErrorResult(context, Constants.STATUS_CODE_INVALID_PARAMETER, "Issue while parsing advanced action arguments: ", iae);
 		}		
-			
-		final NewRelicToNLDataExchange newrelic;
-		String newRelicApplicationId = null;
 		try {	
-			newRelicApplicationId = NewRelicRestClient.getApplicationId(newRelicActionArguments, context);
+			newRelicRestClient = new NewRelicRestClient(newRelicActionArguments, context);
 		} catch (final Exception e) {
 			// TODO 
 			e.printStackTrace();
-		}
+		}	
+		final NewRelicToNLDataExchange newrelic;
+		
 		if(newRelicActionArguments.isSendNLWebDataToNewRelic())
 		{
-			pluginData =(NLWebToNewRelic)context.getCurrentVirtualUser().get("PLUGINDATA");
+			nlWebToNewRelic =(NLWebToNewRelic)context.getCurrentVirtualUser().get("PLUGINDATA");
 			
-			if(pluginData == null){			
+			if(nlWebToNewRelic == null){			
 
 				try {
-					pluginData=new NLWebToNewRelic(context, newRelicActionArguments, newRelicApplicationId);
-					context.getCurrentVirtualUser().put("PLUGINDATA",pluginData);	
-				} catch (NewRelicException | IOException | NoSuchAlgorithmException | KeyManagementException e) {
+					nlWebToNewRelic=new NLWebToNewRelic(newRelicRestClient, context, newRelicActionArguments);
+					context.getCurrentVirtualUser().put("PLUGINDATA",nlWebToNewRelic);	
+				} catch (IOException | NoSuchAlgorithmException | KeyManagementException e) {
 					// TODO Auto-generated catch block
 					return getErrorResult(context, sampleResult, "Technical Error PLugin/Insight API:", e);				
 				}
@@ -57,7 +57,7 @@ public final class NewRelicActionEngine implements ActionEngine {
 		try {			
 			sampleResult.sampleStart();	
 			requestBuilder.append("NewRelicInfraStructureMonitoring request.\n");			
-			newrelic = new NewRelicToNLDataExchange(newRelicApplicationId, context, newRelicActionArguments, System.currentTimeMillis()-context.getElapsedTime());		
+			newrelic = new NewRelicToNLDataExchange(newRelicActionArguments, newRelicRestClient, System.currentTimeMillis()-context.getElapsedTime());		
 			newrelic.startMonitor(responseBuilder);
 		} catch (final Exception e) {
 			// TODO 

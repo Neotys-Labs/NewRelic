@@ -14,7 +14,7 @@ public class NewRelicApplicationHost {
 
 	public NewRelicApplicationHost(final JSONObject jsonObject) {
 		this.hostId = String.valueOf(jsonObject.getInt("id"));
-		this.hostName = String.valueOf(jsonObject.getInt("host"));
+		this.hostName = jsonObject.getString("host");
 	}
 	
 	public String getHostId() {

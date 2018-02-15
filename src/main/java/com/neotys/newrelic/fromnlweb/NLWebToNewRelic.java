@@ -1,22 +1,22 @@
 package com.neotys.newrelic.fromnlweb;
 
 
-import com.google.common.base.Optional;
-import com.neotys.extensions.action.engine.Context;
-import com.neotys.extensions.action.engine.Proxy;
-import com.neotys.newrelic.NewRelicActionArguments;
-import com.neotys.newrelic.NewRelicException;
-
-import io.swagger.client.ApiClient;
-import io.swagger.client.api.ResultsApi;
+import static com.neotys.newrelic.NewRelicUtils.getProxy;
+import static com.neotys.newrelic.NewRelicUtils.initProxyForNeoloadWebApiClient;
 
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Timer;
 
-import static com.neotys.newrelic.NewRelicUtils.getProxy;
-import static com.neotys.newrelic.NewRelicUtils.initProxyForNeoloadWebApiClient;
+import java.util.Optional;
+import com.neotys.extensions.action.engine.Context;
+import com.neotys.extensions.action.engine.Proxy;
+import com.neotys.newrelic.NewRelicActionArguments;
+import com.neotys.newrelic.rest.NewRelicRestClient;
+
+import io.swagger.client.ApiClient;
+import io.swagger.client.api.ResultsApi;
 
 
 public class NLWebToNewRelic {
@@ -26,13 +26,11 @@ public class NLWebToNewRelic {
 	
 	private final NLWebStats nlStat;		
 	private final Timer timerNewRelic;	
-	private final ApiClient neoloadWebApiClient;
-	
+	private final ApiClient neoloadWebApiClient;	
 	private final NLWebToNewRelicTask nlAggregator;
 	
-	public NLWebToNewRelic(final Context neoloadContext, final NewRelicActionArguments newRelicActionArguments, final String newRelicApplicationId) throws NewRelicException, IOException, NoSuchAlgorithmException, KeyManagementException {
+	public NLWebToNewRelic(final NewRelicRestClient newRelicRestClient, final Context neoloadContext, final NewRelicActionArguments newRelicActionArguments) throws IOException, NoSuchAlgorithmException, KeyManagementException {
 		super();	
-
 		this.neoloadWebApiClient = new ApiClient();
 		this.neoloadWebApiClient.setApiKey(neoloadContext.getAccountToken());
 		final String basePath = getBasePath(neoloadContext);
@@ -42,7 +40,7 @@ public class NLWebToNewRelic {
 			initProxyForNeoloadWebApiClient(neoloadWebApiClient, proxyOptional.get());
 		}	
 		this.nlStat=new NLWebStats();				
-		this.nlAggregator=new NLWebToNewRelicTask(newRelicApplicationId, neoloadContext, newRelicActionArguments, new ResultsApi(neoloadWebApiClient),nlStat);
+		this.nlAggregator=new NLWebToNewRelicTask(newRelicRestClient, neoloadContext.getTestId(), new ResultsApi(neoloadWebApiClient),nlStat);
 		this.timerNewRelic = new Timer();
 		timerNewRelic.scheduleAtFixedRate(nlAggregator,TIMERDELAY,TIMERFREQUENCY);
 	

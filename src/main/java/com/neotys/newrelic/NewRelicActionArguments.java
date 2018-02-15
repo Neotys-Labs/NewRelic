@@ -5,8 +5,8 @@ import static com.neotys.action.argument.Arguments.parseArguments;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
-import com.google.common.base.Optional;
 import com.neotys.extensions.action.ActionParameter;
 import com.neotys.extensions.action.engine.Context;
 
@@ -34,7 +34,7 @@ public class NewRelicActionArguments {
 	
 	public NewRelicActionArguments(final Context context, final List<ActionParameter> parameters) throws IllegalArgumentException {
 		
-		final Map<String, Optional<String>> parsedArgs = parseArguments(parameters, NewRelicOption.values());
+		final Map<String, com.google.common.base.Optional<String>> parsedArgs = parseArguments(parameters, NewRelicOption.values());
 		if (context.getLogger().isDebugEnabled()) {
 			context.getLogger().debug("Executing " + this.getClass().getName() + " with parameters: "+ getArgumentLogString(parsedArgs, NewRelicOption.values()));
 		}
@@ -44,13 +44,13 @@ public class NewRelicActionArguments {
 		this.dataExchangeApiUrl = parsedArgs.get(NewRelicOption.NeoLoadDataExchangeApiUrl.getName()).get();
 		
 		// Optional
-		final Optional<String> sendNLWebDataToNewRelicArg = parsedArgs.get(NewRelicOption.SendNLWebDataToNewRelic.getName());		
-		this.sendNLWebDataToNewRelic = sendNLWebDataToNewRelicArg.isPresent() && "true".equals(sendNLWebDataToNewRelicArg.get());
-		this.newRelicLicenseKey = parsedArgs.get(NewRelicOption.NewRelicLicenseKey.getName());
-		this.newRelicAccountId = parsedArgs.get(NewRelicOption.NewRelicAccountId.getName());
-		this.newRelicInsightsAPIKey = parsedArgs.get(NewRelicOption.NewRelicInsightsAPIKey.getName());
-		this.dataExchangeApiKey = parsedArgs.get(NewRelicOption.NeoLoadDataExchangeApiKey.getName());
-		this.proxyName = parsedArgs.get(NewRelicOption.NeoLoadProxy.getName());
+		final Optional<String> sendNLWebDataToNewRelicArg = Optional.ofNullable(parsedArgs.get(NewRelicOption.SendNLWebDataToNewRelic.getName()).orNull());	
+		this.sendNLWebDataToNewRelic = sendNLWebDataToNewRelicArg.map(a -> "true".equals(a)).orElse(false);
+		this.newRelicLicenseKey = Optional.ofNullable(parsedArgs.get(NewRelicOption.NewRelicLicenseKey.getName()).orNull());	
+		this.newRelicAccountId = Optional.ofNullable(parsedArgs.get(NewRelicOption.NewRelicAccountId.getName()).orNull());	
+		this.newRelicInsightsAPIKey = Optional.ofNullable(parsedArgs.get(NewRelicOption.NewRelicInsightsAPIKey.getName()).orNull());	
+		this.dataExchangeApiKey = Optional.ofNullable(parsedArgs.get(NewRelicOption.NeoLoadDataExchangeApiKey.getName()).orNull());	
+		this.proxyName = Optional.ofNullable(parsedArgs.get(NewRelicOption.NeoLoadProxy.getName()).orNull());	
 
 		// Additional checks when sendNLWebDataToNewRelic is true
 		if(sendNLWebDataToNewRelic){

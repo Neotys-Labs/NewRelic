@@ -17,6 +17,7 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -61,7 +62,7 @@ public class HTTPGenerator {
 	public HTTPGenerator(final String url,
 						 final String method,
 						 final Map<String, String> headers,
-						 final Map<String, String> params,
+						 final List<Pair<String, String>> params,
 						 final Optional<Proxy> proxy) {
 
 		httpMethod = method;
@@ -152,10 +153,10 @@ public class HTTPGenerator {
 		}
 	}
 
-	private static HttpParams generateParams(final Map<String, String> params) {
+	private static HttpParams generateParams(final List<Pair<String, String>> params) {
 		if (params != null) {
 			HttpParams result = new BasicHttpParams();
-			for (Map.Entry<String, String> entry : params.entrySet()) {
+			for (final Pair<String, String> entry : params) {
 				result.setParameter(entry.getKey(), entry.getValue());
 			}
 			return result;
@@ -196,7 +197,7 @@ public class HTTPGenerator {
 		httpClient.getConnectionManager().shutdown();
 	}
 
-	private static String addGetParametersToUrl(String url, final Map<String, String> params) {
+	private static String addGetParametersToUrl(String url, final List<Pair<String, String>> params) {
 
 		if (!url.endsWith("?"))
 			url += "?";
@@ -204,7 +205,7 @@ public class HTTPGenerator {
 		List<NameValuePair> parameters = new LinkedList<>();
 
 		if (params != null) {
-			for (Map.Entry<String, String> entry : params.entrySet()) {
+			for (Pair<String, String> entry : params) {
 				parameters.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
 
 			}

@@ -46,14 +46,14 @@ public class NewRelicToNLDataExchange {
 	public void startMonitor(StringBuilder build) throws IOException, JSONException, GeneralSecurityException, URISyntaxException, NeotysAPIException, ParseException {
 
 		for (final NewRelicApplicationHost newRelicApplicationHost : newRelicRestClient.getApplicationHosts()) {
-			final String metricNames = newRelicRestClient.getMetricNamesForHost(newRelicApplicationHost.getHostId());
+			final List<String> metricNames = newRelicRestClient.getMetricNamesForHost(newRelicApplicationHost.getHostId());
 			build.append("Sending Metrics Data on the host "
 					+ newRelicApplicationHost.getHostName() + ", metric names " + metricNames + "\n");
 			sendMetricDataFromMetricsNameToNL(metricNames, newRelicApplicationHost.getHostId(), newRelicApplicationHost.getHostName());
 		}
 	}
 
-	public void sendMetricDataFromMetricsNameToNL(final String metricNames, final String hostID, final String hostName)
+	public void sendMetricDataFromMetricsNameToNL(final List<String> metricNames, final String hostID, final String hostName)
 			throws ClientProtocolException, IOException, JSONException, GeneralSecurityException, URISyntaxException, NeotysAPIException, ParseException {
 		final List<NewRelicMetricData> newRelicMetricData = newRelicRestClient.getNewRelicMetricData(metricNames, hostID, startTimestamp, hostName);
 

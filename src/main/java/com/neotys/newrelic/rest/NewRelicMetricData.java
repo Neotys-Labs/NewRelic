@@ -3,6 +3,7 @@ package com.neotys.newrelic.rest;
 import java.util.Arrays;
 import java.util.List;
 
+import com.google.common.collect.Lists;
 import com.neotys.newrelic.Constants;
 import com.neotys.rest.dataexchange.model.Entry;
 import com.neotys.rest.dataexchange.model.EntryBuilder;
@@ -28,7 +29,7 @@ public class NewRelicMetricData {
 	}
 	
 	public final Entry buildEntry(){	
-		final List<String> dataEntryPath = Arrays.asList(Constants.NEW_RELIC, applicationName, hostName);
+		final List<String> dataEntryPath = Lists.newArrayList(Constants.NEW_RELIC, applicationName, hostName);		
 		dataEntryPath.addAll(Arrays.asList(path.split("/")));
 		dataEntryPath.add(name);
 		final EntryBuilder entryBuilder = new EntryBuilder(dataEntryPath, Long.parseLong(timestamp));

@@ -59,14 +59,14 @@ public class NLWebToNewRelicTask extends TimerTask {
 		}
 		for (String[] metric : data) {
 			try {
-				newRelicRestClient.sendMetricToPluginAPI(metric[0], metric[1], time, metric[2], metric[3]);
+				newRelicRestClient.sendDataMetricToPlateformAPI(metric[0], metric[1], time, metric[2], metric[3]);
 			} catch (NewRelicException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 		try {
-			newRelicRestClient.sendDataMetricToInsightAPI(data);
+			newRelicRestClient.sendDataMetricToInsightsAPI(data);
 		} catch (NewRelicException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

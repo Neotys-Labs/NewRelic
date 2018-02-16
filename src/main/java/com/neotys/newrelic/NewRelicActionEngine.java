@@ -90,10 +90,9 @@ public final class NewRelicActionEngine implements ActionEngine {
 				for (final NewRelicApplicationHost newRelicApplicationHost : newRelicRestClient.getApplicationHosts()) {
 					final List<String> metricNames = newRelicRestClient.getMetricNamesForHost(newRelicApplicationHost.getHostId());
 					responseContentBuilder.append("Sending New Relic Metrics Data for host " + newRelicApplicationHost.getHostName()
-							+ "and metric names :\n" + metricNames);
-					final long startTimestamp = System.currentTimeMillis() - context.getElapsedTime();
+							+ "and metric names :\n" + metricNames);					
 					final List<NewRelicMetricData> newRelicMetricData = newRelicRestClient.getNewRelicMetricData(metricNames,
-							newRelicApplicationHost.getHostId(), startTimestamp, newRelicApplicationHost.getHostName());
+							newRelicApplicationHost.getHostId(), newRelicApplicationHost.getHostName());
 					if (!newRelicMetricData.isEmpty()) {
 						dataExchangeAPIClient.addEntries(newRelicMetricData.stream().map(n -> n.buildEntry()).collect(Collectors.toList()));
 					}

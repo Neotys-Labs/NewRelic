@@ -164,19 +164,18 @@ public class NewRelicRestClient {
 	 * @throws IOException
 	 * @throws ParseException 
 	 */
-	public List<NewRelicMetricData> getNewRelicMetricData(final List<String> metricNames, final String hostId, final long startTimestamp,
-			final String hostName) throws IOException, ParseException {
+	public List<NewRelicMetricData> getNewRelicMetricData(final List<String> metricNames, final String hostId, final String hostName) throws IOException, ParseException {
 		final List<NewRelicMetricData> newRelicMetricData = new ArrayList<>();
 		final String url = Constants.NEW_RELIC_API_APPLICATIONS_URL + applicationId + "/hosts/" + hostId + Constants.NEW_RELIC_DATA_JSON;
 		final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
 		final List<Pair<String, String>> parameters = new ArrayList<>();
 		for(final String metricName: metricNames){
 			parameters.add(new ImmutablePair<>("names[]", metricName));
-		}			
-		parameters.add(new ImmutablePair<>("from", ZonedDateTime.now(ZoneOffset.UTC).minusSeconds(60).format(DateTimeFormatter.ofPattern("yyyy-MM-dd+HH:mm:ss"))));
-		parameters.add(new ImmutablePair<>("period", "1"));// Not sure about that... on the NewRelic documentation they mention a number of second, but whatever I tried it seems to be minutes !
+		}		
+		final String from = ZonedDateTime.now(ZoneOffset.UTC).minusSeconds(120).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);		
+		parameters.add(new ImmutablePair<>("from", from));		
 		parameters.add(new ImmutablePair<>("summarize", "true"));
-		parameters.add(new ImmutablePair<>("raw", "true"));
+		parameters.add(new ImmutablePair<>("raw", "false"));
 		HTTPGenerator http = null;
 		try {
 			http = new HTTPGenerator(url, HttpGet.METHOD_NAME, headers, parameters, proxy);
@@ -192,9 +191,8 @@ public class NewRelicRestClient {
 						if(timeslices.length()!=1){
 							continue;
 						}
-						final JSONObject timeslice = timeslices.getJSONObject(0);
-						final String from = timeslice.getString("from");
-						final String metricDate = getTimeMillisFromDate(from);						
+						final JSONObject timeslice = timeslices.getJSONObject(0);						
+						final String metricDate = getTimeMillisFromDate(timeslice.getString("to"));						
 						final JSONObject values = timeslice.getJSONObject("values");
 						final Iterator<String> it = values.keys();
 						while (it.hasNext()) {

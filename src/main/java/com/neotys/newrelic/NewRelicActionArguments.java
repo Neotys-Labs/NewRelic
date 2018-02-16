@@ -51,17 +51,6 @@ public class NewRelicActionArguments {
 		this.newRelicInsightsAPIKey = Optional.ofNullable(parsedArgs.get(NewRelicOption.NewRelicInsightsAPIKey.getName()).orNull());	
 		this.dataExchangeApiKey = Optional.ofNullable(parsedArgs.get(NewRelicOption.NeoLoadDataExchangeApiKey.getName()).orNull());	
 		this.proxyName = Optional.ofNullable(parsedArgs.get(NewRelicOption.NeoLoadProxy.getName()).orNull());	
-
-		// Additional checks when sendNLWebDataToNewRelic is true
-		if(sendNLWebDataToNewRelic){
-			// 3 other parameters should be present
-			if(!newRelicLicenseKey.isPresent()){ throw new IllegalArgumentException("The New Relic license key is required when argument 'sendNLWebDataToNewRelic' is true.");}
-			if(!newRelicAccountId.isPresent()){ throw new IllegalArgumentException("The New Relic Account Id is required when argument 'sendNLWebDataToNewRelic' is true.");}
-			if(!newRelicInsightsAPIKey.isPresent()){ throw new IllegalArgumentException("The New Relic Insights API Key Id is required when argument 'sendNLWebDataToNewRelic' is true.");}
-
-			// A NeoLoad Web test should be running
-			if(context.getWebPlatformRunningTestUrl() == null){throw new IllegalArgumentException("A NeoLoad Web test should be running when argument 'sendNLWebDataToNewRelic' is true.");}
-		}
 	}
 	
 	public String getNewRelicAPIKey() {

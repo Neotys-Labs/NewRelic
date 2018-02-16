@@ -57,8 +57,9 @@ public final class Constants {
 	}		
 			
 	/*** NeoLoad error codes ***/
-	public static final String STATUS_CODE_INVALID_PARAMETER = "NL-NEW_RELIC_MONITORING_ACTION-01";	
-	public static final String STATUS_CODE_BAD_CONTEXT = "NL-NEW_RELIC_MONITORING_ACTION-03";	
+	public static final String STATUS_CODE_INVALID_PARAMETER = "NL-NEW_RELIC_ACTION-01";
+	public static final String STATUS_CODE_TECHNICAL_ERROR = "NL-NEW_RELIC_ACTION-02";
+	public static final String STATUS_CODE_BAD_CONTEXT = "NL-NEW_RELIC_ACTION-03";	
 	
 	/*** NeoLoad context (Data Exchange API) ***/
 	public static final String NEOLOAD_CONTEXT_HARDWARE = NEW_RELIC;

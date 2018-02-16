@@ -45,7 +45,7 @@ public class NewRelicRestClient {
 	private final String applicationId;
 	private final HashMap<String, String> headers = new HashMap<>();
 
-	public NewRelicRestClient(final NewRelicActionArguments newRelicActionArguments, final Context context) throws NewRelicException, IOException {
+	public NewRelicRestClient(final NewRelicActionArguments newRelicActionArguments, final Context context) throws NewRelicException {
 		this.newRelicActionArguments = newRelicActionArguments;
 		this.context = context;
 		this.headers.put(Constants.NEW_RELIC_X_API_KEY, newRelicActionArguments.getNewRelicAPIKey());
@@ -61,26 +61,31 @@ public class NewRelicRestClient {
 	 * REST URL is: https://api.newrelic.com/v2/applications.json
 	 * More info on NewRelic documentation: https://rpm.newrelic.com/api/explore/applications/list
 	 * @return
-	 * @throws IOException
+	 * @throws NewRelicException
 	 */
-	private String getApplicationId() throws NewRelicException, IOException {
+	private String getApplicationId() throws NewRelicException {
 		final String url = Constants.NEW_RELIC_API_APPLICATIONS_JSON_URL;
-		final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
+		
 		final List<Pair<String, String>> parameters = new ArrayList<>();
 		parameters.add(new ImmutablePair<>("filter[name]", newRelicActionArguments.getNewRelicApplicationName()));
 		HTTPGenerator http = null;
 		try {
+			final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
 			http = new HTTPGenerator(url, HttpGet.METHOD_NAME, headers, parameters, proxy);
 			final JSONObject jsoobj = http.getJSONHTTPresponse();
 			if (jsoobj != null) {
 				if (jsoobj.has("applications")) {
 					final JSONArray jsonArray = jsoobj.getJSONArray("applications");
-					final String id = String.valueOf(jsonArray.getJSONObject(0).getInt("id"));
-					if (!Strings.isNullOrEmpty(id)) {
-						return id;
+					if(jsonArray.length()==1){
+						final String id = String.valueOf(jsonArray.getJSONObject(0).getInt("id"));
+						if (!Strings.isNullOrEmpty(id)) {
+							return id;
+						}
 					}
 				}
 			}
+		} catch (final Exception exception){
+			throw new NewRelicException("Cannot get applicationId for '" + newRelicActionArguments.getNewRelicApplicationName() + "'.", exception);
 		} finally {
 			if (http != null) {
 				http.closeHttpClient();

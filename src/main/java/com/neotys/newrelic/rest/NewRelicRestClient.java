@@ -256,9 +256,9 @@ public class NewRelicRestClient {
 	 * @throws ParseException 
 	 */
 	public void sendValuesMetricToInsightsAPI(final NLWebElementValue nlWebElementValue) throws NewRelicException, IOException {
-		final String url = Constants.NEW_RELIC_INSIGHT_URL + newRelicActionArguments.getNewRelicAccountId() + "/events";
+		final String url = Constants.NEW_RELIC_INSIGHT_URL + newRelicActionArguments.getNewRelicAccountId().get() + "/events";
 		final String jsonString = "[{\"eventType\":\"NeoLoadValues\","
-				+ "\"account\" : \"" + newRelicActionArguments.getNewRelicAccountId() + "\","
+				+ "\"account\" : \"" + newRelicActionArguments.getNewRelicAccountId().get() + "\","
 				+ "\"appId\" : \"" + applicationId + "\","
 				+ "\"testName\" : \"" + context.getTestName() + "\","
 				+ "\"scenarioName\" : \"" + context.getScenarioName() + "\","
@@ -305,7 +305,7 @@ public class NewRelicRestClient {
 		final String url = Constants.NEW_RELIC_INSIGHT_URL + newRelicActionArguments.getNewRelicAccountId().get() + "/events";
 		final StringBuilder jsonString = new StringBuilder();
 		jsonString.append("[{\"eventType\":\"NeoLoadData\","
-				+ "\"account\" : \"" + newRelicActionArguments.getNewRelicAccountId() + "\","
+				+ "\"account\" : \"" + newRelicActionArguments.getNewRelicAccountId().get() + "\","
 				+ "\"appId\" : \"" + applicationId + "\","
 				+ "\"testName\" : \"" + context.getTestName() + "\","
 				+ "\"scenarioName\" : \"" + context.getScenarioName() + "\","

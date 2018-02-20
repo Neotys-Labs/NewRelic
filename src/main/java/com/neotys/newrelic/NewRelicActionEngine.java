@@ -86,7 +86,7 @@ public final class NewRelicActionEngine implements ActionEngine {
 				requestContentBuilder.append("NewRelicRestClient created.\n");
 			} catch (final Exception e) {
 				return newErrorResult(requestContentBuilder, context, Constants.STATUS_CODE_TECHNICAL_ERROR,
-						"Technical Error encouter while creating New Relic Rest Client:", e);
+						"Technical Error while creating New Relic Rest Client:", e);
 			}
 		} else {
 			requestContentBuilder.append("NewRelicRestClient retrieved from User Path Context.\n");
@@ -106,7 +106,7 @@ public final class NewRelicActionEngine implements ActionEngine {
 				requestContentBuilder.append("DataExchangeAPIClient created.\n");
 			} catch (final Exception e) {
 				return newErrorResult(requestContentBuilder, context, Constants.STATUS_CODE_TECHNICAL_ERROR,
-						"Technical Error encouter while creating DataExchangeAPI Client:", e);
+						"Technical Error while creating DataExchangeAPI Client:", e);
 			}
 		} else {
 			requestContentBuilder.append("DataExchangeAPIClient retrieved from User Path Context.\n");
@@ -148,7 +148,7 @@ public final class NewRelicActionEngine implements ActionEngine {
 						requestContentBuilder.append("NLWebToNewRelicTask created.\n");
 					} catch (final Exception e) {
 						return newErrorResult(requestContentBuilder, context, Constants.STATUS_CODE_TECHNICAL_ERROR,
-								"Technical Error encouter while sending New Relic Metric Data and inject them to NeoLoad through DataExchange API:",
+								"Technical Error while sending New Relic Metric Data and inject them to NeoLoad through DataExchange API:",
 								e);
 					}
 				} else {
@@ -168,7 +168,7 @@ public final class NewRelicActionEngine implements ActionEngine {
 			}			
 		} catch (final Exception e) {
 			return newErrorResult(requestContentBuilder, context, Constants.STATUS_CODE_TECHNICAL_ERROR,
-					"Technical Error encouter while sending New Relic Metric Data and inject them to NeoLoad through DataExchange API:", e);
+					"Technical Error while sending New Relic Metric Data and inject them to NeoLoad through DataExchange API:", e);
 		} finally {
 			sampleResult.sampleEnd();						
 		}

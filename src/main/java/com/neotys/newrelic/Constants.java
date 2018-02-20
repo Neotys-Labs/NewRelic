@@ -34,6 +34,7 @@ public final class Constants {
 	public static final String NLWEB_PAGE = "PAGE";
 	public static final String NLWEB_REQUEST = "REQUEST";
 	public static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.##########");
+	public static final String NLWEB_VERSION = "v1";
 	
 	/*** Custom action ***/
 	public static final String CUSTOM_ACTION_DISPLAY_NAME = "New Relic Monitoring";
@@ -50,7 +51,6 @@ public final class Constants {
 		if (iconURL != null) {CUSTOM_ACTION_ICON = new ImageIcon(iconURL);}
 		else {CUSTOM_ACTION_ICON = null;}
 		final StringBuilder description = new StringBuilder();	
-		// TODO: review description
 		description.append("New Relic Monitoring Action will retrieve all the counters measured by NewRelic Infrastructure\n").append(
 				Arguments.getArgumentDescriptions(NewRelicOption.values()));
 		CUSTOM_ACTION_DESCRIPTION = description.toString();
@@ -59,16 +59,20 @@ public final class Constants {
 	/*** NeoLoad error codes ***/
 	public static final String STATUS_CODE_INVALID_PARAMETER = "NL-NEW_RELIC_ACTION-01";
 	public static final String STATUS_CODE_TECHNICAL_ERROR = "NL-NEW_RELIC_ACTION-02";
-	public static final String STATUS_CODE_BAD_CONTEXT = "NL-NEW_RELIC_ACTION-03";	
+	public static final String STATUS_CODE_BAD_CONTEXT = "NL-NEW_RELIC_ACTION-03";
+	public static final String STATUS_CODE_INSUFFICIENT_DELAY = "NL-NEW_RELIC_ACTION-04";	
 	
 	/*** NeoLoad context (Data Exchange API) ***/
 	public static final String NEOLOAD_CONTEXT_HARDWARE = NEW_RELIC;
 	public static final String NEOLOAD_CONTEXT_LOCATION = NEW_RELIC;
 	public static final String NEOLOAD_CONTEXT_SOFTWARE = NEW_RELIC;
 	
-	/*** Send Data from NLWeb to New Relic ***/
-	public static final int MIN_NEW_RELIC_DURATION = 30;
-	
+	/*** NeoLoad Current Virtual user context (Keep object in cache cross iterations) ***/
+	public static final String NEW_RELIC_LAST_EXECUTION_TIME = "NewRelicLastExecutionTime";
+	public static final String NEW_RELIC_REST_CLIENT = "NewRelicRestClient";
+	public static final String NL_DATA_EXCHANGE_API_CLIENT = "NLDataExchangeAPIClient";
+	public static final String NL_WEB_TO_NEW_RELIC_TASK = "NLWebToNewRelicTask";
+		
 	/*** HTTP ***/
 	public static final String HTTP_APPLICATION_JSON = "application/json";
 	public static final String HTTP_CONTENT_TYPE = "Content-Type";
@@ -76,7 +80,5 @@ public final class Constants {
 	
 	/*** Retrieve Data from New Relic to NeoLoad ***/
 	public static final List<String> RELEVANT_METRIC_NAMES = Arrays.asList("Datastore/statement", "Datastore/instance", "CPU", "Memory", "Error/", "connects");
-	public static final List<String> RELEVANT_METRIC_VALUES = Arrays.asList("min", "max", "average", "used_mb", "percent");
-		
-	
+	public static final List<String> RELEVANT_METRIC_VALUES = Arrays.asList("min", "max", "average", "used_mb", "percent");	
 }

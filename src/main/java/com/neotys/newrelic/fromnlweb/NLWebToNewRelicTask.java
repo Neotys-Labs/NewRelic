@@ -1,105 +1,90 @@
 package com.neotys.newrelic.fromnlweb;
 
+import static com.neotys.newrelic.NewRelicUtils.getProxy;
+import static com.neotys.newrelic.NewRelicUtils.initProxyForNeoloadWebApiClient;
+
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TimerTask;
+import java.util.Optional;
 
+import com.neotys.extensions.action.engine.Context;
+import com.neotys.extensions.action.engine.Proxy;
 import com.neotys.newrelic.Constants;
+import com.neotys.newrelic.NewRelicActionArguments;
 import com.neotys.newrelic.NewRelicException;
 import com.neotys.newrelic.rest.NewRelicRestClient;
 
+import io.swagger.client.ApiClient;
 import io.swagger.client.ApiException;
 import io.swagger.client.api.ResultsApi;
 import io.swagger.client.model.ArrayOfElementDefinition;
 import io.swagger.client.model.ElementDefinition;
 import io.swagger.client.model.ElementValues;
-import io.swagger.client.model.TestStatistics;
 
-public class NLWebToNewRelicTask extends TimerTask {
+public class NLWebToNewRelicTask {
 	
 	private final NewRelicRestClient newRelicRestClient;
 	private final String testId;			
+	private final ApiClient neoloadWebApiClient;	
 	private final ResultsApi resultsApi;		
-	private NLWebStats nlWebStats;	
-
-	public NLWebToNewRelicTask(final NewRelicRestClient newRelicRestClient, final String testId, final ResultsApi resultsApi, final NLWebStats nlWebStats) {
-		this.newRelicRestClient = newRelicRestClient;
-		this.testId = testId;
-		this.resultsApi = resultsApi;	
-		this.nlWebStats = nlWebStats;			
-	}
-
-	private long sendNLWebMainStatisticsToNewRelic(final TestStatistics testStatistics, final long lastDuration) throws IOException {
-		int time = 0;
-		List<String[]> data;
-		final long utc = System.currentTimeMillis() / 1000;
-		if (nlWebStats == null)
-			nlWebStats = new NLWebStats(testStatistics);
-		else {
-			nlWebStats.UpdateStat(testStatistics);
-		}
-		data = nlWebStats.GetNLData();
-		if (lastDuration == 0)
-			time = 0;
-		else {
-			time = (int) (utc - lastDuration);
-		}
-		for (String[] metric : data) {
-			try {
-				newRelicRestClient.sendNLWebMainStatisticsToPlateformAPI(metric[0], metric[1], time, metric[2], metric[3]);
-			} catch (NewRelicException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		try {
-			newRelicRestClient.sendNLWebMainStatisticsToInsightsAPI(data);
-		} catch (NewRelicException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		return utc;
-	}
-
+	private final NLWebStats nlWebStats;	
 	
-	private void sendNLWebElementValuesToInsightsAPI() {		
-		final List<NLWebElementValue> nlWebElementValues = new ArrayList<>();
-		try {
-			final ArrayOfElementDefinition NLElement = resultsApi.getTestElements(testId, Constants.NLWEB_TRANSACTION);
-			for (ElementDefinition element : NLElement) {
-				if (element.getType().equalsIgnoreCase("TRANSACTION")) {
-					final ElementValues Values = resultsApi.getTestElementsValues(testId, element.getId());
-					nlWebElementValues.add(new NLWebElementValue(element, Values));
-				}
-			}
-			for (final NLWebElementValue val : nlWebElementValues){
-				newRelicRestClient.sendValuesMetricToInsightsAPI(val);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
+	public NLWebToNewRelicTask(final NewRelicRestClient newRelicRestClient, final Context context, final NewRelicActionArguments newRelicActionArguments) throws MalformedURLException, KeyManagementException, NoSuchAlgorithmException {
+		this.newRelicRestClient = newRelicRestClient;
+		this.testId = context.getTestId();
+		this.neoloadWebApiClient = new ApiClient();
+		this.neoloadWebApiClient.setApiKey(context.getAccountToken());
+		final String webPlatformApiUrl = context.getWebPlatformApiUrl();
+		final StringBuilder basePathBuilder = new StringBuilder(webPlatformApiUrl);
+		if(!webPlatformApiUrl.endsWith("/")) {
+			basePathBuilder.append("/");
 		}
+		basePathBuilder.append(Constants.NLWEB_VERSION + "/");
+		final String basePath = basePathBuilder.toString();		
+		this.neoloadWebApiClient.setBasePath(basePath);
+		final Optional<Proxy> proxyOptional = getProxy(context, newRelicActionArguments.getProxyName(), basePath);
+		if(proxyOptional.isPresent()) {
+			initProxyForNeoloadWebApiClient(neoloadWebApiClient, proxyOptional.get());
+		}					
+		this.resultsApi = new ResultsApi(neoloadWebApiClient);	
+		this.nlWebStats = new NLWebStats();		
 	}
 
-	@Override
-	public void run() {
-		try {
-			long lastduration;
-			final long utc = System.currentTimeMillis() / 1000;
-			lastduration = nlWebStats.getLasduration();
-			if (lastduration == 0 || (utc - lastduration) >= Constants.MIN_NEW_RELIC_DURATION) {
-				final TestStatistics qtatsResult = resultsApi.getTestStatistics(testId);
-				lastduration = sendNLWebMainStatisticsToNewRelic(qtatsResult, lastduration);
-				nlWebStats.setLasduration(lastduration);
-				sendNLWebElementValuesToInsightsAPI();
-			}
-		} catch (ApiException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+	public void sendNLWebMainStatisticsToNewRelic() throws IOException, NewRelicException, ApiException {
+		long lastduration;
+		final long utc = System.currentTimeMillis() / 1000;
+		lastduration = nlWebStats.getLasduration();			
+	
+		nlWebStats.updateTestStatistics(resultsApi.getTestStatistics(testId));
+		final List<String[]> data = nlWebStats.getNLData();
+		final int time;	
+		if (lastduration == 0){
+			time = 0;
+		} else {
+			time = (int) (utc - lastduration);
 		}
+		for (final String[] metric : data) {			
+			newRelicRestClient.sendNLWebMainStatisticsToPlateformAPI(metric[0], metric[1], time, metric[2], metric[3]);			
+		}
+		newRelicRestClient.sendNLWebMainStatisticsToInsightsAPI(data);
+		nlWebStats.setLasduration(utc);
+	}
+	
+	public void sendNLWebElementValuesToInsightsAPI() throws ApiException, NewRelicException, IOException {		
+		final List<NLWebElementValue> nlWebElementValues = new ArrayList<>();		
+		final ArrayOfElementDefinition NLElement = resultsApi.getTestElements(testId, Constants.NLWEB_TRANSACTION);
+		for (ElementDefinition element : NLElement) {
+			if (element.getType().equalsIgnoreCase("TRANSACTION")) {
+				final ElementValues Values = resultsApi.getTestElementsValues(testId, element.getId());
+				nlWebElementValues.add(new NLWebElementValue(element, Values));
+			}
+		}
+		for (final NLWebElementValue val : nlWebElementValues){
+			newRelicRestClient.sendValuesMetricToInsightsAPI(val);
+		}		
 	}
 }

@@ -1,14 +1,7 @@
 package com.neotys.newrelic;
 
-import static com.neotys.action.argument.Arguments.getArgumentLogString;
-import static com.neotys.action.argument.Arguments.parseArguments;
-
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import com.neotys.extensions.action.ActionParameter;
-import com.neotys.extensions.action.engine.Context;
 
 /**
  * 
@@ -32,12 +25,7 @@ public class NewRelicActionArguments {
 	private final String dataExchangeApiUrl;
 	private final Optional<String> dataExchangeApiKey;
 	
-	public NewRelicActionArguments(final Context context, final List<ActionParameter> parameters) throws IllegalArgumentException {
-		
-		final Map<String, com.google.common.base.Optional<String>> parsedArgs = parseArguments(parameters, NewRelicOption.values());
-		if (context.getLogger().isDebugEnabled()) {
-			context.getLogger().debug("Executing " + this.getClass().getName() + " with parameters: "+ getArgumentLogString(parsedArgs, NewRelicOption.values()));
-		}
+	public NewRelicActionArguments(final Map<String, com.google.common.base.Optional<String>> parsedArgs) throws IllegalArgumentException {	
 		// Required
 		this.newRelicAPIKey = parsedArgs.get(NewRelicOption.NewRelicAPIKey.getName()).get();
 		this.newRelicApplicationName = parsedArgs.get(NewRelicOption.NewRelicApplicationName.getName()).get();

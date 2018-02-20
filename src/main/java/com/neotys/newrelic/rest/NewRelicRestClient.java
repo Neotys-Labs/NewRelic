@@ -3,7 +3,6 @@ package com.neotys.newrelic.rest;
 import static com.neotys.newrelic.NewRelicUtils.getProxy;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -173,8 +172,9 @@ public class NewRelicRestClient {
 		for(final String metricName: metricNames){
 			parameters.add(new ImmutablePair<>("names[]", metricName));
 		}		
-		final String from = ZonedDateTime.now(ZoneOffset.UTC).minusSeconds(120).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);		
-		parameters.add(new ImmutablePair<>("from", from));		
+		final ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);		
+		parameters.add(new ImmutablePair<>("from", now.minusSeconds(120).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));		
+		parameters.add(new ImmutablePair<>("to", now.minusSeconds(60).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
 		parameters.add(new ImmutablePair<>("summarize", "true"));
 		parameters.add(new ImmutablePair<>("raw", "false"));
 		HTTPGenerator http = null;

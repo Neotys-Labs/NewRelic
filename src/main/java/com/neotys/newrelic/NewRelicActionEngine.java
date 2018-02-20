@@ -35,7 +35,7 @@ public final class NewRelicActionEngine implements ActionEngine {
 		final Long newRelicCurrentExecution = System.currentTimeMillis();
 		context.getCurrentVirtualUser().put(Constants.NEW_RELIC_LAST_EXECUTION_TIME, newRelicCurrentExecution);
 		if(!(newRelicLastExecutionTime instanceof Long)){
-			requestContentBuilder.append("(first execution)\n");
+			requestContentBuilder.append("(first execution).\n");
 		} else if((Long)newRelicLastExecutionTime + 60*1000 > newRelicCurrentExecution){
 			return newErrorResult(requestContentBuilder, context, Constants.STATUS_CODE_INSUFFICIENT_DELAY, "Last New Relic advanced action has been executed less than 1 minute ago. Make sure you have a 1 minute pacing on the Actions container.");			
 		} else {

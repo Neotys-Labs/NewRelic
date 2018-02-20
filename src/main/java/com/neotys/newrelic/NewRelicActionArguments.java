@@ -1,5 +1,8 @@
 package com.neotys.newrelic;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -16,6 +19,8 @@ public class NewRelicActionArguments {
 	private final Optional<String> newRelicLicenseKey;
 	private final Optional<String> newRelicAccountId;
 	private final Optional<String> newRelicInsightsAPIKey;
+	private final List<String> newRelicRelevantMetricNames;
+	private final List<String> newRelicRelevantMetricValues;
 		
 	// NeoLoad -> New Relic
 	private final boolean sendNLWebDataToNewRelic;
@@ -38,7 +43,11 @@ public class NewRelicActionArguments {
 		this.newRelicAccountId = Optional.ofNullable(parsedArgs.get(NewRelicOption.NewRelicAccountId.getName()).orNull());	
 		this.newRelicInsightsAPIKey = Optional.ofNullable(parsedArgs.get(NewRelicOption.NewRelicInsightsAPIKey.getName()).orNull());	
 		this.dataExchangeApiKey = Optional.ofNullable(parsedArgs.get(NewRelicOption.NeoLoadDataExchangeApiKey.getName()).orNull());	
-		this.proxyName = Optional.ofNullable(parsedArgs.get(NewRelicOption.NeoLoadProxy.getName()).orNull());	
+		this.proxyName = Optional.ofNullable(parsedArgs.get(NewRelicOption.NeoLoadProxy.getName()).orNull());
+		final String newRelicRelevantMetricNamesString = parsedArgs.get(NewRelicOption.NewRelicRelevantMetricNames.getName()).or(Constants.NEW_RELIC_DEFAULT_RELEVANT_METRIC_NAMES);
+		this.newRelicRelevantMetricNames = new ArrayList<>(Arrays.asList(newRelicRelevantMetricNamesString.split("\\s*,\\s*")));
+		final String newRelicRelevantMetricValuesString = parsedArgs.get(NewRelicOption.NewRelicRelevantMetricValues.getName()).or(Constants.NEW_RELIC_DEFAULT_RELEVANT_METRIC_VALUES);
+		this.newRelicRelevantMetricValues = new ArrayList<>(Arrays.asList(newRelicRelevantMetricValuesString.split("\\s*,\\s*")));
 	}
 	
 	public String getNewRelicAPIKey() {
@@ -73,5 +82,13 @@ public class NewRelicActionArguments {
 	
 	public Optional<String> getProxyName() {
 		return proxyName;
+	}
+	
+	public List<String> getNewRelicRelevantMetricNames() {
+		return newRelicRelevantMetricNames;
+	}
+	
+	public List<String> getNewRelicRelevantMetricValues() {
+		return newRelicRelevantMetricValues;
 	}
 }

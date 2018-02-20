@@ -3,6 +3,7 @@ package com.neotys.newrelic.rest;
 import static com.neotys.newrelic.NewRelicUtils.getProxy;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -43,7 +44,7 @@ public class NewRelicRestClient {
 	private final NewRelicActionArguments newRelicActionArguments;
 	private final Context context;
 	private final String applicationId;
-	private final HashMap<String, String> headers = new HashMap<>();
+	private final HashMap<String, String> headers = new HashMap<>();	
 
 	public NewRelicRestClient(final NewRelicActionArguments newRelicActionArguments, final Context context) throws NewRelicException {
 		this.newRelicActionArguments = newRelicActionArguments;
@@ -220,11 +221,11 @@ public class NewRelicRestClient {
 		return String.valueOf(d.getTime());
 	}
 
-	private static boolean isRelevantMetricName(final String metricName) {
+	private boolean isRelevantMetricName(final String metricName) {
 		if (Strings.isNullOrEmpty(metricName)) {
 			return false;
 		}
-		for (final String relevantMetricName : Constants.RELEVANT_METRIC_NAMES) {
+		for (final String relevantMetricName : newRelicActionArguments.getNewRelicRelevantMetricNames()) {
 			if (metricName.contains(relevantMetricName)) {
 				return true;
 			}
@@ -232,11 +233,11 @@ public class NewRelicRestClient {
 		return false;
 	}
 
-	private static boolean isRelevantMetricValue(final String metricValue) {
+	private boolean isRelevantMetricValue(final String metricValue) {
 		if (Strings.isNullOrEmpty(metricValue)) {
 			return false;
 		}
-		for (final String relevantMetricValue : Constants.RELEVANT_METRIC_VALUES) {
+		for (final String relevantMetricValue : newRelicActionArguments.getNewRelicRelevantMetricValues()) {
 			if (metricValue.contains(relevantMetricValue)) {
 				return true;
 			}
@@ -279,10 +280,6 @@ public class NewRelicRestClient {
 			if (exceptionMessage != null) {
 				throw new NewRelicException(exceptionMessage);
 			}
-
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} finally {
 			if (http != null) {
 				http.closeHttpClient();
@@ -322,9 +319,6 @@ public class NewRelicRestClient {
 			if (exceptionMessage != null) {
 				throw new NewRelicException(exceptionMessage);
 			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} finally {
 			if (http != null) {
 				http.closeHttpClient();
@@ -337,11 +331,10 @@ public class NewRelicRestClient {
 	 * REST URL is: https://platform-api.newrelic.com/platform/v1/metrics
 	 * More info on NewRelic documentation: https://docs.newrelic.com/docs/plugins/plugin-developer-resources/developer-reference/work-directly-plugin-api
 	 * @return
-	 * @throws MalformedURLException 
 	 * @throws IOException
 	 * @throws ParseException 
 	 */
-	public void sendNLWebMainStatisticsToPlateformAPI(final String metricName, final String metricPath, final int duration, final String unit, final String value) throws NewRelicException, MalformedURLException {
+	public void sendNLWebMainStatisticsToPlateformAPI(final String metricName, final String metricPath, final int duration, final String unit, final String value) throws NewRelicException, IOException {
 		final String url = Constants.NEW_RELIC_PLATFORM_API_URL;
 		final String jsonString = "{\"agent\":{"
 				+ "\"host\" : \"" + Constants.CUSTOM_ACTION_HOST + "\","
@@ -366,9 +359,6 @@ public class NewRelicRestClient {
 			if (exceptionMessage != null) {
 				throw new NewRelicException(exceptionMessage);
 			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} finally {
 			if (http != null) {
 				http.closeHttpClient();

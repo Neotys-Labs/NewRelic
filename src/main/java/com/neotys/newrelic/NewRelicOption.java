@@ -29,8 +29,10 @@ public enum NewRelicOption implements Option {
 
 	// Optional, not visible by default	
 	NeoLoadDataExchangeApiKey("dataExchangeApiKey", Optional, False, PASSWORD, "", "Identification key specified in NeoLoad.", NON_EMPTY),
-	NeoLoadProxy("proxyName", Optional, False, TEXT, "", "The NeoLoad proxy name to access New Relic.", NON_EMPTY);
-
+	NeoLoadProxy("proxyName", Optional, False, TEXT, "", "The NeoLoad proxy name to access New Relic.", NON_EMPTY),
+	NewRelicRelevantMetricNames("newRelicRelevantMetricNames", Optional, False, TEXT, Constants.NEW_RELIC_DEFAULT_RELEVANT_METRIC_NAMES, "The list of relevant metric names to monitor from New Relic.", NON_EMPTY),
+	NewRelicRelevantMetricValues("newRelicRelevantMetricValues", Optional, False, TEXT, Constants.NEW_RELIC_DEFAULT_RELEVANT_METRIC_VALUES, "The list of relevant metric values to monitor from New Relic.", NON_EMPTY);
+	
 	private final String name;
 	private final Option.OptionalRequired optionalRequired;
 	private final Option.AppearsByDefault appearsByDefault;

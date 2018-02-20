@@ -2,8 +2,6 @@ package com.neotys.newrelic;
 
 import java.net.URL;
 import java.text.DecimalFormat;
-import java.util.Arrays;
-import java.util.List;
 
 import javax.swing.ImageIcon;
 
@@ -79,6 +77,6 @@ public final class Constants {
 	public static final String HTTP_ACCEPT = "Accept";
 	
 	/*** Retrieve Data from New Relic to NeoLoad ***/
-	public static final List<String> RELEVANT_METRIC_NAMES = Arrays.asList("Datastore/statement", "Datastore/instance", "CPU", "Memory", "Error/", "connects");
-	public static final List<String> RELEVANT_METRIC_VALUES = Arrays.asList("min", "max", "average", "used_mb", "percent");	
+	public static final String NEW_RELIC_DEFAULT_RELEVANT_METRIC_NAMES = "Datastore/statement,Datastore/instance,CPU,Memory,Error/,connects";
+	public static final String NEW_RELIC_DEFAULT_RELEVANT_METRIC_VALUES = "min,max,average,used_mb,percent";	
 }

@@ -30,14 +30,14 @@ public final class NewRelicActionEngine implements ActionEngine {
 		requestContentBuilder.append("Executing advanced action New Relic ");
 		final StringBuilder responseContentBuilder = new StringBuilder();
 		
-		// Check last execution time (and fail if called less than 1 minute ago).
+		// Check last execution time (and fail if called less than 45 seconds ago).
 		final Object newRelicLastExecutionTime = context.getCurrentVirtualUser().get(Constants.NEW_RELIC_LAST_EXECUTION_TIME);		
 		final Long newRelicCurrentExecution = System.currentTimeMillis();
 		context.getCurrentVirtualUser().put(Constants.NEW_RELIC_LAST_EXECUTION_TIME, newRelicCurrentExecution);
 		if(!(newRelicLastExecutionTime instanceof Long)){
 			requestContentBuilder.append("(first execution).\n");
-		} else if((Long)newRelicLastExecutionTime + 60*1000 > newRelicCurrentExecution){
-			return newErrorResult(requestContentBuilder, context, Constants.STATUS_CODE_INSUFFICIENT_DELAY, "Last New Relic advanced action has been executed less than 1 minute ago. Make sure you have a 1 minute pacing on the Actions container.");			
+		} else if((Long)newRelicLastExecutionTime + 45*1000 > newRelicCurrentExecution){
+			return newErrorResult(requestContentBuilder, context, Constants.STATUS_CODE_INSUFFICIENT_DELAY, "Not enough delay between the two New Relic advanced action execution. Make sure to have at least 60 seconds pacing on the Actions container.");			
 		} else {
 			requestContentBuilder.append("(last execution was " + ((newRelicCurrentExecution - (Long)newRelicLastExecutionTime)/1000) + " seconds ago)\n");
 		}
@@ -112,24 +112,21 @@ public final class NewRelicActionEngine implements ActionEngine {
 			requestContentBuilder.append("DataExchangeAPIClient retrieved from User Path Context.\n");
 		}
 		
-		sampleResult.setRequestContent(requestContentBuilder.toString());
-		sampleResult.sampleStart();
-				
+		sampleResult.sampleStart();				
 		try {	
 			/**
 			 * 1. New Relic -> NeoLoad DataExchangeAPI
 			 */
-			responseContentBuilder.append("Retrieving New Relic application hosts available...");			
+			responseContentBuilder.append("Retrieving New Relic application hosts available...\n");			
 			for (final NewRelicApplicationHost newRelicApplicationHost : newRelicRestClient.getApplicationHosts()) {
+				responseContentBuilder.append("Retrieving Metrics Data for host " + newRelicApplicationHost.getHostName() + ".\n");			
 				final List<String> metricNames = newRelicRestClient.getMetricNamesForHost(newRelicApplicationHost.getHostId());
-				responseContentBuilder.append("\tRetrieving New Relic Metrics Data for host " + newRelicApplicationHost.getHostName()
-						+ "and metric names :" + metricNames);					
+				responseContentBuilder.append("\tMetric names found: " + metricNames + ".\n");								
 				final List<NewRelicMetricData> newRelicMetricData = newRelicRestClient.getNewRelicMetricData(metricNames,
-						newRelicApplicationHost.getHostId(), newRelicApplicationHost.getHostName());				
-				if (newRelicMetricData.isEmpty()) {
-					responseContentBuilder.append("\tNo metric data found.\n");
-				} else {
-					responseContentBuilder.append("\tSending " + newRelicMetricData.size() + " metric data to NeoLoad DataExchange API.\n");
+						newRelicApplicationHost.getHostId(), newRelicApplicationHost.getHostName());		
+				responseContentBuilder.append("\tMetric data found: " + newRelicMetricData.size() + ".\n");			
+				if (!newRelicMetricData.isEmpty()) {
+					responseContentBuilder.append("\tSending metric data to NeoLoad DataExchange API.\n");
 					dataExchangeAPIClient.addEntries(newRelicMetricData.stream().map(n -> n.buildEntry()).collect(Collectors.toList()));
 				}
 			}
@@ -175,6 +172,7 @@ public final class NewRelicActionEngine implements ActionEngine {
 		} finally {
 			sampleResult.sampleEnd();						
 		}
+		sampleResult.setRequestContent(requestContentBuilder.toString());
 		sampleResult.setResponseContent(responseContentBuilder.toString());
 		return sampleResult;
 	}

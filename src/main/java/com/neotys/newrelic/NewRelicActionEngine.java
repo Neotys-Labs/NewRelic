@@ -65,7 +65,7 @@ public final class NewRelicActionEngine implements ActionEngine {
 			}
 			if (!newRelicActionArguments.getNewRelicInsightsAPIKey().isPresent()) {
 				return newErrorResult(requestContentBuilder, context, Constants.STATUS_CODE_INVALID_PARAMETER,
-						"The New Relic Insights API yey Id is required when argument 'sendNLWebDataToNewRelic' is true.");
+						"The New Relic Insights API key Id is required when argument 'sendNLWebDataToNewRelic' is true.");
 			}
 		}
 

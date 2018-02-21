@@ -5,20 +5,20 @@
 This Advanced Action allows you to integrate [NeoLoad](https://www.neotys.com/neoload/overview) with [New Relic](https://newrelic.com/) in order to correlate data from one tool to another. 
 
 It has 3 capabilities: 
-* **Retrive New Relic data and inject them into NeoLoad**: Retrieve metrics of the SUT from New Relic and inject them in NeoLoad Controller through the [Data Exchange API](https://www.neotys.com/documents/doc/neoload/latest/en/html/#7676.htm). This allows the correlation of load performance and APM result from the NeoLoad's [Dashboards](https://www.neotys.com/documents/doc/neoload/latest/en/html/#1440.htm).
-* **NeoLoad Web -> New Relic Plugins**: Send the [NeoLoad Main Statistics](https://www.neotys.com/documents/doc/nlweb/latest/en/html/#22968.htm) from NeoLoad Web and inject them to the New Relic [Plugins API](https://docs.newrelic.com/docs/plugins/plugin-developer-resources/developer-reference/work-directly-plugin-api). This allows the correlation of load performance and APM result from New Relic [Plugins](https://newrelic.com/plugins).
-* **NeoLoad Web -> New Relic Insights**: Send the [Main Statistics](https://www.neotys.com/documents/doc/nlweb/latest/en/html/#22968.htm) and the [Transactions values](https://www.neotys.com/documents/doc/nlweb/latest/en/html/#26321.htm) from NeoLoad Web and inject them to the New Relic [Insights API](https://docs.newrelic.com/docs/insights/insights-data-sources/custom-data/insert-custom-events-insights-api). This allows the correlation of load performance and APM result from New Relic [Insights](https://newrelic.com/insights).
+* **Retrive New Relic data and inject them into NeoLoad**: Retrieve metrics of the SUT from New Relic and inject them in NeoLoad Controller through the [Data Exchange API](https://www.neotys.com/documents/doc/neoload/latest/en/html/#7676.htm). This allows the correlation of load performance and APM results from the NeoLoad's [Dashboards](https://www.neotys.com/documents/doc/neoload/latest/en/html/#1440.htm).
+* **NeoLoad Web -> New Relic Plugins**: Retrieve the NeoLoad [Main Statistics](https://www.neotys.com/documents/doc/nlweb/latest/en/html/#22968.htm) from NeoLoad Web and inject them to the New Relic [Plugins API](https://docs.newrelic.com/docs/plugins/plugin-developer-resources/developer-reference/work-directly-plugin-api). This allows the correlation of load performance and APM results from New Relic [Plugins](https://newrelic.com/plugins).
+* **NeoLoad Web -> New Relic Insights**: Retrieve the [Main Statistics](https://www.neotys.com/documents/doc/nlweb/latest/en/html/#22968.htm) and the [Transaction values](https://www.neotys.com/documents/doc/nlweb/latest/en/html/#26321.htm) from NeoLoad Web and inject them to the New Relic [Insights API](https://docs.newrelic.com/docs/insights/insights-data-sources/custom-data/insert-custom-events-insights-api). This allows the correlation of load performance and APM results from New Relic [Insights](https://newrelic.com/insights).
 
-| Property          | Value             |
+| Property | Value |
 | ----------------    | ----------------   |
-| Maturity           | Stable |
-| Author             | Neotys R&D team |
+| Maturity | Stable |
+| Author | Neotys R&D team |
 | License           | [BSD Simplified](https://www.neotys.com/documents/legal/bsd-neotys.txt) |
 | NeoLoad         | From version 6.3|
-| Requirements | <ul><li>Licence FREE edition, or Enterprise edition, or Professional with Integration & Advanced Usage)</li><li>New Relic account with Infrastructures and Plugins</li></ul>|
-| Optionals | <ul><li>NeoLoad Web SaaS subscription (to be able to send data to New Relic)</li><li>New Relic account with Insights</li></ul>|
+| Requirements | <ul><li>License FREE edition, or Enterprise edition, or Professional with Integration & Advanced Usage)</li><li>New Relic account with Infrastructures and Plugins</li></ul>|
+| Optionals | <ul><li>NeoLoad Web SaaS subscription (for option to send data from NeoLoad Web to New Relic)</li><li>New Relic account with Insights</li></ul>|
 | Bundled in NeoLoad | No |
-| Download Binaries    | See the [latest release](https://github.com/Neotys-Labs/NewRelic/releases/latest)
+| Download Binaries    | See the [latest release](https://github.com/Neotys-Labs/NewRelic/releases/latest)|
 
 
 ## Installation
@@ -26,15 +26,21 @@ It has 3 capabilities:
 1. Download the [latest release](https://github.com/Neotys-Labs/NewRelic/releases/latest)
 1. Read the NeoLoad documentation to see [How to install a custom Advanced Action](https://www.neotys.com/documents/doc/neoload/latest/en/html/#25928.htm)
 
+![New Relic Advanced Action](/screenshots/new_relic_advanced_action.png "New Relic Advanced Action")
+
 ## Set-up
 
 Once installed, how to use in a given NeoLoad project:
 
 1. Create a User Path "New Relic".
-1. Insert Custom action "New Relic Monitoring" in the “Actions” container (custom action is inside Advanced > APM > New Relic).
+1. Insert Custom action "New Relic Monitoring" in the "Actions" container (custom action is inside Advanced > APM > New Relic).
+![New Relic User Path](/screenshots/new_relic_user_path.png "New Relic User Path")
 1. Select the "Actions" container and set a pacing duration of 60 seconds.
+![Action's Pacing](/screenshots/actions_container_pacing.png "Action's Pacing")
 1. Select the "Actions" container and set the runtime parameters "Reset user session and emulate new browser between each iteration" to "No".
+![Action's Runtime parameters](/screenshots/actions_container_reset_iteration_no.png "Action's Runtime parameters")
 1. Create a Population "New Relic" which contains 100% of User Path "New Relic".
+![New Relic Population](/screenshots/new_relic_population.png "New Relic Population")
 1. In the Runtime section, select your scenario, select the "New Relic" population and define a constant load of 1 user for the full duration of the load test.
 1. Verify to have a license with "Integration & Advanced Usage".
 1. Verify that NeoLoad Web data transfer is properly configured (see Preferences / General settings / NeoLoad Web).

@@ -24,6 +24,7 @@ import io.swagger.client.api.ResultsApi;
 import io.swagger.client.model.ArrayOfElementDefinition;
 import io.swagger.client.model.ElementDefinition;
 import io.swagger.client.model.ElementValues;
+import io.swagger.client.model.TestStatistics;
 
 public class NLWebToNewRelicTask {
 	
@@ -59,7 +60,11 @@ public class NLWebToNewRelicTask {
 		final long utc = System.currentTimeMillis() / 1000;
 		lastduration = nlWebStats.getLasduration();			
 	
-		nlWebStats.updateTestStatistics(resultsApi.getTestStatistics(testId));
+		final TestStatistics testStatistics = resultsApi.getTestStatistics(testId);
+		if(testStatistics == null){
+			throw new ApiException("Cannot find any statistics on NeoLoad Web for testId " + testId);
+		}
+		nlWebStats.updateTestStatistics(testStatistics);
 		final List<String[]> data = nlWebStats.getNLData();
 		final int time;	
 		if (lastduration == 0){

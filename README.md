@@ -26,7 +26,7 @@ It has 3 capabilities:
 1. Download the [latest release](https://github.com/Neotys-Labs/NewRelic/releases/latest)
 1. Read the NeoLoad documentation to see [How to install a custom Advanced Action](https://www.neotys.com/documents/doc/neoload/latest/en/html/#25928.htm)
 
-<div style="text-align:center"><img src="/screenshots/new_relic_advanced_action.png" alt="New Relic Advanced Action" /></div>
+<p align="center"><img src="/screenshots/new_relic_advanced_action.png" alt="New Relic Advanced Action" /></p>
 
 ## Set-up
 

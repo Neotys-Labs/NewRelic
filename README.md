@@ -26,7 +26,7 @@ It has 3 capabilities:
 1. Download the [latest release](https://github.com/Neotys-Labs/NewRelic/releases/latest)
 1. Read the NeoLoad documentation to see [How to install a custom Advanced Action](https://www.neotys.com/documents/doc/neoload/latest/en/html/#25928.htm)
 
-![New Relic Advanced Action](/screenshots/new_relic_advanced_action.png "New Relic Advanced Action")
+<div style="text-align:center"><img src="/screenshots/new_relic_advanced_action.png" alt="New Relic Advanced Action" /></div>
 
 ## Set-up
 
@@ -34,14 +34,23 @@ Once installed, how to use in a given NeoLoad project:
 
 1. Create a User Path "New Relic".
 1. Insert Custom action "New Relic Monitoring" in the "Actions" container (custom action is inside Advanced > APM > New Relic).
+
 ![New Relic User Path](/screenshots/new_relic_user_path.png "New Relic User Path")
+
 1. Select the "Actions" container and set a pacing duration of 60 seconds.
+
 ![Action's Pacing](/screenshots/actions_container_pacing.png "Action's Pacing")
+
 1. Select the "Actions" container and set the runtime parameters "Reset user session and emulate new browser between each iteration" to "No".
+
 ![Action's Runtime parameters](/screenshots/actions_container_reset_iteration_no.png "Action's Runtime parameters")
+
 1. Create a Population "New Relic" which contains 100% of User Path "New Relic".
+
 ![New Relic Population](/screenshots/new_relic_population.png "New Relic Population")
+
 1. In the Runtime section, select your scenario, select the "New Relic" population and define a constant load of 1 user for the full duration of the load test.
+
 1. Verify to have a license with "Integration & Advanced Usage".
 1. Verify that NeoLoad Web data transfer is properly configured (see Preferences / General settings / NeoLoad Web).
 

@@ -35,24 +35,31 @@ Once installed, how to use in a given NeoLoad project:
 1. Create a User Path "New Relic".
 1. Insert Custom action "New Relic Monitoring" in the "Actions" container (custom action is inside Advanced > APM > New Relic).
 
-![New Relic User Path](/screenshots/new_relic_user_path.png "New Relic User Path")
+<p align="center"><img src="/screenshots/new_relic_user_path.png" alt="New Relic User Path" /></p>
 
 1. Select the "Actions" container and set a pacing duration of 60 seconds.
 
-![Action's Pacing](/screenshots/actions_container_pacing.png "Action's Pacing")
+<p align="center"><img src="/screenshots/actions_container_pacing.png" alt="Action's Pacing" /></p>
 
 1. Select the "Actions" container and set the runtime parameters "Reset user session and emulate new browser between each iteration" to "No".
 
-![Action's Runtime parameters](/screenshots/actions_container_reset_iteration_no.png "Action's Runtime parameters")
+<p align="center"><img src="/screenshots/actions_container_reset_iteration_no.png" alt="Action's Runtime parameters" /></p>
 
 1. Create a Population "New Relic" which contains 100% of User Path "New Relic".
 
-![New Relic Population](/screenshots/new_relic_population.png "New Relic Population")
+<p align="center"><img src="/screenshots/new_relic_population.png" alt="New Relic Population" /></p>
 
 1. In the Runtime section, select your scenario, select the "New Relic" population and define a constant load of 1 user for the full duration of the load test.
 
+<p align="center"><img src="/screenshots/new_relic_load_variation_policy.png.png" alt="Load Variation Policy" /></p>
+
 1. Verify to have a license with "Integration & Advanced Usage".
+
+<p align="center"><img src="/screenshots/license_integration_and_advanced_usage.png" alt="License with Integration & Advanced Usage" /></p>
+
 1. Verify that NeoLoad Web data transfer is properly configured (see Preferences / General settings / NeoLoad Web).
+
+<p align="center"><img src="/screenshots/nlweb_preferences.png" alt="NeoLoad Web Preferences" /></p>
 
 ## Parameters
 
@@ -69,6 +76,8 @@ Once installed, how to use in a given NeoLoad project:
 | proxyName | The NeoLoad proxy name to access New Relic. |optional|
 | newRelicRelevantMetricNames | "The list of relevant metric names to monitor from New Relic."  |optional|
 | newRelicRelevantMetricValues | "The list of relevant metric values to monitor from New Relic."  |optional|
+
+<p align="center"><img src="/screenshots/parameters.png" alt="New Relic Monitoring Advanced Action Parameters" /></p>
 
 Tip: Get NeoLoad API information in NeoLoad preferences: Project Preferences / REST API.
 

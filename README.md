@@ -51,7 +51,7 @@ Once installed, how to use in a given NeoLoad project:
 
 1. In the Runtime section, select your scenario, select the "New Relic" population and define a constant load of 1 user for the full duration of the load test.
 
-<p align="center"><img src="/screenshots/new_relic_load_variation_policy.png.png" alt="Load Variation Policy" /></p>
+<p align="center"><img src="/screenshots/new_relic_load_variation_policy.png" alt="Load Variation Policy" /></p>
 
 1. Verify to have a license with "Integration & Advanced Usage".
 
@@ -63,23 +63,23 @@ Once installed, how to use in a given NeoLoad project:
 
 ## Parameters
 
-| Name                     | Description       | Required/Optional
+| Name                     | Description       | Required/Optional|
 | ---------------          | ----------------- |----------------- |
-| newRelicAPIKey          |  New Relic API key. List of New Relic API keys are defined on New Relic menu Account settings, section INTEGRATIONS, subsection API keys. |required|
-| newRelicApplicationName          | New Relic application name. List of New Relic application names are on New Relic menu APM.  |required|
-| dataExchangeApiUrl          | The URL of the DataExchange server (located on the NeoLoad Controller).  |required|
-| sendNLWebDataToNewRelic | When set to 'true', sends NeoLoad Web data to New Relic (requires NeoLoad Web module). When set to 'false', only retrieves data from New Relic.  |optional|
-| newRelicLicenseKey | The New Relic license key. Required when argument 'sendNLWebDataToNewRelic' is true.  |optional|
-| newRelicAccountId | The New Relic Account Id. It appears in the URL when going on New Relic menu Account settings 'https://rpm.newrelic.com/accounts/<accountId>'. Required when argument 'sendNLWebDataToNewRelic' is true. |optional|
-| newRelicInsightsAPIKey | The New Relic Insights API key. List of New Relic Insights API keys are defined on New Relic menu Insights, section 'Manage data', subsection API Keys. Required when argument 'sendNLWebDataToNewRelic' is true.  |optional|
-| dataExchangeApiKey | "Identification key specified in NeoLoad."  |optional|
-| proxyName | The NeoLoad proxy name to access New Relic. |optional|
-| newRelicRelevantMetricNames | "The list of relevant metric names to monitor from New Relic."  |optional|
-| newRelicRelevantMetricValues | "The list of relevant metric values to monitor from New Relic."  |optional|
+| newRelicAPIKey          |  New Relic API key. List of New Relic API keys are defined on New Relic menu Account settings, section INTEGRATIONS, subsection API keys. |Required|
+| newRelicApplicationName          | New Relic application name. List of New Relic application names are on New Relic menu APM.  |Required|
+| dataExchangeApiUrl          | The URL of the DataExchange server (located on the NeoLoad Controller).  |Required|
+| sendNLWebDataToNewRelic | When set to 'true', sends NeoLoad Web data to New Relic (requires NeoLoad Web module). When set to 'false', only retrieves data from New Relic.  |Optional|
+| newRelicLicenseKey | The New Relic license key. Required when argument 'sendNLWebDataToNewRelic' is true.  |Optional|
+| newRelicAccountId | The New Relic Account Id. It appears in the URL when going on New Relic menu Account settings 'https://rpm.newrelic.com/accounts/<accountId>'. Required when argument 'sendNLWebDataToNewRelic' is true. |Optional|
+| newRelicInsightsAPIKey | The New Relic Insights API key. List of New Relic Insights API keys are defined on New Relic menu Insights, section 'Manage data', subsection API Keys. Required when argument 'sendNLWebDataToNewRelic' is true.  |Optional|
+| dataExchangeApiKey | "Identification key specified in NeoLoad."  |Optional|
+| proxyName | The NeoLoad proxy name to access New Relic. |Optional|
+| newRelicRelevantMetricNames | "The list of relevant metric names to monitor from New Relic."  |Optional|
+| newRelicRelevantMetricValues | "The list of relevant metric values to monitor from New Relic."  |Optional|
 
 <p align="center"><img src="/screenshots/parameters.png" alt="New Relic Monitoring Advanced Action Parameters" /></p>
 
-Tip: Get NeoLoad API information in NeoLoad preferences: Project Preferences / REST API.
+Tip: Get NeoLoad API information in NeoLoad preferences: Project Preferences / [REST API](https://www.neotys.com/documents/doc/neoload/latest/en/html/#7652.htm).
 
 ## NeoLoad Error Codes
 * NL-NEW_RELIC_ACTION-01: Issue while parsing advanced action arguments.

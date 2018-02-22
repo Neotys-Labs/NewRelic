@@ -5,9 +5,9 @@
 This Advanced Action allows you to integrate [NeoLoad](https://www.neotys.com/neoload/overview) with [New Relic](https://newrelic.com/) in order to correlate data from one tool to another. 
 
 It has 3 capabilities: 
-* **New Relic -> NeoLoad**: Retrieve metrics of the SUT from New Relic and inject them in NeoLoad Controller through the [Data Exchange API](https://www.neotys.com/documents/doc/neoload/latest/en/html/#7676.htm). This allows the correlation of load performance and APM results from the NeoLoad's [Dashboards](https://www.neotys.com/documents/doc/neoload/latest/en/html/#1440.htm).
-* **NeoLoad Web -> New Relic Plugins**: Retrieve the NeoLoad [Main Statistics](https://www.neotys.com/documents/doc/nlweb/latest/en/html/#22968.htm) from NeoLoad Web (Indicators of the Test overview) and inject them to the New Relic [Plugins API](https://docs.newrelic.com/docs/plugins/plugin-developer-resources/developer-reference/work-directly-plugin-api). This allows the correlation of load performance and APM results from New Relic [Plugins](https://newrelic.com/plugins).
-* **NeoLoad Web -> New Relic Insights**: Retrieve the [Main Statistics](https://www.neotys.com/documents/doc/nlweb/latest/en/html/#22968.htm) and the [Transaction values](https://www.neotys.com/documents/doc/nlweb/latest/en/html/#26321.htm) from NeoLoad Web and inject them to the New Relic [Insights API](https://docs.newrelic.com/docs/insights/insights-data-sources/custom-data/insert-custom-events-insights-api). This allows the correlation of load performance and APM results from New Relic [Insights](https://newrelic.com/insights).
+* **New Relic -> NeoLoad**: Retrieves metrics of the SUT from New Relic and injects them in NeoLoad Controller through the [Data Exchange API](https://www.neotys.com/documents/doc/neoload/latest/en/html/#7676.htm). This allows the correlation of load performance and APM results from the NeoLoad's [Dashboards](https://www.neotys.com/documents/doc/neoload/latest/en/html/#1440.htm).
+* **NeoLoad Web -> New Relic Plugins**: Retrieves the NeoLoad [Main Statistics](https://www.neotys.com/documents/doc/nlweb/latest/en/html/#22968.htm) from NeoLoad Web (Indicators of the Test overview) and injects them to the New Relic [Plugins API](https://docs.newrelic.com/docs/plugins/plugin-developer-resources/developer-reference/work-directly-plugin-api). This allows the correlation of load performance and APM results from New Relic [Plugins](https://newrelic.com/plugins).
+* **NeoLoad Web -> New Relic Insights**: Retrieves the [Main Statistics](https://www.neotys.com/documents/doc/nlweb/latest/en/html/#22968.htm) and the [Transaction values](https://www.neotys.com/documents/doc/nlweb/latest/en/html/#26321.htm) from NeoLoad Web and injects them to the New Relic [Insights API](https://docs.newrelic.com/docs/insights/insights-data-sources/custom-data/insert-custom-events-insights-api). This allows the correlation of load performance and APM results from New Relic [Insights](https://newrelic.com/insights).
 
 | Property | Value |
 | ----------------    | ----------------   |
@@ -15,7 +15,7 @@ It has 3 capabilities:
 | Author | Neotys |
 | License           | [BSD Simplified](https://www.neotys.com/documents/legal/bsd-neotys.txt) |
 | NeoLoad         | From version 6.3|
-| Requirements | <ul><li>License FREE edition, or Enterprise edition, or Professional with Integration & Advanced Usage)</li><li>New Relic account with Infrastructures and Plugins</li></ul>|
+| Requirements | <ul><li>License FREE edition, or Enterprise edition, or Professional with Integration & Advanced Usage</li><li>New Relic account with Infrastructures and Plugins</li></ul>|
 | Optionals | <ul><li>NeoLoad Web SaaS subscription (for option to send data from NeoLoad Web to New Relic)</li><li>New Relic account with Insights</li></ul>|
 | Bundled in NeoLoad | No |
 | Download Binaries    | See the [latest release](https://github.com/Neotys-Labs/NewRelic/releases/latest)|
@@ -23,8 +23,8 @@ It has 3 capabilities:
 
 ## Installation
 
-1. Download the [latest release](https://github.com/Neotys-Labs/NewRelic/releases/latest)
-1. Read the NeoLoad documentation to see [How to install a custom Advanced Action](https://www.neotys.com/documents/doc/neoload/latest/en/html/#25928.htm)
+1. Download the [latest release](https://github.com/Neotys-Labs/NewRelic/releases/latest).
+1. Read the NeoLoad documentation to see [How to install a custom Advanced Action](https://www.neotys.com/documents/doc/neoload/latest/en/html/#25928.htm).
 
 <p align="center"><img src="/screenshots/new_relic_advanced_action.png" alt="New Relic Advanced Action" /></p>
 
@@ -33,23 +33,23 @@ It has 3 capabilities:
 Once installed, how to use in a given NeoLoad project:
 
 1. Create a User Path "New Relic".
-2. Insert Custom action "New Relic Monitoring" in the "Actions" container (custom action is inside Advanced > APM > New Relic).
+2. Insert Custom action "New Relic Monitoring" in the **Actions** container (custom action is inside Advanced > APM > New Relic).
 
 <p align="center"><img src="/screenshots/new_relic_user_path.png" alt="New Relic User Path" /></p>
 
-3. Select the "Actions" container and set a pacing duration of 60 seconds.
+3. Select the **Actions** container and set a pacing duration of 60 seconds.
 
 <p align="center"><img src="/screenshots/actions_container_pacing.png" alt="Action's Pacing" /></p>
 
-4. Select the "Actions" container and set the runtime parameters "Reset user session and emulate new browser between each iteration" to "No".
+4. Select the **Actions** container and set the runtime parameters "Reset user session and emulate new browser between each iteration" to "No".
 
 <p align="center"><img src="/screenshots/actions_container_reset_iteration_no.png" alt="Action's Runtime parameters" /></p>
 
-5. Create a Population "New Relic" which contains 100% of User Path "New Relic".
+5. Create a Population "PopulationNewRelic" which contains 100% of User Path "New Relic".
 
 <p align="center"><img src="/screenshots/new_relic_population.png" alt="New Relic Population" /></p>
 
-6. In the Runtime section, select your scenario, select the "New Relic" population and define a constant load of 1 user for the full duration of the load test.
+6. In the **Runtime** section, select your scenario, select the "PopulationNewRelic" population and define a constant load of 1 user for the full duration of the load test.
 
 <p align="center"><img src="/screenshots/new_relic_load_variation_policy.png" alt="Load Variation Policy" /></p>
 
@@ -59,7 +59,7 @@ Once installed, how to use in a given NeoLoad project:
 
 <p align="center"><img src="/screenshots/license_integration_and_advanced_usage.png" alt="License with Integration & Advanced Usage" /></p>
 
-9. On the New Relic APM interface, create (or retrieve) a New Relic API key from menu Account settings, section INTEGRATIONS, subsection API keys.
+9. On the New Relic APM interface, create (or retrieve) a New Relic API key from menu **Account settings**, section **INTEGRATIONS**, subsection **API keys**.
 
 <p align="center"><img src="/screenshots/new_relic_api_key.png" alt="New Relic API key" /></p>
 
@@ -69,13 +69,13 @@ Once installed, how to use in a given NeoLoad project:
 
 ## Optional Set-up 
 
-If you use option to send data from NeoLoad Web to New Relic, follow the bellow steps: 
+If you use option to send data from NeoLoad Web to New Relic, follow the steps below: 
 
-1. Verify that NeoLoad Web data transfer is properly configured on the Controller preferences (see Preferences / General settings / NeoLoad Web).
+1. Verify that NeoLoad Web data transfer is properly configured on the Controller preferences (see **Preferences** / **General settings** / **NeoLoad Web**).
 
 <p align="center"><img src="/screenshots/nlweb_preferences.png" alt="NeoLoad Web Preferences" /></p>
 
-2. On the New Relic interface, retrieve the New Relic License Key from menu Account settings, section Account information. 
+2. On the New Relic interface, retrieve the New Relic License Key from menu **Account settings**, section **Account information**. 
 
 <p align="center"><img src="/screenshots/new_relic_license_key.png" alt="New Relic License Key" /></p>
 
@@ -83,11 +83,11 @@ If you use option to send data from NeoLoad Web to New Relic, follow the bellow 
  
 <p align="center"><img src="/screenshots/new_relic_account_id.png" alt="New Relic Account Id" /></p>
 
-4. On the New Relic interface, create (or retrieve) a New Relic Insights API key from menu Insights, section 'Manage data', subsection API Keys.
+4. On the New Relic interface, create (or retrieve) a New Relic Insights API key from menu **Insights**, section **Manage data**, subsection **API Keys**.
 
 <p align="center"><img src="/screenshots/new_relic_insights_api_key.png" alt="New Relic Insights API key" /></p>
 
-5. On the New Relic interface, Plugins section, Plugin central tab, search for plugin "NeoLoad", and install it.
+5. On the New Relic interface, **Plugins** section, **Plugin central** field, search for plugin "NeoLoad", and install it.
 
 <p align="center"><img src="/screenshots/new_relic_plugin_central.png" alt="NeoLoad plugin" /></p>
 
@@ -96,14 +96,14 @@ If you use option to send data from NeoLoad Web to New Relic, follow the bellow 
 
 | Name                     | Description       | Required/Optional|
 | ---------------          | ----------------- |----------------- |
-| newRelicAPIKey          |  New Relic API key. List of New Relic API keys are defined on New Relic menu Account settings, section INTEGRATIONS, subsection API keys. |Required|
-| newRelicApplicationName          | New Relic application name. List of New Relic application names are on New Relic menu APM.  |Required|
-| dataExchangeApiUrl          | The URL of the DataExchange server (located on the NeoLoad Controller). Tip: Get NeoLoad API information in NeoLoad preferences: Project Preferences / [REST API](https://www.neotys.com/documents/doc/neoload/latest/en/html/#7652.htm). |Required|
+| newRelicAPIKey          |  New Relic API key. List of New Relic API keys are defined on New Relic menu **Account settings**, section **INTEGRATIONS**, subsection **API keys**. |Required|
+| newRelicApplicationName          | New Relic application name. List of New Relic application names are on New Relic menu **APM**.  |Required|
+| dataExchangeApiUrl          | The URL of the DataExchange server (located on the NeoLoad Controller). Tip: Get NeoLoad API information in NeoLoad preferences: **Project Preferences** / **REST API**](https://www.neotys.com/documents/doc/neoload/latest/en/html/#7652.htm). |Required|
 | sendNLWebDataToNewRelic | When set to 'true', sends NeoLoad Web data to New Relic (requires NeoLoad Web module). When set to 'false', only retrieves data from New Relic. The Check User Path mode only works when value is 'false', as there is no NeoLoad Web interaction. |Optional|
 | newRelicLicenseKey | The New Relic license key to send data. Required when argument 'sendNLWebDataToNewRelic' is true.  |Optional|
-| newRelicAccountId | The New Relic Account Id. It appears in the URL when going on New Relic menu Account settings 'https://rpm.newrelic.com/accounts/<accountId>'. Required when argument 'sendNLWebDataToNewRelic' is true. |Optional|
-| newRelicInsightsAPIKey | The New Relic Insights API key. List of New Relic Insights API keys are defined on New Relic menu Insights, section 'Manage data', subsection API Keys. Required when argument 'sendNLWebDataToNewRelic' is true.  |Optional|
-| dataExchangeApiKey | "Identification key specified in NeoLoad."  |Optional|
+| newRelicAccountId | The New Relic Account Id. It appears in the URL when going on New Relic menu **Account settings** 'https://rpm.newrelic.com/accounts/<accountId>'. Required when argument 'sendNLWebDataToNewRelic' is true. |Optional|
+| newRelicInsightsAPIKey | The New Relic Insights API key. List of New Relic Insights API keys are defined on New Relic menu **Insights**, section **Manage data**, subsection **API Keys**. Required when argument 'sendNLWebDataToNewRelic' is true.  |Optional|
+| dataExchangeApiKey | Identification key specified in NeoLoad. |Optional|
 | proxyName | The NeoLoad proxy name to access New Relic. |Optional|
 | newRelicRelevantMetricNames | Specify the comma separated list of the matching names (contains) of the New Relic metric names to retrieve (by default: Datastore/statement,Datastore/instance,CPU,Memory,Error/,connects).|Optional|
 | newRelicRelevantMetricValues | Specify the comma separated list of the matching names (contains) of the New Relic metric statistics to retrieve (by default: min,max,average,used_mb,percent). |Optional|
@@ -112,13 +112,13 @@ If you use option to send data from NeoLoad Web to New Relic, follow the bellow 
 
 ## Analyse results in NeoLoad
 
-All the metrics retrieved from New Relic are available at Runtime, and in in the Results in the NeoLoad Graph section, tab External Data.
+All the metrics retrieved from New Relic are available on the NeoLoad Controller (live during the test, and after the test is executed), in the **Graph** tab, category **External Data**.
 
 <p align="center"><img src="/screenshots/neoload_external_data_graphs.png" alt="NeoLoad Graphs External Data" /></p>
 
 ## Analyse results in New Relic Plugins
 
-The Performance Dashboard provides below statistics: 
+The Performance Dashboard provides statistics below: 
 * Average Response Time
 * User Load
 * Hit/s
@@ -137,7 +137,7 @@ NeoLoad sends statistics in two Insights tables: "NeoLoadData" and "NeoLoadValue
 
 ### NeoLoadData Insights table
 
-These data are the [Main Statistics](https://www.neotys.com/documents/doc/nlweb/latest/en/html/#22968.htm) from NeoLoad Web. They are retrieve from [NeoLoad Web API](https://neoload-api.saas.neotys.com/explore/index.html) with REST call "/tests/{testId}/statistics".
+These data are the [Main Statistics](https://www.neotys.com/documents/doc/nlweb/latest/en/html/#22968.htm) from NeoLoad Web. They are retrieved from [NeoLoad Web API](https://neoload-api.saas.neotys.com/explore/index.html) with REST call "/tests/{testId}/statistics".
 
 NeoLoadData table has all the global statistics of the test:
 * Timestamp
@@ -155,7 +155,7 @@ NeoLoadData table has all the global statistics of the test:
 
 ### NeoLoadValues Insights table
 
-These data are the [Transaction values](https://www.neotys.com/documents/doc/nlweb/latest/en/html/#26321.htm) from NeoLoad Web. They are retrieve from [NeoLoad Web API](https://neoload-api.saas.neotys.com/explore/index.html) with REST call "/tests/{testId}/elements/{elementId}/values".
+These data are the [Transaction values](https://www.neotys.com/documents/doc/nlweb/latest/en/html/#26321.htm) from NeoLoad Web. They are retrieved from [NeoLoad Web API](https://neoload-api.saas.neotys.com/explore/index.html) with REST call "/tests/{testId}/elements/{elementId}/values".
 
 NeoLoadValues table has all the Transaction values of the test:
 * Timestamp
@@ -183,4 +183,4 @@ See New Relic [Documentation](https://docs.newrelic.com/docs/insights/use-insigh
 * NL-NEW_RELIC_ACTION-01: Issue while parsing advanced action arguments.
 * NL-NEW_RELIC_ACTION-02: Technical Error. See details for more information.
 * NL-NEW_RELIC_ACTION-03: A NeoLoad Web test should be running when argument 'sendNLWebDataToNewRelic' is true.
-* NL-NEW_RELIC_ACTION-04: Not enough delay between the two New Relic advanced action execution. Make sure to have at least 60 seconds pacing on the Actions container.  
+* NL-NEW_RELIC_ACTION-04: Not enough delay between the two executions of the New Relic advanced action. Make sure to have at least 60 seconds pacing on the Actions container.  

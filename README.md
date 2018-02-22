@@ -1,13 +1,17 @@
-# New Relic Integration
+# New Relic Integration for NeoLoad
+
+<p align="center"><img src="/screenshots/NewRelic-logo.png" alt="New Relic Logo" /></p>
 
 ## Overview
 
 This Advanced Action allows you to integrate [NeoLoad](https://www.neotys.com/neoload/overview) with [New Relic](https://newrelic.com/) in order to correlate data from one tool to another. 
 
-It has 3 capabilities: 
-* **New Relic -> NeoLoad**: Retrieves metrics of the SUT from New Relic and injects them in NeoLoad Controller through the [Data Exchange API](https://www.neotys.com/documents/doc/neoload/latest/en/html/#7676.htm). This allows the correlation of load performance and APM results from the NeoLoad's [Dashboards](https://www.neotys.com/documents/doc/neoload/latest/en/html/#1440.htm).
-* **NeoLoad Web -> New Relic Plugins**: Retrieves the NeoLoad [Main Statistics](https://www.neotys.com/documents/doc/nlweb/latest/en/html/#22968.htm) from NeoLoad Web (Indicators of the Test overview) and injects them to the New Relic [Plugins API](https://docs.newrelic.com/docs/plugins/plugin-developer-resources/developer-reference/work-directly-plugin-api). This allows the correlation of load performance and APM results from New Relic [Plugins](https://newrelic.com/plugins).
-* **NeoLoad Web -> New Relic Insights**: Retrieves the [Main Statistics](https://www.neotys.com/documents/doc/nlweb/latest/en/html/#22968.htm) and the [Transaction values](https://www.neotys.com/documents/doc/nlweb/latest/en/html/#26321.htm) from NeoLoad Web and injects them to the New Relic [Insights API](https://docs.newrelic.com/docs/insights/insights-data-sources/custom-data/insert-custom-events-insights-api). This allows the correlation of load performance and APM results from New Relic [Insights](https://newrelic.com/insights).
+This bundle provides both an inbound and an outbound integration:
+* **Inbound (New Relic -> NeoLoad)**: Retrieves metrics of the SUT from New Relic and injects them in NeoLoad Controller through the [Data Exchange API](https://www.neotys.com/documents/doc/neoload/latest/en/html/#7676.htm). This allows the correlation of load performance and APM results from the NeoLoad's [Dashboards](https://www.neotys.com/documents/doc/neoload/latest/en/html/#1440.htm).
+* ** Outbound (NeoLoad Web -> New Relic)**: With load testing data in New Relic, a tester can build complex dashboards correlating several types of metrics.
+   * Retrieves the NeoLoad [Main Statistics](https://www.neotys.com/documents/doc/nlweb/latest/en/html/#22968.htm) from NeoLoad Web (Indicators of the Test overview) and injects them to the [New Relic Plugins](https://newrelic.com/plugins) [API](https://docs.newrelic.com/docs/plugins/plugin-developer-resources/developer-reference/work-directly-plugin-api) and  [New Relic Insights](https://newrelic.com/insights) [API](https://docs.newrelic.com/docs/insights/insights-data-sources/custom-data/insert-custom-events-insights-api).
+   * Retrieves the NeoLoad [Transaction values](https://www.neotys.com/documents/doc/nlweb/latest/en/html/#26321.htm) from NeoLoad Web and injects them to [New Relic Insights](https://newrelic.com/insights) [API](https://docs.newrelic.com/docs/insights/insights-data-sources/custom-data/insert-custom-events-insights-api).
+
 
 | Property | Value |
 | ----------------    | ----------------   |
@@ -112,7 +116,7 @@ If you use option to send data from NeoLoad Web to New Relic, follow the steps b
 
 ## Analyse results in NeoLoad
 
-All the metrics retrieved from New Relic are available on the NeoLoad Controller (live during the test, and after the test is executed), in the **Graph** tab, category **External Data**.
+All the metrics retrieved from New Relic are available on the NeoLoad Controller (live during the test, and after the test is executed), in the **External Data** tab.
 
 <p align="center"><img src="/screenshots/neoload_external_data_graphs.png" alt="NeoLoad Graphs External Data" /></p>
 
@@ -131,7 +135,7 @@ The Performance Dashboard provides statistics below:
 
 
 ## Analyse results in New Relic Insights
-In addition to their core APM product, New Relic offers New Relic Insights, which provides a wide variety of methods to analyze and present custom, real-time data visualizations. New Relic offers the ability to build precise dashboards with the help of their New Relic Query (NQR) language. Any data measured by New Relic (APM, Infrastructure, RUM, or Synthetic) can be accessed using NRQ. 
+In addition to their core APM product, New Relic offers New Relic Insights, which provides a wide variety of methods to analyse and present custom, real-time data visualizations. New Relic offers the ability to build precise dashboards with the help of their New Relic Query (NQR) language. Any data measured by New Relic (APM, Infrastructure, RUM, or Synthetic) can be accessed using NRQ. 
 
 NeoLoad sends statistics in two Insights tables: "NeoLoadData" and "NeoLoadValues"
 

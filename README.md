@@ -1,4 +1,4 @@
-<p align="center"><img src="/screenshots/NewRelic-logo.png" alt="New Relic Logo" /></p>
+<p align="center"><img src="/screenshots/NewRelic-logo.png" width="40%" alt="New Relic Logo" /></p>
 
 # New Relic Integration for NeoLoad
 

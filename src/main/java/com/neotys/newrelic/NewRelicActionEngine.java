@@ -112,11 +112,12 @@ public final class NewRelicActionEngine implements ActionEngine {
 			requestContentBuilder.append("DataExchangeAPIClient retrieved from User Path Context.\n");
 		}
 		
-		sampleResult.sampleStart();				
-		try {	
-			/**
-			 * 1. New Relic -> NeoLoad DataExchangeAPI
-			 */
+		sampleResult.sampleStart();			
+		
+		/**
+		 * 1. New Relic -> NeoLoad DataExchangeAPI
+		 */
+		try {				
 			responseContentBuilder.append("Retrieving New Relic application hosts available...\n");			
 			for (final NewRelicApplicationHost newRelicApplicationHost : newRelicRestClient.getApplicationHosts()) {
 				responseContentBuilder.append("Retrieving Metrics Data for host " + newRelicApplicationHost.getHostName() + ".\n");			
@@ -130,48 +131,59 @@ public final class NewRelicActionEngine implements ActionEngine {
 					dataExchangeAPIClient.addEntries(newRelicMetricData.stream().map(n -> n.buildEntry()).collect(Collectors.toList()));
 				}
 			}
-			
-			/**
-			 * 2. NeoLoad Web -> New Relic
-			 */
-			if (!newRelicActionArguments.isSendNLWebDataToNewRelic()) {
-				responseContentBuilder.append("sendNLWebDataToNewRelic option disabled.\n");				
-			} else {
-				responseContentBuilder.append("sendNLWebDataToNewRelic enabled.\n");	
-				
-				// Retrieve NLWebToNewRelic from Context, or instantiate new one
-				NLWebToNewRelicTask nlWebToNewRelicTask = (NLWebToNewRelicTask) context.getCurrentVirtualUser().get(Constants.NL_WEB_TO_NEW_RELIC_TASK);
-				if (nlWebToNewRelicTask == null) {
-					try {
-						nlWebToNewRelicTask = new NLWebToNewRelicTask(newRelicRestClient, context, newRelicActionArguments);
-						context.getCurrentVirtualUser().put(Constants.NL_WEB_TO_NEW_RELIC_TASK, nlWebToNewRelicTask);
-						requestContentBuilder.append("NLWebToNewRelicTask created.\n");
-					} catch (final Exception e) {
-						return newErrorResult(requestContentBuilder, context, Constants.STATUS_CODE_TECHNICAL_ERROR,
-								"Technical Error while sending New Relic Metric Data and inject them to NeoLoad through DataExchange API:",
-								e);
-					}
-				} else {
-					requestContentBuilder.append("NLWebToNewRelicTask retrieved from User Path Context.\n");
-				}
-				/**
-				 * 2.1 NeoLoad Web Main statistics -> New Relic (PlateformAPI + InsightsAPI)
-				 */
-				requestContentBuilder.append("Send NeoLoad Web Main statistics to New Relic (PlateformAPI + InsightsAPI).\n");
-				nlWebToNewRelicTask.sendNLWebMainStatisticsToNewRelic();
-				
-				/**
-				 * 2.2 NeoLoad Web Element Values -> New Relic (InsightsAPI only)
-				 */
-				requestContentBuilder.append("Send NeoLoad Web Element Values to New Relic (InsightsAPI only).\n");
-				nlWebToNewRelicTask.sendNLWebElementValuesToInsightsAPI();
-			}			
-		} catch (final Exception e) {
+		} catch (final Exception e) {			
 			return newErrorResult(requestContentBuilder, context, Constants.STATUS_CODE_TECHNICAL_ERROR,
 					"Technical Error while sending New Relic Metric Data and inject them to NeoLoad through DataExchange API:", e);
-		} finally {
-			sampleResult.sampleEnd();						
-		}
+		} 
+			
+		/**
+		 * 2. NeoLoad Web -> New Relic
+		 */			
+		if (!newRelicActionArguments.isSendNLWebDataToNewRelic()) {
+			responseContentBuilder.append("sendNLWebDataToNewRelic option disabled.\n");				
+		} else {
+			responseContentBuilder.append("sendNLWebDataToNewRelic enabled.\n");	
+			
+			// Retrieve NLWebToNewRelic from Context, or instantiate new one
+			NLWebToNewRelicTask nlWebToNewRelicTask = (NLWebToNewRelicTask) context.getCurrentVirtualUser().get(Constants.NL_WEB_TO_NEW_RELIC_TASK);
+			if (nlWebToNewRelicTask == null) {
+				try {
+					nlWebToNewRelicTask = new NLWebToNewRelicTask(newRelicRestClient, context, newRelicActionArguments);
+					context.getCurrentVirtualUser().put(Constants.NL_WEB_TO_NEW_RELIC_TASK, nlWebToNewRelicTask);
+					requestContentBuilder.append("NLWebToNewRelicTask created.\n");
+				} catch (final Exception e) {
+					return newErrorResult(requestContentBuilder, context, Constants.STATUS_CODE_TECHNICAL_ERROR,
+							"Technical Error while sending New Relic Metric Data and inject them to NeoLoad through DataExchange API:",
+							e);
+				}
+			} else {
+				requestContentBuilder.append("NLWebToNewRelicTask retrieved from User Path Context.\n");
+			}
+			
+			/**
+			 * 2.1 NeoLoad Web Main statistics -> New Relic (PlateformAPI + InsightsAPI)
+			 */
+			try {				
+				requestContentBuilder.append("Send NeoLoad Web Main statistics to New Relic (PlateformAPI + InsightsAPI).\n");
+				nlWebToNewRelicTask.sendNLWebMainStatisticsToNewRelic();
+			} catch (final Exception e) {			
+				return newErrorResult(requestContentBuilder, context, Constants.STATUS_CODE_TECHNICAL_ERROR,
+						"Technical Error while sending NNeoLoad Web Main statistics to New Relic (PlateformAPI + InsightsAPI): ", e);
+			} 
+			
+			/**
+			 * 2.2 NeoLoad Web Element Values -> New Relic (InsightsAPI only)
+			 */
+			try {	
+				requestContentBuilder.append("Send NeoLoad Web Element Values to New Relic (InsightsAPI).\n");
+				nlWebToNewRelicTask.sendNLWebElementValuesToInsightsAPI();
+			
+			} catch (final Exception e) {			
+				return newErrorResult(requestContentBuilder, context, Constants.STATUS_CODE_TECHNICAL_ERROR,
+						"Technical Error while sending NNeoLoad Web Element Values to New Relic (InsightsAPI): ", e);
+			} 
+		}		
+		sampleResult.sampleEnd();
 		sampleResult.setRequestContent(requestContentBuilder.toString());
 		sampleResult.setResponseContent(responseContentBuilder.toString());
 		return sampleResult;

@@ -92,11 +92,6 @@ If you use option to send data from NeoLoad Web to New Relic, follow the steps b
 
 <p align="center"><img src="/screenshots/new_relic_insights_api_key.png" alt="New Relic Insights API key" /></p>
 
-5. On the New Relic interface, **Plugins** section, **Plugin central** field, search for plugin "NeoLoad", and install it.
-
-<p align="center"><img src="/screenshots/new_relic_plugin_central.png" alt="NeoLoad plugin" /></p>
-
-
 ## Parameters
 
 | Name                     | Description       | Required/Optional|

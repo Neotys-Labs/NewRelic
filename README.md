@@ -119,11 +119,12 @@ All the metrics retrieved from New Relic are available on the NeoLoad Controller
 ## Analyse results in New Relic Plugins
 
 The Performance Dashboard provides statistics below: 
-* Average Response Time
 * User Load
-* Hit/s
-* Transaction per Second
-* DownLoaded Bytes/s
+* Transaction (Success, Count, Failure)
+* Request (Success, Count, Failure)
+* DownLoaded Bytes
+* Average Transaction Response Time
+* Average Request Response Time
 
 <p align="center"><img src="/screenshots/new_relic_plugins1.png" alt="New Relic Monitoring Advanced Action Parameters" /></p>
 

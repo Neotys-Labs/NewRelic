@@ -3,7 +3,6 @@ package com.neotys.newrelic.fromnlweb;
 import static com.neotys.newrelic.NewRelicUtils.getProxy;
 import static com.neotys.newrelic.NewRelicUtils.initProxyForNeoloadWebApiClient;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -15,8 +14,6 @@ import com.neotys.extensions.action.engine.Context;
 import com.neotys.extensions.action.engine.Proxy;
 import com.neotys.newrelic.Constants;
 import com.neotys.newrelic.NewRelicActionArguments;
-import com.neotys.newrelic.NewRelicException;
-import com.neotys.newrelic.rest.NewRelicRestClient;
 
 import io.swagger.client.ApiClient;
 import io.swagger.client.ApiException;
@@ -26,16 +23,14 @@ import io.swagger.client.model.ElementDefinition;
 import io.swagger.client.model.ElementValues;
 import io.swagger.client.model.TestStatistics;
 
-public class NLWebToNewRelicTask {
-	
-	private final NewRelicRestClient newRelicRestClient;
+public class NLWebClient {
+		
 	private final String testId;			
 	private final ApiClient neoloadWebApiClient;	
 	private final ResultsApi resultsApi;		
 	private final NLWebStats nlWebStats;	
 	
-	public NLWebToNewRelicTask(final NewRelicRestClient newRelicRestClient, final Context context, final NewRelicActionArguments newRelicActionArguments) throws MalformedURLException, KeyManagementException, NoSuchAlgorithmException {
-		this.newRelicRestClient = newRelicRestClient;
+	public NLWebClient(final Context context, final NewRelicActionArguments newRelicActionArguments) throws MalformedURLException, KeyManagementException, NoSuchAlgorithmException {
 		this.testId = context.getTestId();
 		this.neoloadWebApiClient = new ApiClient();
 		this.neoloadWebApiClient.setApiKey(context.getAccountToken());
@@ -54,32 +49,20 @@ public class NLWebToNewRelicTask {
 		this.resultsApi = new ResultsApi(neoloadWebApiClient);	
 		this.nlWebStats = new NLWebStats();		
 	}
-
-	public void sendNLWebMainStatisticsToNewRelic() throws IOException, NewRelicException, ApiException {
-		long lastduration;
-		final long utc = System.currentTimeMillis() / 1000;
-		lastduration = nlWebStats.getLasduration();			
 	
+	public NLWebMainStatistics getMainStatistics() throws ApiException {
+		final Optional<Long> lastTimestamp = nlWebStats.getLastTimestamp();			
+		final long currentTimestamp = System.currentTimeMillis();
+		nlWebStats.setLastTimestamp(currentTimestamp);		
 		final TestStatistics testStatistics = resultsApi.getTestStatistics(testId);
 		if(testStatistics == null){
 			throw new ApiException("Cannot find any statistics on NeoLoad Web for testId " + testId);
 		}
 		nlWebStats.updateTestStatistics(testStatistics);
-		final List<String[]> data = nlWebStats.getNLData();
-		final int time;	
-		if (lastduration == 0){
-			time = 0;
-		} else {
-			time = (int) (utc - lastduration);
-		}
-		for (final String[] metric : data) {			
-			newRelicRestClient.sendNLWebMainStatisticsToPlateformAPI(metric[0], metric[1], time, metric[2], metric[3]);			
-		}
-		newRelicRestClient.sendNLWebMainStatisticsToInsightsAPI(data);
-		nlWebStats.setLasduration(utc);
+		return new NLWebMainStatistics(nlWebStats.getNLData(), lastTimestamp, currentTimestamp);
 	}
 	
-	public void sendNLWebElementValuesToInsightsAPI() throws ApiException, NewRelicException, IOException {		
+	public List<NLWebElementValue> getElementValues() throws ApiException {		
 		final List<NLWebElementValue> nlWebElementValues = new ArrayList<>();		
 		final ArrayOfElementDefinition NLElement = resultsApi.getTestElements(testId, Constants.NLWEB_TRANSACTION);
 		for (ElementDefinition element : NLElement) {
@@ -88,8 +71,7 @@ public class NLWebToNewRelicTask {
 				nlWebElementValues.add(new NLWebElementValue(element, Values));
 			}
 		}
-		for (final NLWebElementValue val : nlWebElementValues){
-			newRelicRestClient.sendValuesMetricToInsightsAPI(val);
-		}		
+		return nlWebElementValues;
 	}
+		
 }

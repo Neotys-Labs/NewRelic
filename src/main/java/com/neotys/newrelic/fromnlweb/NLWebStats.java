@@ -4,6 +4,8 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.util.Optional;
+
 import io.swagger.client.model.TestStatistics;
 
 public class NLWebStats {
@@ -85,10 +87,9 @@ public class NLWebStats {
 	private static String TotalTransactionCountPerSecond_Component = "transactionCount";
 	private static String TotalTransactionCountPerSecond_Unit = "Transaction/Second";
 
-	private long lasduration = 0;
+	private Optional<Long> lastTimestamp = Optional.empty();
 
 	public NLWebStats() {
-		lasduration = 0;
 	}
 
 	public float getLastRequestDurationAverage() {
@@ -172,15 +173,15 @@ public class NLWebStats {
 
 	}
 
-	public long getLasduration() {
-		return lasduration;
+	public Optional<Long> getLastTimestamp() {
+		return lastTimestamp;
 	}
 
-	public void setLasduration(long lasduration) {
-		this.lasduration = lasduration;
+	public void setLastTimestamp(final long lastTimestamp) {
+		this.lastTimestamp = Optional.of(lastTimestamp);
 	}
 
-	public void updateTestStatistics(TestStatistics response) {
+	public void updateTestStatistics(final TestStatistics response) {
 		setLastRequestCountPerSecond(response.getLastRequestCountPerSecond());
 		setLastTransactionDurationAverage(response.getLastTransactionDurationAverage());
 		setLastVirtualUserCount(response.getLastVirtualUserCount());

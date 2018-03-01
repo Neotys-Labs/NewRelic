@@ -7,13 +7,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
 import com.neotys.action.result.ResultFactory;
 import com.neotys.extensions.action.ActionParameter;
 import com.neotys.extensions.action.engine.ActionEngine;
 import com.neotys.extensions.action.engine.Context;
 import com.neotys.extensions.action.engine.SampleResult;
-import com.neotys.newrelic.fromnlweb.NLWebToNewRelicTask;
+import com.neotys.newrelic.fromnlweb.NLWebElementValue;
+import com.neotys.newrelic.fromnlweb.NLWebMainStatistics;
+import com.neotys.newrelic.fromnlweb.NLWebClient;
 import com.neotys.newrelic.rest.NewRelicApplicationHost;
 import com.neotys.newrelic.rest.NewRelicMetricData;
 import com.neotys.newrelic.rest.NewRelicRestClient;
@@ -45,7 +47,7 @@ public final class NewRelicActionEngine implements ActionEngine {
 		// Parse arguments
 		final NewRelicActionArguments newRelicActionArguments;
 		try {
-			final Map<String, Optional<String>> parsedArgs = parseArguments(parameters, NewRelicOption.values());
+			final Map<String, com.google.common.base.Optional<String>> parsedArgs = parseArguments(parameters, NewRelicOption.values());
 			requestContentBuilder.append("Parameters: " + getArgumentLogString(parsedArgs, NewRelicOption.values()) + "\n");			
 			newRelicActionArguments = new NewRelicActionArguments(parsedArgs);
 		} catch (final IllegalArgumentException iae) {
@@ -144,44 +146,66 @@ public final class NewRelicActionEngine implements ActionEngine {
 		} else {
 			responseContentBuilder.append("sendNLWebDataToNewRelic enabled.\n");	
 			
-			// Retrieve NLWebToNewRelic from Context, or instantiate new one
-			NLWebToNewRelicTask nlWebToNewRelicTask = (NLWebToNewRelicTask) context.getCurrentVirtualUser().get(Constants.NL_WEB_TO_NEW_RELIC_TASK);
-			if (nlWebToNewRelicTask == null) {
+			// Retrieve NLWebClient from Context, or instantiate new one
+			NLWebClient nlWebClient = (NLWebClient) context.getCurrentVirtualUser().get(Constants.NL_WEB_CLIENT);
+			if (nlWebClient == null) {
 				try {
-					nlWebToNewRelicTask = new NLWebToNewRelicTask(newRelicRestClient, context, newRelicActionArguments);
-					context.getCurrentVirtualUser().put(Constants.NL_WEB_TO_NEW_RELIC_TASK, nlWebToNewRelicTask);
-					requestContentBuilder.append("NLWebToNewRelicTask created.\n");
+					nlWebClient = new NLWebClient(context, newRelicActionArguments);
+					context.getCurrentVirtualUser().put(Constants.NL_WEB_CLIENT, nlWebClient);
+					requestContentBuilder.append("NLWebClient created.\n");
 				} catch (final Exception e) {
 					return newErrorResult(requestContentBuilder, context, Constants.STATUS_CODE_TECHNICAL_ERROR,
-							"Technical Error while sending New Relic Metric Data and inject them to NeoLoad through DataExchange API:",
-							e);
+							"Technical Error while creating NLWeb client:",	e);
 				}
 			} else {
-				requestContentBuilder.append("NLWebToNewRelicTask retrieved from User Path Context.\n");
+				requestContentBuilder.append("NLWebClient retrieved from User Path Context.\n");
 			}
 			
 			/**
-			 * 2.1 NeoLoad Web Main statistics -> New Relic (PlateformAPI + InsightsAPI)
+			 * 2.1 Retrieve NeoLoad Web Main statistics
 			 */
+			final NLWebMainStatistics nlWebMainStatistics;
 			try {				
-				requestContentBuilder.append("Send NeoLoad Web Main statistics to New Relic (PlateformAPI + InsightsAPI).\n");
-				nlWebToNewRelicTask.sendNLWebMainStatisticsToNewRelic();
+				requestContentBuilder.append("Retrieve NeoLoad Web Main statistics.\n");
+				nlWebMainStatistics = nlWebClient.getMainStatistics();						
 			} catch (final Exception e) {			
 				return newErrorResult(requestContentBuilder, context, Constants.STATUS_CODE_TECHNICAL_ERROR,
-						"Technical Error while sending NNeoLoad Web Main statistics to New Relic (PlateformAPI + InsightsAPI): ", e);
+						"Technical Error while retrieving NeoLoad Web Main statistics: ", e);
 			} 
 			
 			/**
-			 * 2.2 NeoLoad Web Element Values -> New Relic (InsightsAPI only)
+			 * 2.2 Retrieve NeoLoad Web Element Values
 			 */
-			try {	
-				requestContentBuilder.append("Send NeoLoad Web Element Values to New Relic (InsightsAPI).\n");
-				nlWebToNewRelicTask.sendNLWebElementValuesToInsightsAPI();
-			
+			final List<NLWebElementValue> nlWebElementValues;
+			try {				
+				requestContentBuilder.append("Retrieve NeoLoad Web Element Values.\n");
+				nlWebElementValues = nlWebClient.getElementValues();			
 			} catch (final Exception e) {			
 				return newErrorResult(requestContentBuilder, context, Constants.STATUS_CODE_TECHNICAL_ERROR,
-						"Technical Error while sending NNeoLoad Web Element Values to New Relic (InsightsAPI): ", e);
+						"Technical Error while retrieving NeoLoad Web Element Values: ", e);
 			} 
+			
+			/**
+			 * 2.3 Send NeoLoad Web Main statistics to Plateform API
+			 */
+			requestContentBuilder.append("Send NeoLoad Web Main statistics to Plateform API.\n");
+			final Optional<String> errorMessage = newRelicRestClient.sendNLWebMainStatisticsToPlateformAPI(nlWebMainStatistics);
+			errorMessage.map(e -> responseContentBuilder.append("Error while sending NeoLoad Web Main statistics to Plateform API: " + e + "\n"));
+			
+			/**
+			 * 2.4 Send NeoLoad Web Main statistics to Insights API
+			 */
+			requestContentBuilder.append("Send NeoLoad Web Main statistics to Insights API.\n");
+			newRelicRestClient.sendNLWebMainStatisticsToInsightsAPI(nlWebMainStatistics);		
+			errorMessage.map(e -> responseContentBuilder.append("Error while sending NeoLoad Web Main statistics to Insights API: " + e + "\n"));
+			
+			/**
+			 * 2.5 Send NeoLoad Web Element Values to Insights API
+			 */
+			requestContentBuilder.append("Send NeoLoad Web Element Values to Insights API.\n");
+			newRelicRestClient.sendNLWebElementValuesToInsightsAPI(nlWebElementValues);
+			errorMessage.map(e -> responseContentBuilder.append("Error while sending NeoLoad Web Element Values to Insights API: " + e + "\n"));		
+			
 		}		
 		sampleResult.sampleEnd();
 		sampleResult.setRequestContent(requestContentBuilder.toString());

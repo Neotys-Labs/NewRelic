@@ -3,7 +3,6 @@ package com.neotys.newrelic.rest;
 import static com.neotys.newrelic.NewRelicUtils.getProxy;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.ZoneOffset;
@@ -32,6 +31,7 @@ import com.neotys.newrelic.NewRelicActionArguments;
 import com.neotys.newrelic.NewRelicException;
 import com.neotys.newrelic.NewRelicUtils;
 import com.neotys.newrelic.fromnlweb.NLWebElementValue;
+import com.neotys.newrelic.fromnlweb.NLWebMainStatistics;
 
 /**
  * 
@@ -43,7 +43,7 @@ public class NewRelicRestClient {
 	private final NewRelicActionArguments newRelicActionArguments;
 	private final Context context;
 	private final String applicationId;
-	private final HashMap<String, String> headers = new HashMap<>();	
+	private final HashMap<String, String> headers = new HashMap<>();
 
 	public NewRelicRestClient(final NewRelicActionArguments newRelicActionArguments, final Context context) throws NewRelicException {
 		this.newRelicActionArguments = newRelicActionArguments;
@@ -65,7 +65,7 @@ public class NewRelicRestClient {
 	 */
 	private String getApplicationId() throws NewRelicException {
 		final String url = Constants.NEW_RELIC_API_APPLICATIONS_JSON_URL;
-		
+
 		final List<Pair<String, String>> parameters = new ArrayList<>();
 		parameters.add(new ImmutablePair<>("filter[name]", newRelicActionArguments.getNewRelicApplicationName()));
 		HTTPGenerator http = null;
@@ -76,7 +76,7 @@ public class NewRelicRestClient {
 			if (jsoobj != null) {
 				if (jsoobj.has("applications")) {
 					final JSONArray jsonArray = jsoobj.getJSONArray("applications");
-					if(jsonArray.length()==1){
+					if (jsonArray.length() == 1) {
 						final String id = String.valueOf(jsonArray.getJSONObject(0).getInt("id"));
 						if (!Strings.isNullOrEmpty(id)) {
 							return id;
@@ -84,7 +84,7 @@ public class NewRelicRestClient {
 					}
 				}
 			}
-		} catch (final Exception exception){
+		} catch (final Exception exception) {
 			throw new NewRelicException("Cannot get applicationId for '" + newRelicActionArguments.getNewRelicApplicationName() + "'.", exception);
 		} finally {
 			if (http != null) {
@@ -164,16 +164,17 @@ public class NewRelicRestClient {
 	 * @throws IOException
 	 * @throws ParseException 
 	 */
-	public List<NewRelicMetricData> getNewRelicMetricData(final List<String> metricNames, final String hostId, final String hostName) throws IOException, ParseException {
+	public List<NewRelicMetricData> getNewRelicMetricData(final List<String> metricNames, final String hostId, final String hostName)
+			throws IOException, ParseException {
 		final List<NewRelicMetricData> newRelicMetricData = new ArrayList<>();
 		final String url = Constants.NEW_RELIC_API_APPLICATIONS_URL + applicationId + "/hosts/" + hostId + Constants.NEW_RELIC_DATA_JSON;
 		final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
 		final List<Pair<String, String>> parameters = new ArrayList<>();
-		for(final String metricName: metricNames){
+		for (final String metricName : metricNames) {
 			parameters.add(new ImmutablePair<>("names[]", metricName));
-		}		
-		final ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);		
-		parameters.add(new ImmutablePair<>("from", now.minusSeconds(120).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));		
+		}
+		final ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
+		parameters.add(new ImmutablePair<>("from", now.minusSeconds(120).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
 		parameters.add(new ImmutablePair<>("to", now.minusSeconds(60).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
 		parameters.add(new ImmutablePair<>("summarize", "true"));
 		parameters.add(new ImmutablePair<>("raw", "false"));
@@ -189,19 +190,19 @@ public class NewRelicRestClient {
 						final JSONObject metric = metrics.getJSONObject(i);
 						final String metricName = metric.get("name").toString();
 						final JSONArray timeslices = metric.getJSONArray("timeslices");
-						if(timeslices.length()!=1){
+						if (timeslices.length() != 1) {
 							continue;
 						}
-						final JSONObject timeslice = timeslices.getJSONObject(0);						
-						final String metricDate = getTimeMillisFromDate(timeslice.getString("to"));						
+						final JSONObject timeslice = timeslices.getJSONObject(0);
+						final String metricDate = getTimeMillisFromDate(timeslice.getString("to"));
 						final JSONObject values = timeslice.getJSONObject("values");
 						final Iterator<String> it = values.keys();
 						while (it.hasNext()) {
 							final String metricValue = it.next();
-							if (isRelevantMetricValue(metricValue)){
+							if (isRelevantMetricValue(metricValue)) {
 								newRelicMetricData.add(new NewRelicMetricData(newRelicActionArguments.getNewRelicApplicationName(), hostName,
 										metricName, metricValue, values.getDouble(metricValue), "", metricDate));
-							}						
+							}
 						}
 					}
 				}
@@ -249,54 +250,55 @@ public class NewRelicRestClient {
 	 * This method send NL Web element values to New Relic Insights API.
 	 * REST URL is: https://insights-collector.newrelic.com/v1/accounts/<accountId>/events
 	 * More info on NewRelic documentation: https://docs.newrelic.com/docs/insights/insights-data-sources/custom-data/insert-custom-events-insights-api
-	 * @return
-	 * @throws MalformedURLException 
-	 * @throws IOException
-	 * @throws ParseException 
+	 * @return Optional<String>: error message if any
 	 */
-	public void sendValuesMetricToInsightsAPI(final NLWebElementValue nlWebElementValue) throws NewRelicException, IOException {
-		final String url = Constants.NEW_RELIC_INSIGHT_URL + newRelicActionArguments.getNewRelicAccountId().get() + "/events";
-		final String jsonString = "[{\"eventType\":\"NeoLoadValues\","
-				+ "\"account\" : \"" + newRelicActionArguments.getNewRelicAccountId().get() + "\","
-				+ "\"appId\" : \"" + applicationId + "\","
-				+ "\"testName\" : \"" + context.getTestName() + "\","
-				+ "\"scenarioName\" : \"" + context.getScenarioName() + "\","
-				+ "\"applicationName\" : \"" + newRelicActionArguments.getNewRelicApplicationName() + "\","
-				+ "\"trendfield\": \"" + newRelicActionArguments.getNewRelicApplicationName() + context.getScenarioName() + context.getTestName()
-				+ "\","
-				+ "\"userPathName\" :\"" + nlWebElementValue.getUserPath() + "\","
-				+ "\"type\" :\"TRANSACTION\","
-				+ "\"transactionName\" :\"" + nlWebElementValue.getName() + "\","
-				+ "\"path\" :\"" + nlWebElementValue.getPath() + "\","
-				+ "\"responseTime\":" + Constants.DECIMAL_FORMAT.format(nlWebElementValue.getResponsetime()) + ","
-				+ "\"elementPerSecond\":" + Constants.DECIMAL_FORMAT.format(nlWebElementValue.getHitPerSecond()) + ","
-				+ "\"downloadedBytesPerSecond\":" + Constants.DECIMAL_FORMAT.format(nlWebElementValue.getThroughput()) + ","
-				+ "\"timestamp\" : " + System.currentTimeMillis() + "}]";
-		final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
+	public Optional<String> sendNLWebElementValuesToInsightsAPI(final List<NLWebElementValue> nlWebElementValues) {
 		HTTPGenerator http = null;
 		try {
-			http = new HTTPGenerator(url, headers, jsonString, proxy);
-			final String exceptionMessage = NewRelicUtils.getExceptionmessage(http.getHttpResponseCodeFromResponse());
-			if (exceptionMessage != null) {
-				throw new NewRelicException(exceptionMessage);
+			final String url = Constants.NEW_RELIC_INSIGHT_URL + newRelicActionArguments.getNewRelicAccountId().get() + "/events";
+			final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
+			for (final NLWebElementValue nlWebElementValue : nlWebElementValues){
+			
+				final String jsonString = "[{\"eventType\":\"NeoLoadValues\","
+					+ "\"account\" : \"" + newRelicActionArguments.getNewRelicAccountId().get() + "\","
+					+ "\"appId\" : \"" + applicationId + "\","
+					+ "\"testName\" : \"" + context.getTestName() + "\","
+					+ "\"scenarioName\" : \"" + context.getScenarioName() + "\","
+					+ "\"applicationName\" : \"" + newRelicActionArguments.getNewRelicApplicationName() + "\","
+					+ "\"trendfield\": \"" + newRelicActionArguments.getNewRelicApplicationName() + context.getScenarioName() + context.getTestName()
+					+ "\","
+					+ "\"userPathName\" :\"" + nlWebElementValue.getUserPath() + "\","
+					+ "\"type\" :\"TRANSACTION\","
+					+ "\"transactionName\" :\"" + nlWebElementValue.getName() + "\","
+					+ "\"path\" :\"" + nlWebElementValue.getPath() + "\","
+					+ "\"responseTime\":" + Constants.DECIMAL_FORMAT.format(nlWebElementValue.getResponsetime()) + ","
+					+ "\"elementPerSecond\":" + Constants.DECIMAL_FORMAT.format(nlWebElementValue.getHitPerSecond()) + ","
+					+ "\"downloadedBytesPerSecond\":" + Constants.DECIMAL_FORMAT.format(nlWebElementValue.getThroughput()) + ","
+					+ "\"timestamp\" : " + System.currentTimeMillis() + "}]";
+							
+				http = new HTTPGenerator(url, headers, jsonString, proxy);
+				final String exceptionMessage = NewRelicUtils.getExceptionmessage(http.getHttpResponseCodeFromResponse());
+				if (exceptionMessage != null) {
+					return Optional.of(exceptionMessage);
+				}			
 			}
+		} catch(final Exception e){
+			return Optional.of(e.getMessage());
 		} finally {
 			if (http != null) {
 				http.closeHttpClient();
 			}
 		}
+		return Optional.empty();
 	}
 
 	/**
 	 * This method send NL Web global data values to New Relic Insights API.
 	 * REST URL is: https://insights-collector.newrelic.com/v1/accounts/<accountId>/events
 	 * More info on NewRelic documentation: https://docs.newrelic.com/docs/insights/insights-data-sources/custom-data/insert-custom-events-insights-api
-	 * @return
-	 * @throws MalformedURLException 
-	 * @throws IOException
-	 * @throws ParseException 
+	 * @return Optional<String>: error message if any
 	 */
-	public void sendNLWebMainStatisticsToInsightsAPI(final List<String[]> data) throws IOException, NewRelicException {
+	public Optional<String> sendNLWebMainStatisticsToInsightsAPI(final NLWebMainStatistics nlWebMainStatistics) {
 		final String url = Constants.NEW_RELIC_INSIGHT_URL + newRelicActionArguments.getNewRelicAccountId().get() + "/events";
 		final StringBuilder jsonString = new StringBuilder();
 		jsonString.append("[{\"eventType\":\"NeoLoadData\","
@@ -307,62 +309,74 @@ public class NewRelicRestClient {
 				+ "\"applicationName\" : \"" + newRelicActionArguments.getNewRelicApplicationName() + "\","
 				+ "\"trendfield\": \"" + newRelicActionArguments.getNewRelicApplicationName() + context.getScenarioName()
 				+ context.getTestName() + "\",");
-		for (final String[] metric : data) {
+		for (final String[] metric : nlWebMainStatistics.getNlData()) {
 			jsonString.append("\"").append(metric[1]).append("\" : ").append(metric[3]).append(",");
 		}
 		jsonString.append("\"MetricUnit\" : \"\",\"timestamp\" : ").append(System.currentTimeMillis()).append("}]");
-		final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
+		
 		HTTPGenerator http = null;
-		try {			
+		try {
+			final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
 			http = new HTTPGenerator(url, headers, jsonString.toString(), proxy);
 			final String exceptionMessage = NewRelicUtils.getExceptionmessage(http.getHttpResponseCodeFromResponse());
 			if (exceptionMessage != null) {
-				throw new NewRelicException(exceptionMessage);
+				return Optional.of(exceptionMessage);
 			}
+		} catch(final Exception e){
+			return Optional.of(e.getMessage());
 		} finally {
 			if (http != null) {
 				http.closeHttpClient();
 			}
 		}
+		return Optional.empty();
 	}
-	
+
 	/**
 	 * This method send NL Web global data values to New Relic Plateform API.
 	 * REST URL is: https://platform-api.newrelic.com/platform/v1/metrics
 	 * More info on NewRelic documentation: https://docs.newrelic.com/docs/plugins/plugin-developer-resources/developer-reference/work-directly-plugin-api
-	 * @return
-	 * @throws IOException
-	 * @throws ParseException 
+	 * @return Optional<String>: error message if any
 	 */
-	public void sendNLWebMainStatisticsToPlateformAPI(final String metricName, final String metricPath, final int duration, final String unit, final String value) throws NewRelicException, IOException {
-		final String url = Constants.NEW_RELIC_PLATFORM_API_URL;
-		final String jsonString = "{\"agent\":{"
-				+ "\"host\" : \"" + Constants.CUSTOM_ACTION_HOST + "\","
-				+ "\"version\" : \"" + Constants.CUSTOM_ACTION_VERSION + "\""
-				+ "},"
-				+ "\"components\": ["
-				+ "{"
-				+ "\"name\": \"NeoLoad\","
-				+ "\"guid\": \"" + Constants.CUSTOM_ACTION_HOST + "\","
-				+ " \"duration\" : " + String.valueOf(duration) + ","
-				+ " \"metrics\" : {"
-				+ " \"Component/NeoLoad/Statistics/" + metricPath + "[" + unit + "]\": " + value + ""
-				+ "}"
-				+ "}"
-				+ "]"
-				+ "}";
-		final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
+	public Optional<String> sendNLWebMainStatisticsToPlateformAPI(final NLWebMainStatistics nlWebMainStatistics) {
 		HTTPGenerator http = null;
 		try {
-			http = new HTTPGenerator(url, headers, jsonString, proxy);
-			final String exceptionMessage = NewRelicUtils.getExceptionmessage(http.getHttpResponseCodeFromResponse());
-			if (exceptionMessage != null) {
-				throw new NewRelicException(exceptionMessage);
+			final String url = Constants.NEW_RELIC_PLATFORM_API_URL;
+			final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
+			
+			for (final String[] metric : nlWebMainStatistics.getNlData()) {				
+				final String metricPath = metric[1];
+				final String unit = metric[2];
+				final String value = metric[3];				
+				final String jsonString = "{\"agent\":{"
+						+ "\"host\" : \"" + Constants.CUSTOM_ACTION_HOST + "\","
+						+ "\"version\" : \"" + Constants.CUSTOM_ACTION_VERSION + "\""
+						+ "},"
+						+ "\"components\": ["
+						+ "{"
+						+ "\"name\": \"NeoLoad\","
+						+ "\"guid\": \"" + Constants.CUSTOM_ACTION_HOST + "\","
+						+ " \"duration\" : " + String.valueOf(nlWebMainStatistics.getDuration()) + ","
+						+ " \"metrics\" : {"
+						+ " \"Component/NeoLoad/Statistics/" + metricPath + "[" + unit + "]\": " + value + ""
+						+ "}"
+						+ "}"
+						+ "]"
+						+ "}";		
+
+				http = new HTTPGenerator(url, headers, jsonString, proxy);
+				final String exceptionMessage = NewRelicUtils.getExceptionmessage(http.getHttpResponseCodeFromResponse());
+				if (exceptionMessage != null) {
+					return Optional.of(exceptionMessage);
+				}
 			}
+		} catch(final Exception e){
+			return Optional.of(e.getMessage());
 		} finally {
 			if (http != null) {
 				http.closeHttpClient();
 			}
-		}	
+		}
+		return Optional.empty();		
 	}
 }

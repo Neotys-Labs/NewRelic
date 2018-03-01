@@ -69,7 +69,7 @@ public final class Constants {
 	public static final String NEW_RELIC_LAST_EXECUTION_TIME = "NewRelicLastExecutionTime";
 	public static final String NEW_RELIC_REST_CLIENT = "NewRelicRestClient";
 	public static final String NL_DATA_EXCHANGE_API_CLIENT = "NLDataExchangeAPIClient";
-	public static final String NL_WEB_TO_NEW_RELIC_TASK = "NLWebToNewRelicTask";
+	public static final String NL_WEB_CLIENT = "NLWebClient";
 		
 	/*** HTTP ***/
 	public static final String HTTP_APPLICATION_JSON = "application/json";

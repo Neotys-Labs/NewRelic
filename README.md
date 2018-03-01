@@ -187,5 +187,6 @@ See New Relic [Documentation](https://docs.newrelic.com/docs/insights/use-insigh
 * NL-NEW_RELIC_ACTION-04: Not enough delay between the two executions of the New Relic advanced action. Make sure to have at least 60 seconds pacing on the Actions container.  
 
 ## ChangeLog
-Version 1.0.1 (March 1, 2018): Ability to send data to New Relic Plugins only (without New Relic Insights).
-Version 1.0.0 (February 27, 2018): Initial release.
+
+* Version 1.0.1 (March 1, 2018): Ability to send data to New Relic Plugins only (without New Relic Insights).
+* Version 1.0.0 (February 27, 2018): Initial release.

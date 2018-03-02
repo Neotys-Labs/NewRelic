@@ -120,8 +120,10 @@ public final class NewRelicActionEngine implements ActionEngine {
 		 * 1. New Relic -> NeoLoad DataExchangeAPI
 		 */
 		try {				
-			responseContentBuilder.append("Retrieving New Relic application hosts available...\n");			
-			for (final NewRelicApplicationHost newRelicApplicationHost : newRelicRestClient.getApplicationHosts()) {
+			responseContentBuilder.append("Retrieving New Relic application hosts available. ");			
+			final List<NewRelicApplicationHost> newRelicApplicationHosts = newRelicRestClient.getApplicationHosts();
+			responseContentBuilder.append(newRelicApplicationHosts.size() + " host(s) found.\n");		
+			for (final NewRelicApplicationHost newRelicApplicationHost : newRelicApplicationHosts) {
 				responseContentBuilder.append("Retrieving Metrics Data for host " + newRelicApplicationHost.getHostName() + ".\n");			
 				final List<String> metricNames = newRelicRestClient.getMetricNamesForHost(newRelicApplicationHost.getHostId());
 				responseContentBuilder.append("\tMetric names found: " + metricNames + ".\n");								

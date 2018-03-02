@@ -27,9 +27,7 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpOptions;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.conn.params.ConnRoutePNames;
@@ -59,13 +57,11 @@ public class HTTPGenerator {
 	private HttpRequestBase request;
 	private int StatusCode = 0;
 
-	public HTTPGenerator(final String url,
-						 final String method,
+	public HTTPGenerator(final String url,						
 						 final Map<String, String> headers,
 						 final List<Pair<String, String>> params,
 						 final Optional<Proxy> proxy) {
-
-		httpMethod = method;
+		httpMethod = HttpGet.METHOD_NAME;
 		this.url = url;
 		try {
 
@@ -175,22 +171,10 @@ public class HTTPGenerator {
 	}
 
 	private HttpRequestBase generateHTTPRequest(final String url) {
-		HttpRequestBase request = null;
-		switch (httpMethod) {
-			case HttpGet.METHOD_NAME:
-				request = new HttpGet(url);
-				break;
-			case HttpPost.METHOD_NAME:
-				request = new HttpPost(url);
-				break;
-			case HttpOptions.METHOD_NAME:
-				break;
-			case HttpPut.METHOD_NAME:
-				request = new HttpPut(url);
-				break;
-
-		}
-		return request;
+		if(httpMethod == HttpPost.METHOD_NAME){
+			return new HttpPost(url);
+		} 
+		return new HttpGet(url);
 	}
 
 	public void closeHttpClient() {

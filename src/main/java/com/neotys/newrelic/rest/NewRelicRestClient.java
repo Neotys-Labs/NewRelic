@@ -71,7 +71,7 @@ public class NewRelicRestClient {
 		HTTPGenerator http = null;
 		try {
 			final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
-			http = new HTTPGenerator(url, HttpGet.METHOD_NAME, headers, parameters, proxy);
+			http = new HTTPGenerator(url, headers, parameters, proxy);
 			final JSONObject jsoobj = http.getJSONHTTPresponse();
 			if (jsoobj != null) {
 				if (jsoobj.has("applications")) {
@@ -107,7 +107,7 @@ public class NewRelicRestClient {
 		final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
 		HTTPGenerator http = null;
 		try {
-			http = new HTTPGenerator(url, HttpGet.METHOD_NAME, headers, new ArrayList<>(), proxy);
+			http = new HTTPGenerator(url, headers, new ArrayList<>(), proxy);
 			final JSONObject jsoobj = http.getJSONHTTPresponse();
 			if (jsoobj != null) {
 				final JSONArray array = jsoobj.getJSONArray(Constants.NEW_RELIC_APPLICATION_HOSTS);
@@ -136,7 +136,7 @@ public class NewRelicRestClient {
 		final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
 		HTTPGenerator http = null;
 		try {
-			http = new HTTPGenerator(url, HttpGet.METHOD_NAME, headers, new ArrayList<>(), proxy);
+			http = new HTTPGenerator(url, headers, new ArrayList<>(), proxy);
 			final JSONObject jsoobj = http.getJSONHTTPresponse();
 			if (jsoobj != null) {
 				final JSONArray array = jsoobj.getJSONArray(Constants.NEW_RELIC_METRICS);
@@ -180,7 +180,7 @@ public class NewRelicRestClient {
 		parameters.add(new ImmutablePair<>("raw", "false"));
 		HTTPGenerator http = null;
 		try {
-			http = new HTTPGenerator(url, HttpGet.METHOD_NAME, headers, parameters, proxy);
+			http = new HTTPGenerator(url, headers, parameters, proxy);
 			final JSONObject jsoobj = http.getJSONHTTPresponse();
 			if (jsoobj != null) {
 				if (jsoobj.has("metric_data")) {

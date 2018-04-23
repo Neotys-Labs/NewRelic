@@ -5,7 +5,7 @@
     <groupId>com.neotys.NewRelic</groupId>
     <artifactId>NewRelicAction</artifactId>
     <name>NewRelicAction</name>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.3</version>
 
     <properties>
         <swagger-core-version>1.5.12</swagger-core-version>

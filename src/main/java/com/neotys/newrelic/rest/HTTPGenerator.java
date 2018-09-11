@@ -31,12 +31,15 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.SingleClientConnManager;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.BasicHttpParams;
@@ -114,17 +117,16 @@ public class HTTPGenerator {
 			((HttpPost) request).setEntity(requestEntity);
 
 			if (this.url.contains("https")) {
-				DefaultHttpClient Client = new DefaultHttpClient();
-				HostnameVerifier hostnameVerifier = org.apache.http.conn.ssl.SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER;
+				TrustStrategy acceptingTrustStrategy = (cert, authType) -> true;
+				X509HostnameVerifier allowAllHostnameVerifier = SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER;
+				SSLSocketFactory sslSocketFactory = new SSLSocketFactory(acceptingTrustStrategy, allowAllHostnameVerifier);
+				final SchemeRegistry registry = new SchemeRegistry();
+				registry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
+				registry.register(new Scheme("https", 443, sslSocketFactory));
+				HttpsURLConnection.setDefaultHostnameVerifier(allowAllHostnameVerifier);
 
-				SchemeRegistry registry = new SchemeRegistry();
-				SSLSocketFactory socketFactory = SSLSocketFactory.getSocketFactory();
-				socketFactory.setHostnameVerifier((X509HostnameVerifier) hostnameVerifier);
-				registry.register(new Scheme("https", socketFactory, 443));
-				ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(Client.getParams(), registry);
-				httpClient = new DefaultHttpClient(mgr, Client.getParams());
-				HttpsURLConnection.setDefaultHostnameVerifier(hostnameVerifier);
-
+				httpClient =  new DefaultHttpClient(new SingleClientConnManager(registry));
+				HttpsURLConnection.setDefaultHostnameVerifier(allowAllHostnameVerifier);
 			} else {
 				DefaultHttpClient Client = new DefaultHttpClient();
 				ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(Client.getParams(), httpClient.getConnectionManager().getSchemeRegistry());

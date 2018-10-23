@@ -98,11 +98,11 @@ If you use option to send data from NeoLoad Web to New Relic, follow the steps b
 | ---------------          | ----------------- |----------------- |
 | newRelicAPIKey          |  New Relic API key. List of New Relic API keys are defined on New Relic menu **Account settings**, section **INTEGRATIONS**, subsection **API keys**. |Required|
 | newRelicApplicationName          | New Relic application name. List of New Relic application names are on New Relic menu **APM**.  |Required|
-| dataExchangeApiUrl          | The URL of the DataExchange server (located on the NeoLoad Controller). Tip: Get NeoLoad API information in NeoLoad preferences: [**Project Preferences** / **REST API**](https://www.neotys.com/documents/doc/neoload/latest/en/html/#7652.htm). |Required|
 | sendNLWebDataToNewRelic | When set to 'true', sends NeoLoad Web data to New Relic (requires NeoLoad Web module). When set to 'false', only retrieves data from New Relic. The Check User Path mode only works when value is 'false', as there is no NeoLoad Web interaction. |Optional|
 | newRelicLicenseKey | The New Relic license key to send data. Required when argument 'sendNLWebDataToNewRelic' is true.  |Optional|
 | newRelicAccountId | The New Relic Account Id. It appears in the URL when going on New Relic menu **Account settings** 'https://rpm.newrelic.com/accounts/<accountId>'. Required when argument 'sendNLWebDataToNewRelic' is true. |Optional|
 | newRelicInsightsAPIKey | The New Relic Insights API key. List of New Relic Insights API keys are defined on New Relic menu **Insights**, section **Manage data**, subsection **API Keys**. Required when argument 'sendNLWebDataToNewRelic' is true.  |Optional|
+| dataExchangeApiUrl          | Where the DataExchange server is located. Optional, by default it will be: http://${NL-ControllerIp}:7400/DataExchange/v1/Service.svc/ |Optional|
 | dataExchangeApiKey | Identification key specified in NeoLoad. |Optional|
 | proxyName | The NeoLoad proxy name to access New Relic. |Optional|
 | newRelicRelevantMetricNames | Specify the comma separated list of the matching names (contains) of the New Relic metric names to retrieve (by default: Datastore/statement, Datastore/instance, CPU, Memory, Error/, connects).|Optional|

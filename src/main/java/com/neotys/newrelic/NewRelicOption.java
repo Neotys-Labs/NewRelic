@@ -19,15 +19,14 @@ public enum NewRelicOption implements Option {
 	// Required
 	NewRelicAPIKey("newRelicAPIKey", Required, True, PASSWORD, "", "New Relic API key. List of New Relic API keys are defined on New Relic menu Account settings, section INTEGRATIONS, subsection API keys.", NON_EMPTY),
 	NewRelicApplicationName("newRelicApplicationName", Required, True, TEXT, "", "New Relic application name. List of New Relic application names are on New Relic menu APM.", NON_EMPTY),
-	NeoLoadDataExchangeApiUrl("dataExchangeApiUrl", Required, True, TEXT, "http://localhost:7400/DataExchange/v1/Service.svc/", "The URL of the DataExchange server (located on the NeoLoad Controller).", NON_EMPTY),
-
 	// Optional, visible by default
 	SendNLWebDataToNewRelic("sendNLWebDataToNewRelic", Optional, True, TEXT, "true", "When set to 'true', sends NeoLoad Web data to New Relic (requires NeoLoad Web module). When set to 'false', only retrieves data from New Relic.", BOOLEAN_VALIDATOR),
 	NewRelicLicenseKey("newRelicLicenseKey", Optional, True, PASSWORD, "", "The New Relic license key. Required when argument 'sendNLWebDataToNewRelic' is true.", NON_EMPTY),
 	NewRelicAccountId("newRelicAccountId", Optional, True, TEXT, "", "The New Relic Account Id. It appears in the URL when going on New Relic menu Account settings 'https://rpm.newrelic.com/accounts/<accountId>'. Required when argument 'sendNLWebDataToNewRelic' is true.", NON_EMPTY),
 	NewRelicInsightsAPIKey("newRelicInsightsAPIKey", Optional, True, PASSWORD, "", "The New Relic Insights API key. List of New Relic Insights API keys are defined on New Relic menu Insights, section 'Manage data', subsection API Keys. Required when argument 'sendNLWebDataToNewRelic' is true.", NON_EMPTY),
 
-	// Optional, not visible by default	
+	// Optional, not visible by default
+	NeoLoadDataExchangeApiUrl("dataExchangeApiUrl", Optional, False, TEXT, "", "Where the DataExchange server is located. Optional, by default it will be: http://${NL-ControllerIp}:7400/DataExchange/v1/Service.svc/.", NON_EMPTY),
 	NeoLoadDataExchangeApiKey("dataExchangeApiKey", Optional, False, PASSWORD, "", "Identification key specified in NeoLoad.", NON_EMPTY),
 	NeoLoadProxy("proxyName", Optional, False, TEXT, "", "The NeoLoad proxy name to access New Relic.", NON_EMPTY),
 	NewRelicRelevantMetricNames("newRelicRelevantMetricNames", Optional, False, TEXT, Constants.NEW_RELIC_DEFAULT_RELEVANT_METRIC_NAMES, "Specify the comma separated list of the matching names (contains) of the New Relic metric names to retrieve (by default: Datastore/statement,Datastore/instance,CPU,Memory,Error/,connects).", NON_EMPTY),

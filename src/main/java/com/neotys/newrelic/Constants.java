@@ -37,7 +37,7 @@ public final class Constants {
 	/*** Custom action ***/
 	public static final String CUSTOM_ACTION_DISPLAY_NAME = "New Relic Monitoring";
 	public static final String CUSTOM_ACTION_DISPLAY_PATH = "APM/New Relic";
-	public static final Optional<String> CUSTOM_ACTION_MINIMUM_VERSION = Optional.of("6.3");
+	public static final Optional<String> CUSTOM_ACTION_MINIMUM_VERSION = Optional.of("6.7");
 	public static final Optional<String> CUSTOM_ACTION_MAXIMIM_VERSION = Optional.absent();	
 	public static final String CUSTOM_ACTION_TYPE = "NewRelicMonitoringAction";
 	public static final String CUSTOM_ACTION_HOST = "com.neotys.NeoLoad.plugin";

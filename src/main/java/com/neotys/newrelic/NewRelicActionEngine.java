@@ -1,27 +1,27 @@
 package com.neotys.newrelic;
 
-import static com.neotys.action.argument.Arguments.getArgumentLogString;
-import static com.neotys.action.argument.Arguments.parseArguments;
-
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import java.util.Optional;
 import com.neotys.action.result.ResultFactory;
 import com.neotys.extensions.action.ActionParameter;
 import com.neotys.extensions.action.engine.ActionEngine;
 import com.neotys.extensions.action.engine.Context;
 import com.neotys.extensions.action.engine.SampleResult;
+import com.neotys.newrelic.fromnlweb.NLWebClient;
 import com.neotys.newrelic.fromnlweb.NLWebElementValue;
 import com.neotys.newrelic.fromnlweb.NLWebMainStatistics;
-import com.neotys.newrelic.fromnlweb.NLWebClient;
 import com.neotys.newrelic.rest.NewRelicApplicationHost;
 import com.neotys.newrelic.rest.NewRelicMetricData;
 import com.neotys.newrelic.rest.NewRelicRestClient;
 import com.neotys.rest.dataexchange.client.DataExchangeAPIClient;
 import com.neotys.rest.dataexchange.client.DataExchangeAPIClientFactory;
 import com.neotys.rest.dataexchange.model.ContextBuilder;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static com.neotys.action.argument.Arguments.getArgumentLogString;
+import static com.neotys.action.argument.Arguments.parseArguments;
 
 public final class NewRelicActionEngine implements ActionEngine {
 
@@ -101,7 +101,13 @@ public final class NewRelicActionEngine implements ActionEngine {
 				final ContextBuilder contextBuilder = new ContextBuilder();
 				contextBuilder.hardware(Constants.NEOLOAD_CONTEXT_HARDWARE).location(Constants.NEOLOAD_CONTEXT_LOCATION).software(
 						Constants.NEOLOAD_CONTEXT_SOFTWARE).script("NewRelicInfrasfructureMonitoring" + System.currentTimeMillis());
-				dataExchangeAPIClient = DataExchangeAPIClientFactory.newClient(newRelicActionArguments.getDataExchangeApiUrl(),
+
+				final String dataExchangeApiUrl = newRelicActionArguments.getDataExchangeApiUrl().orElseGet(() -> getDefaultDataExchangeApiUrl(context));
+
+				if (context.getLogger().isDebugEnabled()) {
+					context.getLogger().debug("Data Exchange API URL used: " + dataExchangeApiUrl);
+				}
+				dataExchangeAPIClient = DataExchangeAPIClientFactory.newClient(dataExchangeApiUrl,
 						contextBuilder.build(),
 						newRelicActionArguments.getDataExchangeApiKey().orElse(null));
 				context.getCurrentVirtualUser().put(Constants.NL_DATA_EXCHANGE_API_CLIENT, dataExchangeAPIClient);
@@ -213,6 +219,10 @@ public final class NewRelicActionEngine implements ActionEngine {
 		sampleResult.setRequestContent(requestContentBuilder.toString());
 		sampleResult.setResponseContent(responseContentBuilder.toString());
 		return sampleResult;
+	}
+
+	private String getDefaultDataExchangeApiUrl(final Context context) {
+		return "http://" + context.getControllerIp() + ":7400/DataExchange/v1/Service.svc/";
 	}
 
 	private static SampleResult newErrorResult(final StringBuilder requestContentBuilder, final Context context, final String statusCode, final String statusMessage) {

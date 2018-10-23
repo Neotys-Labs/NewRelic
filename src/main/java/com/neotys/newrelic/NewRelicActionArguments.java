@@ -1,10 +1,8 @@
 package com.neotys.newrelic;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+
+import static com.google.common.base.Strings.emptyToNull;
 
 /**
  * 
@@ -27,14 +25,14 @@ public class NewRelicActionArguments {
 	private final Optional<String> proxyName;
 	
 	// NeoLoad
-	private final String dataExchangeApiUrl;
+	private final Optional<String> dataExchangeApiUrl;
 	private final Optional<String> dataExchangeApiKey;
 	
 	public NewRelicActionArguments(final Map<String, com.google.common.base.Optional<String>> parsedArgs) throws IllegalArgumentException {	
 		// Required
 		this.newRelicAPIKey = parsedArgs.get(NewRelicOption.NewRelicAPIKey.getName()).get();
 		this.newRelicApplicationName = parsedArgs.get(NewRelicOption.NewRelicApplicationName.getName()).get();
-		this.dataExchangeApiUrl = parsedArgs.get(NewRelicOption.NeoLoadDataExchangeApiUrl.getName()).get();
+		this.dataExchangeApiUrl = Optional.ofNullable(emptyToNull(parsedArgs.get(NewRelicOption.NeoLoadDataExchangeApiUrl.getName()).orNull()));
 		
 		// Optional
 		final Optional<String> sendNLWebDataToNewRelicArg = Optional.ofNullable(parsedArgs.get(NewRelicOption.SendNLWebDataToNewRelic.getName()).orNull());	
@@ -58,7 +56,7 @@ public class NewRelicActionArguments {
 		return newRelicApplicationName;
 	}
 	
-	public String getDataExchangeApiUrl() {
+	public Optional<String> getDataExchangeApiUrl() {
 		return dataExchangeApiUrl;
 	}
 	public boolean isSendNLWebDataToNewRelic() {

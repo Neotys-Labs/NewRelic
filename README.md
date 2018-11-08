@@ -23,12 +23,12 @@ This bundle provides both an inbound and an outbound integration:
 | Requirements | <ul><li>License FREE edition, or Enterprise edition, or Professional with Integration & Advanced Usage</li><li>New Relic account with Infrastructures and Plugins</li></ul>|
 | Optionals | <ul><li>NeoLoad Web SaaS subscription (for option to send data from NeoLoad Web to New Relic)</li><li>New Relic account with Insights</li></ul>|
 | Bundled in NeoLoad | No |
-| Download Binaries    | See the [latest release](https://github.com/Neotys-Labs/NewRelic/releases/latest)|
+| Download Binaries    |  <ul><li>[latest release](https://github.com/Neotys-Labs/NewRelic/releases/latest) is only compatible with NeoLoad from version 6.7</li><li> Use this [release](https://github.com/Neotys-Labs/NewRelic/releases/tag/1.0.2) for previous NeoLoad versions</li></ul>|
 
 
 ## Installation
 
-1. Download the [latest release](https://github.com/Neotys-Labs/NewRelic/releases/latest).
+1. Download the [latest release](https://github.com/Neotys-Labs/NewRelic/releases/latest) for NeoLoad from version 6.7 or this [release](https://github.com/Neotys-Labs/NewRelic/releases/tag/1.0.2) for previous NeoLoad versions.
 1. Read the NeoLoad documentation to see [How to install a custom Advanced Action](https://www.neotys.com/documents/doc/neoload/latest/en/html/#25928.htm).
 
 <p align="center"><img src="/screenshots/new_relic_advanced_action.png" alt="New Relic Advanced Action" /></p>

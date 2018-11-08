@@ -102,7 +102,7 @@ If you use option to send data from NeoLoad Web to New Relic, follow the steps b
 | newRelicLicenseKey | The New Relic license key to send data. Required when argument 'sendNLWebDataToNewRelic' is true.  |Optional|
 | newRelicAccountId | The New Relic Account Id. It appears in the URL when going on New Relic menu **Account settings** 'https://rpm.newrelic.com/accounts/<accountId>'. Required when argument 'sendNLWebDataToNewRelic' is true. |Optional|
 | newRelicInsightsAPIKey | The New Relic Insights API key. List of New Relic Insights API keys are defined on New Relic menu **Insights**, section **Manage data**, subsection **API Keys**. Required when argument 'sendNLWebDataToNewRelic' is true.  |Optional|
-| dataExchangeApiUrl          | Where the DataExchange server is located. Optional, by default it will be: http://${NL-ControllerIp}:7400/DataExchange/v1/Service.svc/ |Optional|
+| dataExchangeApiUrl          | Where the DataExchange server is located. Optional, by default it is: http://${NL-ControllerIp}:7400/DataExchange/v1/Service.svc/ |Optional|
 | dataExchangeApiKey | Identification key specified in NeoLoad. |Optional|
 | proxyName | The NeoLoad proxy name to access New Relic. |Optional|
 | newRelicRelevantMetricNames | Specify the comma separated list of the matching names (contains) of the New Relic metric names to retrieve (by default: Datastore/statement, Datastore/instance, CPU, Memory, Error/, connects).|Optional|

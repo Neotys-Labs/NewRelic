@@ -1,6 +1,8 @@
 package com.neotys.newrelic.rest;
 
 import static com.neotys.newrelic.NewRelicUtils.getProxy;
+import static com.neotys.newrelic.rest.HTTPGenerator.HTTP_GET_METHOD;
+import static com.neotys.newrelic.rest.HttpResponseUtils.getJsonResponse;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -13,13 +15,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.SimpleTimeZone;
 
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.HttpGet;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -29,7 +30,6 @@ import com.neotys.extensions.action.engine.Proxy;
 import com.neotys.newrelic.Constants;
 import com.neotys.newrelic.NewRelicActionArguments;
 import com.neotys.newrelic.NewRelicException;
-import com.neotys.newrelic.NewRelicUtils;
 import com.neotys.newrelic.fromnlweb.NLWebElementValue;
 import com.neotys.newrelic.fromnlweb.NLWebMainStatistics;
 
@@ -45,7 +45,7 @@ public class NewRelicRestClient {
 	private final String applicationId;
 	private final HashMap<String, String> headers = new HashMap<>();
 
-	public NewRelicRestClient(final NewRelicActionArguments newRelicActionArguments, final Context context) throws NewRelicException {
+	public NewRelicRestClient(final NewRelicActionArguments newRelicActionArguments, final Context context) throws Exception {
 		this.newRelicActionArguments = newRelicActionArguments;
 		this.context = context;
 		this.headers.put(Constants.NEW_RELIC_X_API_KEY, newRelicActionArguments.getNewRelicAPIKey());
@@ -63,19 +63,20 @@ public class NewRelicRestClient {
 	 * @return
 	 * @throws NewRelicException
 	 */
-	private String getApplicationId() throws NewRelicException {
+	private String getApplicationId() throws Exception {
 		final String url = Constants.NEW_RELIC_API_APPLICATIONS_JSON_URL;
 
-		final List<Pair<String, String>> parameters = new ArrayList<>();
-		parameters.add(new ImmutablePair<>("filter[name]", newRelicActionArguments.getNewRelicApplicationName()));
+		final Map<String, String> parameters = new HashMap<>();
+		parameters.put("filter[name]", newRelicActionArguments.getNewRelicApplicationName());
 		HTTPGenerator http = null;
 		try {
 			final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
-			http = new HTTPGenerator(url, headers, parameters, proxy);
-			final JSONObject jsoobj = http.getJSONHTTPresponse();
-			if (jsoobj != null) {
-				if (jsoobj.has("applications")) {
-					final JSONArray jsonArray = jsoobj.getJSONArray("applications");
+			http = new HTTPGenerator(HTTP_GET_METHOD, url, headers, parameters, proxy);
+			final HttpResponse httpResponse = http.execute();
+			if (HttpResponseUtils.isSuccessHttpCode(httpResponse.getStatusLine().getStatusCode())) {
+				final JSONObject jsonObject = getJsonResponse(httpResponse);
+				if (jsonObject.has("applications")) {
+					final JSONArray jsonArray = jsonObject.getJSONArray("applications");
 					if (jsonArray.length() == 1) {
 						final String id = String.valueOf(jsonArray.getJSONObject(0).getInt("id"));
 						if (!Strings.isNullOrEmpty(id)) {
@@ -84,8 +85,6 @@ public class NewRelicRestClient {
 					}
 				}
 			}
-		} catch (final Exception exception) {
-			throw new NewRelicException("Cannot get applicationId for '" + newRelicActionArguments.getNewRelicApplicationName() + "'.", exception);
 		} finally {
 			if (http != null) {
 				http.closeHttpClient();
@@ -99,20 +98,24 @@ public class NewRelicRestClient {
 	 * REST URL is: https://api.newrelic.com/v2/applications/<applicationId>/hosts.json
 	 * More info on NewRelic documentation: https://rpm.newrelic.com/api/explore/application_hosts/list
 	 * @return
-	 * @throws IOException
+	 * @throws Exception
 	 */
-	public List<NewRelicApplicationHost> getApplicationHosts() throws IOException {
+	public List<NewRelicApplicationHost> getApplicationHosts() throws Exception {
 		final List<NewRelicApplicationHost> newRelicApplicationHosts = new ArrayList<>();
 		final String url = Constants.NEW_RELIC_API_APPLICATIONS_URL + applicationId + Constants.NEW_RELIC_HOSTS_JSON;
 		final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
 		HTTPGenerator http = null;
 		try {
-			http = new HTTPGenerator(url, headers, new ArrayList<>(), proxy);
-			final JSONObject jsoobj = http.getJSONHTTPresponse();
-			if (jsoobj != null) {
-				final JSONArray array = jsoobj.getJSONArray(Constants.NEW_RELIC_APPLICATION_HOSTS);
-				for (int j = 0 ; j < array.length() ; j++)
-					newRelicApplicationHosts.add(new NewRelicApplicationHost(array.getJSONObject(j)));
+			http = new HTTPGenerator(HTTP_GET_METHOD, url, headers, new HashMap<>(), proxy);
+			final HttpResponse httpResponse = http.execute();
+			if (HttpResponseUtils.isSuccessHttpCode(httpResponse.getStatusLine().getStatusCode())) {
+				final JSONObject jsonObject = getJsonResponse(httpResponse);
+				if (jsonObject.has(Constants.NEW_RELIC_APPLICATION_HOSTS)) {
+					final JSONArray jsonArray = jsonObject.getJSONArray(Constants.NEW_RELIC_APPLICATION_HOSTS);
+					for (int j = 0 ; j < jsonArray.length() ; j++) {
+						newRelicApplicationHosts.add(new NewRelicApplicationHost(jsonArray.getJSONObject(j)));
+					}
+				}
 			}
 		} finally {
 			if (http != null) {
@@ -129,24 +132,26 @@ public class NewRelicRestClient {
 	 * @return
 	 * @throws IOException
 	 */
-	public List<String> getMetricNamesForHost(final String hostId) throws ClientProtocolException, IOException {
+	public List<String> getMetricNamesForHost(final String hostId) throws ClientProtocolException, Exception {
 		final List<String> metricNamesForHost = new ArrayList<>();
 		final String url = Constants.NEW_RELIC_API_APPLICATIONS_URL + applicationId + Constants.NEW_RELIC_HOSTS + hostId
 				+ Constants.NEW_RELIC_METRICS_JSON;
 		final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
 		HTTPGenerator http = null;
 		try {
-			http = new HTTPGenerator(url, headers, new ArrayList<>(), proxy);
-			final JSONObject jsoobj = http.getJSONHTTPresponse();
-			if (jsoobj != null) {
-				final JSONArray array = jsoobj.getJSONArray(Constants.NEW_RELIC_METRICS);
-				for (int i = 0 ; i < array.length() ; i++) {
-					final String metricName = array.getJSONObject(i).getString("name");
-					if (isRelevantMetricName(metricName)) {
-						metricNamesForHost.add(metricName);
+			http = new HTTPGenerator(HTTP_GET_METHOD, url, headers, new HashMap<>(), proxy);
+			final HttpResponse httpResponse = http.execute();
+			if (HttpResponseUtils.isSuccessHttpCode(httpResponse.getStatusLine().getStatusCode())) {
+				final JSONObject jsonObject = getJsonResponse(httpResponse);
+				if (jsonObject.has(Constants.NEW_RELIC_METRICS)) {
+					final JSONArray jsonArray = jsonObject.getJSONArray(Constants.NEW_RELIC_METRICS);
+					for (int i = 0 ; i < jsonArray.length() ; i++) {
+						final String metricName = jsonArray.getJSONObject(i).getString("name");
+						if (isRelevantMetricName(metricName)) {
+							metricNamesForHost.add(metricName);
+						}
 					}
 				}
-
 			}
 		} finally {
 			if (http != null) {
@@ -161,48 +166,48 @@ public class NewRelicRestClient {
 	 * REST URL is: https://api.newrelic.com/v2/applications/<applicationId>/hosts/<hostId>/metrics/data.json
 	 * More info on NewRelic documentation: https://rpm.newrelic.com/api/explore/application_hosts/data
 	 * @return
-	 * @throws IOException
-	 * @throws ParseException 
+	 * @throws Exception 
 	 */
 	public List<NewRelicMetricData> getNewRelicMetricData(final List<String> metricNames, final String hostId, final String hostName)
-			throws IOException, ParseException {
+			throws Exception {
 		final List<NewRelicMetricData> newRelicMetricData = new ArrayList<>();
 		final String url = Constants.NEW_RELIC_API_APPLICATIONS_URL + applicationId + "/hosts/" + hostId + Constants.NEW_RELIC_DATA_JSON;
 		final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
-		final List<Pair<String, String>> parameters = new ArrayList<>();
+		final Map<String, String> parameters = new HashMap<>();
 		for (final String metricName : metricNames) {
-			parameters.add(new ImmutablePair<>("names[]", metricName));
+			parameters.put("names[]", metricName);
 		}
 		final ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
-		parameters.add(new ImmutablePair<>("from", now.minusSeconds(120).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
-		parameters.add(new ImmutablePair<>("to", now.minusSeconds(60).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
-		parameters.add(new ImmutablePair<>("summarize", "true"));
-		parameters.add(new ImmutablePair<>("raw", "false"));
+		parameters.put("from", now.minusSeconds(120).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+		parameters.put("to", now.minusSeconds(60).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+		parameters.put("summarize", "true");
+		parameters.put("raw", "false");
 		HTTPGenerator http = null;
 		try {
-			http = new HTTPGenerator(url, headers, parameters, proxy);
-			final JSONObject jsoobj = http.getJSONHTTPresponse();
-			if (jsoobj != null) {
-				if (jsoobj.has("metric_data")) {
-					final JSONObject metric_data = jsoobj.getJSONObject("metric_data");
-					final JSONArray metrics = metric_data.getJSONArray("metrics");
-					for (int i = 0 ; i < metrics.length() ; i++) {
-						final JSONObject metric = metrics.getJSONObject(i);
-						final String metricName = metric.get("name").toString();
-						final JSONArray timeslices = metric.getJSONArray("timeslices");
-						if (timeslices.length() != 1) {
-							continue;
-						}
-						final JSONObject timeslice = timeslices.getJSONObject(0);
-						final String metricDate = getTimeMillisFromDate(timeslice.getString("to"));
-						final JSONObject values = timeslice.getJSONObject("values");
-						final Iterator<String> it = values.keys();
-						while (it.hasNext()) {
-							final String metricValue = it.next();
-							if (isRelevantMetricValue(metricValue)) {
-								newRelicMetricData.add(new NewRelicMetricData(newRelicActionArguments.getNewRelicApplicationName(), hostName,
-										metricName, metricValue, values.getDouble(metricValue), "", metricDate));
+			http = new HTTPGenerator(HTTP_GET_METHOD, url, headers, parameters, proxy);
+			final HttpResponse httpResponse = http.execute();
+			if (HttpResponseUtils.isSuccessHttpCode(httpResponse.getStatusLine().getStatusCode())) {
+				final JSONObject jsonObject = getJsonResponse(httpResponse);
+					if (jsonObject.has("metric_data")) {
+						final JSONObject metric_data = jsonObject.getJSONObject("metric_data");
+						final JSONArray metrics = metric_data.getJSONArray("metrics");
+						for (int i = 0 ; i < metrics.length() ; i++) {
+							final JSONObject metric = metrics.getJSONObject(i);
+							final String metricName = metric.get("name").toString();
+							final JSONArray timeslices = metric.getJSONArray("timeslices");
+							if (timeslices.length() != 1) {
+								continue;
 							}
+							final JSONObject timeslice = timeslices.getJSONObject(0);
+							final String metricDate = getTimeMillisFromDate(timeslice.getString("to"));
+							final JSONObject values = timeslice.getJSONObject("values");
+							final Iterator<String> it = values.keys();
+							while (it.hasNext()) {
+								final String metricValue = it.next();
+								if (isRelevantMetricValue(metricValue)) {
+									newRelicMetricData.add(new NewRelicMetricData(newRelicActionArguments.getNewRelicApplicationName(), hostName,
+											metricName, metricValue, values.getDouble(metricValue), "", metricDate));
+								}
 						}
 					}
 				}
@@ -257,32 +262,34 @@ public class NewRelicRestClient {
 		try {
 			final String url = Constants.NEW_RELIC_INSIGHT_URL + newRelicActionArguments.getNewRelicAccountId().get() + "/events";
 			final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
-			for (final NLWebElementValue nlWebElementValue : nlWebElementValues){
-			
+			for (final NLWebElementValue nlWebElementValue : nlWebElementValues) {
+
 				final String jsonString = "[{\"eventType\":\"NeoLoadValues\","
-					+ "\"account\" : \"" + newRelicActionArguments.getNewRelicAccountId().get() + "\","
-					+ "\"appId\" : \"" + applicationId + "\","
-					+ "\"testName\" : \"" + context.getTestName() + "\","
-					+ "\"scenarioName\" : \"" + context.getScenarioName() + "\","
-					+ "\"applicationName\" : \"" + newRelicActionArguments.getNewRelicApplicationName() + "\","
-					+ "\"trendfield\": \"" + newRelicActionArguments.getNewRelicApplicationName() + context.getScenarioName() + context.getTestName()
-					+ "\","
-					+ "\"userPathName\" :\"" + nlWebElementValue.getUserPath() + "\","
-					+ "\"type\" :\"TRANSACTION\","
-					+ "\"transactionName\" :\"" + nlWebElementValue.getName() + "\","
-					+ "\"path\" :\"" + nlWebElementValue.getPath() + "\","
-					+ "\"responseTime\":" + Constants.DECIMAL_FORMAT.format(nlWebElementValue.getResponsetime()) + ","
-					+ "\"elementPerSecond\":" + Constants.DECIMAL_FORMAT.format(nlWebElementValue.getHitPerSecond()) + ","
-					+ "\"downloadedBytesPerSecond\":" + Constants.DECIMAL_FORMAT.format(nlWebElementValue.getThroughput()) + ","
-					+ "\"timestamp\" : " + System.currentTimeMillis() + "}]";
-							
-				http = new HTTPGenerator(url, headers, jsonString, proxy);
-				final String exceptionMessage = NewRelicUtils.getExceptionmessage(http.getHttpResponseCodeFromResponse());
+						+ "\"account\" : \"" + newRelicActionArguments.getNewRelicAccountId().get() + "\","
+						+ "\"appId\" : \"" + applicationId + "\","
+						+ "\"testName\" : \"" + context.getTestName() + "\","
+						+ "\"scenarioName\" : \"" + context.getScenarioName() + "\","
+						+ "\"applicationName\" : \"" + newRelicActionArguments.getNewRelicApplicationName() + "\","
+						+ "\"trendfield\": \"" + newRelicActionArguments.getNewRelicApplicationName() + context.getScenarioName()
+						+ context.getTestName()
+						+ "\","
+						+ "\"userPathName\" :\"" + nlWebElementValue.getUserPath() + "\","
+						+ "\"type\" :\"TRANSACTION\","
+						+ "\"transactionName\" :\"" + nlWebElementValue.getName() + "\","
+						+ "\"path\" :\"" + nlWebElementValue.getPath() + "\","
+						+ "\"responseTime\":" + Constants.DECIMAL_FORMAT.format(nlWebElementValue.getResponsetime()) + ","
+						+ "\"elementPerSecond\":" + Constants.DECIMAL_FORMAT.format(nlWebElementValue.getHitPerSecond()) + ","
+						+ "\"downloadedBytesPerSecond\":" + Constants.DECIMAL_FORMAT.format(nlWebElementValue.getThroughput()) + ","
+						+ "\"timestamp\" : " + System.currentTimeMillis() + "}]";
+
+				http = HTTPGenerator.newJsonHttpGenerator(HTTP_GET_METHOD, url, headers, new HashMap<>(), proxy, jsonString);
+				final HttpResponse httpResponse = http.execute();
+				final String exceptionMessage = HttpResponseUtils.getStringResponse(httpResponse);
 				if (exceptionMessage != null) {
 					return Optional.of(exceptionMessage);
-				}			
+				}
 			}
-		} catch(final Exception e){
+		} catch (final Exception e) {
 			return Optional.of(e.getMessage());
 		} finally {
 			if (http != null) {
@@ -313,16 +320,17 @@ public class NewRelicRestClient {
 			jsonString.append("\"").append(metric[1]).append("\" : ").append(metric[3]).append(",");
 		}
 		jsonString.append("\"MetricUnit\" : \"\",\"timestamp\" : ").append(System.currentTimeMillis()).append("}]");
-		
+
 		HTTPGenerator http = null;
 		try {
 			final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
-			http = new HTTPGenerator(url, headers, jsonString.toString(), proxy);
-			final String exceptionMessage = NewRelicUtils.getExceptionmessage(http.getHttpResponseCodeFromResponse());
+			http = HTTPGenerator.newJsonHttpGenerator(HTTP_GET_METHOD, url, headers, new HashMap<>(), proxy, jsonString.toString());
+			final HttpResponse httpResponse = http.execute();
+			final String exceptionMessage = HttpResponseUtils.getStringResponse(httpResponse);
 			if (exceptionMessage != null) {
 				return Optional.of(exceptionMessage);
 			}
-		} catch(final Exception e){
+		} catch (final Exception e) {
 			return Optional.of(e.getMessage());
 		} finally {
 			if (http != null) {
@@ -343,11 +351,11 @@ public class NewRelicRestClient {
 		try {
 			final String url = Constants.NEW_RELIC_PLATFORM_API_URL;
 			final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
-			
-			for (final String[] metric : nlWebMainStatistics.getNlData()) {				
+
+			for (final String[] metric : nlWebMainStatistics.getNlData()) {
 				final String metricPath = metric[1];
 				final String unit = metric[2];
-				final String value = metric[3];				
+				final String value = metric[3];
 				final String jsonString = "{\"agent\":{"
 						+ "\"host\" : \"" + Constants.CUSTOM_ACTION_HOST + "\","
 						+ "\"version\" : \"" + Constants.CUSTOM_ACTION_VERSION + "\""
@@ -362,21 +370,22 @@ public class NewRelicRestClient {
 						+ "}"
 						+ "}"
 						+ "]"
-						+ "}";		
+						+ "}";
 
-				http = new HTTPGenerator(url, headers, jsonString, proxy);
-				final String exceptionMessage = NewRelicUtils.getExceptionmessage(http.getHttpResponseCodeFromResponse());
+				http = HTTPGenerator.newJsonHttpGenerator(HTTP_GET_METHOD, url, headers, new HashMap<>(), proxy, jsonString);
+				final HttpResponse httpResponse = http.execute();
+				final String exceptionMessage = HttpResponseUtils.getStringResponse(httpResponse);
 				if (exceptionMessage != null) {
 					return Optional.of(exceptionMessage);
 				}
 			}
-		} catch(final Exception e){
+		} catch (final Exception e) {
 			return Optional.of(e.getMessage());
 		} finally {
 			if (http != null) {
 				http.closeHttpClient();
 			}
 		}
-		return Optional.empty();		
+		return Optional.empty();
 	}
 }

@@ -29,7 +29,7 @@ public enum NewRelicOption implements Option {
 	NeoLoadDataExchangeApiUrl("dataExchangeApiUrl", Optional, False, TEXT, "", "Where the DataExchange server is located. Optional, by default it is: http://${NL-ControllerIp}:7400/DataExchange/v1/Service.svc/.", NON_EMPTY),
 	NeoLoadDataExchangeApiKey("dataExchangeApiKey", Optional, False, PASSWORD, "", "Identification key specified in NeoLoad.", NON_EMPTY),
 	NeoLoadProxy("proxyName", Optional, False, TEXT, "", "The NeoLoad proxy name to access New Relic.", NON_EMPTY),
-	NewRelicRelevantMetricNames("newRelicRelevantMetricNames", Optional, False, TEXT, Constants.NEW_RELIC_DEFAULT_RELEVANT_METRIC_NAMES, "Specify the comma separated list of the matching names (contains) of the New Relic metric names to retrieve (by default: Datastore/statement,Datastore/instance,CPU,Memory,Error/,connects).", NON_EMPTY),
+	NewRelicRelevantMetricNames("newRelicRelevantMetricNames", Optional, False, TEXT, Constants.NEW_RELIC_DEFAULT_RELEVANT_METRIC_NAMES, "Specify the comma separated list of the matching names (contains) of the New Relic metric names to retrieve (by default: Datastore/statement,Datastore/instance,CPU/main,Memory,Error/,connects).", NON_EMPTY),
 	NewRelicRelevantMetricValues("newRelicRelevantMetricValues", Optional, False, TEXT, Constants.NEW_RELIC_DEFAULT_RELEVANT_METRIC_VALUES, "Specify the comma separated list of the matching names (contains) of the New Relic metric statistics to retrieve (by default: min,max,average,used_mb,percent).", NON_EMPTY);
 	
 	private final String name;

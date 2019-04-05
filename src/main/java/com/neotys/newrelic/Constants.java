@@ -77,6 +77,6 @@ public final class Constants {
 	public static final String HTTP_ACCEPT = "Accept";
 	
 	/*** Retrieve Data from New Relic to NeoLoad ***/
-	public static final String NEW_RELIC_DEFAULT_RELEVANT_METRIC_NAMES = "Datastore/statement,Datastore/instance,CPU,Memory,Error/,connects";
+	public static final String NEW_RELIC_DEFAULT_RELEVANT_METRIC_NAMES = "Datastore/statement,Datastore/instance,CPU/main,Memory,Error/,connects";
 	public static final String NEW_RELIC_DEFAULT_RELEVANT_METRIC_VALUES = "min,max,average,used_mb,percent";	
 }

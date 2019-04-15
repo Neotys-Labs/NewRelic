@@ -189,7 +189,7 @@ See New Relic [Documentation](https://docs.newrelic.com/docs/insights/use-insigh
 ## ChangeLog
 * Version 2.1.0 (April 15, 2019): 
     * The number of default counters to return has been decreased.
-    * Bug fix: The plugin can now retrieve all the existing metric names.
+    * Bug fix: The Advanced Action can now retrieve all the existing metric names.
 * Version 1.0.2 (April 23, 2018): Update Apache HttpClient version and set as provided.
 * Version 1.0.1 (March 1, 2018): Ability to send data to New Relic Plugins only (without New Relic Insights).
 * Version 1.0.0 (February 27, 2018): Initial release.

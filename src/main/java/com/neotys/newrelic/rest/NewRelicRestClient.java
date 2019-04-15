@@ -21,7 +21,6 @@ import java.util.SimpleTimeZone;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -133,7 +132,7 @@ public class NewRelicRestClient {
 	 * @return
 	 * @throws IOException
 	 */
-	public List<String> getMetricNamesForHost(final String hostId) throws ClientProtocolException, Exception {
+	public List<String> getMetricNamesForHost(final String hostId) throws Exception {
 		final List<String> metricNamesForHost = new ArrayList<>();
 		final String url = Constants.NEW_RELIC_API_APPLICATIONS_URL + applicationId + Constants.NEW_RELIC_HOSTS + hostId
 				+ Constants.NEW_RELIC_METRICS_JSON;
@@ -149,16 +148,7 @@ public class NewRelicRestClient {
 				final HttpResponse httpResponse = http.execute();
 				if (HttpResponseUtils.isSuccessHttpCode(httpResponse.getStatusLine().getStatusCode())) {
 
-					final JSONObject jsonObject = getJsonResponse(httpResponse);
-					if (jsonObject.has(Constants.NEW_RELIC_METRICS)) {
-						final JSONArray jsonArray = jsonObject.getJSONArray(Constants.NEW_RELIC_METRICS);
-						for (int i = 0; i < jsonArray.length(); i++) {
-							final String metricName = jsonArray.getJSONObject(i).getString("name");
-							if (isRelevantMetricName(metricName)) {
-								metricNamesForHost.add(metricName);
-							}
-						}
-					}
+					retrieveMetricNamesFromJson(metricNamesForHost, httpResponse);
 
 					params.clear();
 					hasNextPage = HttpResponseUtils.getNextPageParams(httpResponse, params);
@@ -171,6 +161,19 @@ public class NewRelicRestClient {
 		} while (hasNextPage);
 
 		return metricNamesForHost;
+	}
+
+	private void retrieveMetricNamesFromJson(List<String> metricNamesForHost, HttpResponse response) throws IOException {
+		final JSONObject jsonObject = getJsonResponse(response);
+		if (jsonObject.has(Constants.NEW_RELIC_METRICS)) {
+			final JSONArray jsonArray = jsonObject.getJSONArray(Constants.NEW_RELIC_METRICS);
+			for (int i = 0; i < jsonArray.length(); i++) {
+				final String metricName = jsonArray.getJSONObject(i).getString("name");
+				if (isRelevantMetricName(metricName)) {
+					metricNamesForHost.add(metricName);
+				}
+			}
+		}
 	}
 
 	/**
@@ -218,30 +221,7 @@ public class NewRelicRestClient {
 				http = new HTTPGenerator(HTTP_GET_METHOD, url, headers, parameters, proxy);
 				final HttpResponse httpResponse = http.execute();
 				if (HttpResponseUtils.isSuccessHttpCode(httpResponse.getStatusLine().getStatusCode())) {
-					final JSONObject jsonObject = getJsonResponse(httpResponse);
-					if (jsonObject.has("metric_data")) {
-						final JSONObject metric_data = jsonObject.getJSONObject("metric_data");
-						final JSONArray metrics = metric_data.getJSONArray("metrics");
-						for (int i = 0; i < metrics.length(); i++) {
-							final JSONObject metric = metrics.getJSONObject(i);
-							final String metricName = metric.get("name").toString();
-							final JSONArray timeslices = metric.getJSONArray("timeslices");
-							if (timeslices.length() != 1) {
-								continue;
-							}
-							final JSONObject timeslice = timeslices.getJSONObject(0);
-							final String metricDate = getTimeMillisFromDate(timeslice.getString("to"));
-							final JSONObject values = timeslice.getJSONObject("values");
-							final Iterator<String> it = values.keys();
-							while (it.hasNext()) {
-								final String metricValue = it.next();
-								if (isRelevantMetricValue(metricValue)) {
-									newRelicMetricData.add(new NewRelicMetricData(newRelicActionArguments.getNewRelicApplicationName(), hostName,
-											metricName, metricValue, values.getDouble(metricValue), "", metricDate));
-								}
-							}
-						}
-					}
+					retrieveMetricDataFromJson(hostName, newRelicMetricData, httpResponse);
 				}
 			} finally {
 				if (http != null) {
@@ -250,6 +230,33 @@ public class NewRelicRestClient {
 			}
 		}
 		return newRelicMetricData;
+	}
+
+	private void retrieveMetricDataFromJson(String hostName, List<NewRelicMetricData> newRelicMetricData, HttpResponse httpResponse) throws IOException, ParseException {
+		final JSONObject jsonObject = getJsonResponse(httpResponse);
+		if (jsonObject.has("metric_data")) {
+			final JSONObject metricData = jsonObject.getJSONObject("metric_data");
+			final JSONArray metrics = metricData.getJSONArray("metrics");
+			for (int i = 0; i < metrics.length(); i++) {
+				final JSONObject metric = metrics.getJSONObject(i);
+				final String metricName = metric.get("name").toString();
+				final JSONArray timeslices = metric.getJSONArray("timeslices");
+				if (timeslices.length() != 1) {
+					continue;
+				}
+				final JSONObject timeslice = timeslices.getJSONObject(0);
+				final String metricDate = getTimeMillisFromDate(timeslice.getString("to"));
+				final JSONObject values = timeslice.getJSONObject("values");
+				final Iterator<String> it = values.keys();
+				while (it.hasNext()) {
+					final String metricValue = it.next();
+					if (isRelevantMetricValue(metricValue)) {
+						newRelicMetricData.add(new NewRelicMetricData(newRelicActionArguments.getNewRelicApplicationName(), hostName,
+								metricName, metricValue, values.getDouble(metricValue), "", metricDate));
+					}
+				}
+			}
+		}
 	}
 
 	private static String getTimeMillisFromDate(final String date) throws ParseException {
@@ -292,12 +299,15 @@ public class NewRelicRestClient {
 	public Optional<String> sendNLWebElementValuesToInsightsAPI(final List<NLWebElementValue> nlWebElementValues) {
 		HTTPGenerator http = null;
 		try {
-			final String url = Constants.NEW_RELIC_INSIGHT_URL + newRelicActionArguments.getNewRelicAccountId().get() + "/events";
+			final String accountId = newRelicActionArguments.getNewRelicAccountId().orElse("");
+			if (Strings.isNullOrEmpty(accountId)) return Optional.of("Cannot find the account id");
+
+			final String url = Constants.NEW_RELIC_INSIGHT_URL + accountId + "/events";
 			final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
 			for (final NLWebElementValue nlWebElementValue : nlWebElementValues) {
 
 				final String jsonString = "[{\"eventType\":\"NeoLoadValues\","
-						+ "\"account\" : \"" + newRelicActionArguments.getNewRelicAccountId().get() + "\","
+						+ "\"account\" : \"" + accountId + "\","
 						+ "\"appId\" : \"" + applicationId + "\","
 						+ "\"testName\" : \"" + context.getTestName() + "\","
 						+ "\"scenarioName\" : \"" + context.getScenarioName() + "\","
@@ -338,10 +348,13 @@ public class NewRelicRestClient {
 	 * @return Optional<String>: error message if any
 	 */
 	public Optional<String> sendNLWebMainStatisticsToInsightsAPI(final NLWebMainStatistics nlWebMainStatistics) {
-		final String url = Constants.NEW_RELIC_INSIGHT_URL + newRelicActionArguments.getNewRelicAccountId().get() + "/events";
+		final String accountId = newRelicActionArguments.getNewRelicAccountId().orElse("");
+		if (Strings.isNullOrEmpty(accountId)) return Optional.of("Cannot find the account id");
+
+		final String url = Constants.NEW_RELIC_INSIGHT_URL + accountId + "/events";
 		final StringBuilder jsonString = new StringBuilder();
 		jsonString.append("[{\"eventType\":\"NeoLoadData\","
-				+ "\"account\" : \"" + newRelicActionArguments.getNewRelicAccountId().get() + "\","
+				+ "\"account\" : \"" + accountId + "\","
 				+ "\"appId\" : \"" + applicationId + "\","
 				+ "\"testName\" : \"" + context.getTestName() + "\","
 				+ "\"scenarioName\" : \"" + context.getScenarioName() + "\","
@@ -396,7 +409,7 @@ public class NewRelicRestClient {
 						+ "{"
 						+ "\"name\": \"NeoLoad\","
 						+ "\"guid\": \"" + Constants.CUSTOM_ACTION_HOST + "\","
-						+ " \"duration\" : " + String.valueOf(nlWebMainStatistics.getDuration()) + ","
+						+ " \"duration\" : " + nlWebMainStatistics.getDuration() + ","
 						+ " \"metrics\" : {"
 						+ " \"Component/NeoLoad/Statistics/" + metricPath + "[" + unit + "]\": " + value + ""
 						+ "}"

@@ -54,9 +54,6 @@ public class HttpResponseUtils {
 	}
 
 	public static boolean getNextPageParams(final HttpResponse response, final Multimap<String, String> params) {
-		// Remove previous values because this is a multimap
-		params.clear();
-
 		Header[] headers = response.getHeaders("Link");
 		if (headers.length == 0) return false;
 

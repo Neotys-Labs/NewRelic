@@ -13,7 +13,7 @@
         <gson-version>2.6.2</gson-version>
         <jodatime-version>2.9.3</jodatime-version>
         <maven-plugin-version>1.0.0</maven-plugin-version>
-        <junit-version>4.12</junit-version>
+        <junit-version>5.4.2</junit-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!--<neoload.installation.folder>C:/Users/xxx/Documents/NeoLoad Projects/v6.4/NewRelic/lib</neoload.installation.folder>-->
     </properties>
@@ -30,11 +30,18 @@
             <version>1.0.3</version>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>3.8.1</version>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit-version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <version>${junit-version}</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
@@ -85,6 +92,7 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
             <version>1.9.5</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

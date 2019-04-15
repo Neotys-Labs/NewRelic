@@ -162,6 +162,7 @@ public class NewRelicRestClient {
 						}
 					}
 
+					params.clear();
 					hasNextPage = HttpResponseUtils.getNextPageParams(httpResponse, params);
 				}
 			} finally {

@@ -1,5 +1,7 @@
 package com.neotys.newrelic.rest;
 
+import com.google.common.collect.Multimap;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -51,4 +53,36 @@ public class HttpResponseUtils {
 		return null;
 	}
 
+	public static boolean getNextPageParams(final HttpResponse response, final Multimap<String, String> params) {
+		// Remove previous values because this is a multimap
+		params.clear();
+
+		Header[] headers = response.getHeaders("Link");
+		if (headers.length == 0) return false;
+
+		String[] links = headers[0].getValue().split(",");
+		for (String link : links) {
+			// We try with these two strings because the first response from REST API contains double quotes but the other ones don't
+			if(link.endsWith("rel=\"next\"") || link.endsWith("rel=next")) {
+				// Retrieve the exact URL
+				link = link.replaceAll("(^<)|(>; rel=\"?next\"?)$", "");
+
+				// Verify that there is at least one page after
+				if(link.endsWith("cursor=")) return false;
+
+				// Extract the parameters
+				String[] parameters = link.split("\\?")[1].split("&");
+
+				for (String parameter : parameters) {
+					String[] keyValuePair = parameter.split("=");
+
+					params.put(keyValuePair[0], keyValuePair[1]);
+				}
+
+				if (params.containsKey("cursor")) return true;
+			}
+		}
+
+		return false;
+	}
 }

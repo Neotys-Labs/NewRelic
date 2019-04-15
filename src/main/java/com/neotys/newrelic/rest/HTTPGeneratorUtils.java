@@ -18,6 +18,7 @@ import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import com.google.common.collect.Multimap;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -47,7 +48,7 @@ class HTTPGeneratorUtils {
 
 	}
 
-	static void setRequestUrl(final HttpRequestBase request, final String url, final Map<String, String> params)
+	static void setRequestUrl(final HttpRequestBase request, final String url, final Multimap<String, String> params)
 			throws URISyntaxException, MalformedURLException {
 		final String urlWithParameters = addGetParametersToUrl(url, params);
 		request.setURI(new URL(urlWithParameters).toURI());
@@ -121,14 +122,14 @@ class HTTPGeneratorUtils {
 		}
 	}
 
-	private static String addGetParametersToUrl(final String url, final Map<String, String> params) {
+	private static String addGetParametersToUrl(final String url, final Multimap<String, String> params) {
 		final StringBuilder urlBuilder = new StringBuilder(url);
 		if (!url.endsWith("?")) {
 			urlBuilder.append("?");
 		}
 		final List<NameValuePair> parameters = new LinkedList<>();
 		if (params != null) {
-			for (Map.Entry<String, String> entry : params.entrySet()) {
+			for (Map.Entry<String, String> entry : params.entries()) {
 				if("tag".equals(entry.getKey())){
 					parameters.addAll(getTags(entry.getValue()));
 				}else {

@@ -8,6 +8,7 @@ import static com.neotys.newrelic.rest.HTTPGeneratorUtils.setRequestUrl;
 import java.io.IOException;
 import java.util.Map;
 
+import com.google.common.collect.Multimap;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
@@ -36,7 +37,7 @@ public class HTTPGenerator {
 	public HTTPGenerator(final String httpMethod,
 						 final String url,
 						 final Map<String, String> headers,
-						 final Map<String, String> params,
+						 final Multimap<String, String> params,
 						 final Optional<Proxy> proxy)
 			throws Exception {
 		this.request = generateHttpRequest(httpMethod, url);
@@ -55,7 +56,7 @@ public class HTTPGenerator {
 	public static HTTPGenerator newJsonHttpGenerator(final String httpMethod,
 													 final String url,
 													 final Map<String, String> headers,
-													 final Map<String, String> params,
+													 final Multimap<String, String> params,
 													 final Optional<Proxy> proxy,
 													 final String bodyJson)
 			throws Exception {

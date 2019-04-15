@@ -19,6 +19,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.SimpleTimeZone;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.json.JSONArray;
@@ -66,7 +69,7 @@ public class NewRelicRestClient {
 	private String getApplicationId() throws Exception {
 		final String url = Constants.NEW_RELIC_API_APPLICATIONS_JSON_URL;
 
-		final Map<String, String> parameters = new HashMap<>();
+		final Multimap<String, String> parameters = ArrayListMultimap.create();
 		parameters.put("filter[name]", newRelicActionArguments.getNewRelicApplicationName());
 		HTTPGenerator http = null;
 		try {
@@ -106,7 +109,7 @@ public class NewRelicRestClient {
 		final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
 		HTTPGenerator http = null;
 		try {
-			http = new HTTPGenerator(HTTP_GET_METHOD, url, headers, new HashMap<>(), proxy);
+			http = new HTTPGenerator(HTTP_GET_METHOD, url, headers, ArrayListMultimap.create(), proxy);
 			final HttpResponse httpResponse = http.execute();
 			if (HttpResponseUtils.isSuccessHttpCode(httpResponse.getStatusLine().getStatusCode())) {
 				final JSONObject jsonObject = getJsonResponse(httpResponse);
@@ -137,27 +140,37 @@ public class NewRelicRestClient {
 		final String url = Constants.NEW_RELIC_API_APPLICATIONS_URL + applicationId + Constants.NEW_RELIC_HOSTS + hostId
 				+ Constants.NEW_RELIC_METRICS_JSON;
 		final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
-		HTTPGenerator http = null;
-		try {
-			http = new HTTPGenerator(HTTP_GET_METHOD, url, headers, new HashMap<>(), proxy);
-			final HttpResponse httpResponse = http.execute();
-			if (HttpResponseUtils.isSuccessHttpCode(httpResponse.getStatusLine().getStatusCode())) {
-				final JSONObject jsonObject = getJsonResponse(httpResponse);
-				if (jsonObject.has(Constants.NEW_RELIC_METRICS)) {
-					final JSONArray jsonArray = jsonObject.getJSONArray(Constants.NEW_RELIC_METRICS);
-					for (int i = 0 ; i < jsonArray.length() ; i++) {
-						final String metricName = jsonArray.getJSONObject(i).getString("name");
-						if (isRelevantMetricName(metricName)) {
-							metricNamesForHost.add(metricName);
+
+		Multimap<String, String> params = ArrayListMultimap.create();
+		boolean hasNextPage;
+		do {
+			HTTPGenerator http = null;
+			hasNextPage = false;
+			try {
+				http = new HTTPGenerator(HTTP_GET_METHOD, url, headers, params, proxy);
+				final HttpResponse httpResponse = http.execute();
+				if (HttpResponseUtils.isSuccessHttpCode(httpResponse.getStatusLine().getStatusCode())) {
+
+					final JSONObject jsonObject = getJsonResponse(httpResponse);
+					if (jsonObject.has(Constants.NEW_RELIC_METRICS)) {
+						final JSONArray jsonArray = jsonObject.getJSONArray(Constants.NEW_RELIC_METRICS);
+						for (int i = 0; i < jsonArray.length(); i++) {
+							final String metricName = jsonArray.getJSONObject(i).getString("name");
+							if (isRelevantMetricName(metricName)) {
+								metricNamesForHost.add(metricName);
+							}
 						}
 					}
+
+					hasNextPage = HttpResponseUtils.getNextPageParams(httpResponse, params);
+				}
+			} finally {
+				if (http != null) {
+					http.closeHttpClient();
 				}
 			}
-		} finally {
-			if (http != null) {
-				http.closeHttpClient();
-			}
-		}
+		} while (hasNextPage);
+
 		return metricNamesForHost;
 	}
 
@@ -173,25 +186,44 @@ public class NewRelicRestClient {
 		final List<NewRelicMetricData> newRelicMetricData = new ArrayList<>();
 		final String url = Constants.NEW_RELIC_API_APPLICATIONS_URL + applicationId + "/hosts/" + hostId + Constants.NEW_RELIC_DATA_JSON;
 		final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
-		final Map<String, String> parameters = new HashMap<>();
-		for (final String metricName : metricNames) {
-			parameters.put("names[]", metricName);
-		}
-		final ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
-		parameters.put("from", now.minusSeconds(120).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
-		parameters.put("to", now.minusSeconds(60).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
-		parameters.put("summarize", "true");
-		parameters.put("raw", "false");
-		HTTPGenerator http = null;
-		try {
-			http = new HTTPGenerator(HTTP_GET_METHOD, url, headers, parameters, proxy);
-			final HttpResponse httpResponse = http.execute();
-			if (HttpResponseUtils.isSuccessHttpCode(httpResponse.getStatusLine().getStatusCode())) {
-				final JSONObject jsonObject = getJsonResponse(httpResponse);
+
+		// The number of metric names could be very important, so here we split them into several requests
+		// containing a subset of 30 names to avoid an issue on request length.
+		final int STEP = 30;
+		int offset = 0;
+
+		while (offset < metricNames.size()) {
+			List<String> metricNamesToRequest;
+			if(metricNames.size() - offset > STEP) {
+				metricNamesToRequest = metricNames.subList(offset, offset + STEP);
+				offset += STEP;
+			}
+			else {
+				metricNamesToRequest = metricNames.subList(offset, metricNames.size());
+				offset = metricNames.size();
+			}
+
+			final Multimap<String, String> parameters = ArrayListMultimap.create();
+			parameters.putAll("names[]", metricNamesToRequest);
+
+			final ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
+			parameters.put("from", now.minusSeconds(120).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+			parameters.put("to", now.minusSeconds(60).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+			parameters.put("summarize", "true");
+			parameters.put("raw", "false");
+			HTTPGenerator http = null;
+			try {
+				// There is no need to use pagination the get the whole response here, because we are requesting the last
+				// data for each metric name (at least 30 names) for the last minute, then we summarize the data, so at
+				// least we will have 30 objects, where the limit for a page is 200 objects.
+				http = new HTTPGenerator(HTTP_GET_METHOD, url, headers, parameters, proxy);
+				final HttpResponse httpResponse = http.execute();
+				if (HttpResponseUtils.isSuccessHttpCode(httpResponse.getStatusLine().getStatusCode())) {
+					final JSONObject jsonObject = getJsonResponse(httpResponse);
 					if (jsonObject.has("metric_data")) {
 						final JSONObject metric_data = jsonObject.getJSONObject("metric_data");
 						final JSONArray metrics = metric_data.getJSONArray("metrics");
-						for (int i = 0 ; i < metrics.length() ; i++) {
+						for (int i = 0; i < metrics.length(); i++) {
 							final JSONObject metric = metrics.getJSONObject(i);
 							final String metricName = metric.get("name").toString();
 							final JSONArray timeslices = metric.getJSONArray("timeslices");
@@ -208,13 +240,14 @@ public class NewRelicRestClient {
 									newRelicMetricData.add(new NewRelicMetricData(newRelicActionArguments.getNewRelicApplicationName(), hostName,
 											metricName, metricValue, values.getDouble(metricValue), "", metricDate));
 								}
+							}
 						}
 					}
 				}
-			}
-		} finally {
-			if (http != null) {
-				http.closeHttpClient();
+			} finally {
+				if (http != null) {
+					http.closeHttpClient();
+				}
 			}
 		}
 		return newRelicMetricData;
@@ -282,7 +315,7 @@ public class NewRelicRestClient {
 						+ "\"downloadedBytesPerSecond\":" + Constants.DECIMAL_FORMAT.format(nlWebElementValue.getThroughput()) + ","
 						+ "\"timestamp\" : " + System.currentTimeMillis() + "}]";
 
-				http = HTTPGenerator.newJsonHttpGenerator(HTTP_GET_METHOD, url, headers, new HashMap<>(), proxy, jsonString);
+				http = HTTPGenerator.newJsonHttpGenerator(HTTP_GET_METHOD, url, headers, ArrayListMultimap.create(), proxy, jsonString);
 				final HttpResponse httpResponse = http.execute();
 				final String exceptionMessage = HttpResponseUtils.getStringResponse(httpResponse);
 				if (exceptionMessage != null) {
@@ -324,7 +357,7 @@ public class NewRelicRestClient {
 		HTTPGenerator http = null;
 		try {
 			final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
-			http = HTTPGenerator.newJsonHttpGenerator(HTTP_GET_METHOD, url, headers, new HashMap<>(), proxy, jsonString.toString());
+			http = HTTPGenerator.newJsonHttpGenerator(HTTP_GET_METHOD, url, headers, ArrayListMultimap.create(), proxy, jsonString.toString());
 			final HttpResponse httpResponse = http.execute();
 			final String exceptionMessage = HttpResponseUtils.getStringResponse(httpResponse);
 			if (exceptionMessage != null) {
@@ -372,7 +405,7 @@ public class NewRelicRestClient {
 						+ "]"
 						+ "}";
 
-				http = HTTPGenerator.newJsonHttpGenerator(HTTP_GET_METHOD, url, headers, new HashMap<>(), proxy, jsonString);
+				http = HTTPGenerator.newJsonHttpGenerator(HTTP_GET_METHOD, url, headers, ArrayListMultimap.create(), proxy, jsonString);
 				final HttpResponse httpResponse = http.execute();
 				final String exceptionMessage = HttpResponseUtils.getStringResponse(httpResponse);
 				if (exceptionMessage != null) {

@@ -197,24 +197,33 @@ public final class NewRelicActionEngine implements ActionEngine {
 			 * 2.3 Send NeoLoad Web Main statistics to Plateform API
 			 */
 			requestContentBuilder.append("Send NeoLoad Web Main statistics to Plateform API.\n");
-			final Optional<String> errorMessage = newRelicRestClient.sendNLWebMainStatisticsToPlateformAPI(nlWebMainStatistics);
-			errorMessage.map(e -> responseContentBuilder.append("Error while sending NeoLoad Web Main statistics to Plateform API: " + e + "\n"));
-			
+			final Optional<String> errorMessagePlat = newRelicRestClient.sendNLWebMainStatisticsToPlateformAPI(nlWebMainStatistics);
+			if (errorMessagePlat.isPresent()) {
+				return newErrorResult(requestContentBuilder, context, Constants.STATUS_CODE_TECHNICAL_ERROR,
+						"Error while sending NeoLoad Web Main statistics to Plateform API: " + errorMessagePlat.get());
+			}
+
 			/**
 			 * 2.4 Send NeoLoad Web Main statistics to Insights API
 			 */
 			requestContentBuilder.append("Send NeoLoad Web Main statistics to Insights API.\n");
-			newRelicRestClient.sendNLWebMainStatisticsToInsightsAPI(nlWebMainStatistics);		
-			errorMessage.map(e -> responseContentBuilder.append("Error while sending NeoLoad Web Main statistics to Insights API: " + e + "\n"));
-			
+			final Optional<String> errorMessageInsight = newRelicRestClient.sendNLWebMainStatisticsToInsightsAPI(nlWebMainStatistics);
+			if (errorMessageInsight.isPresent()) {
+				return newErrorResult(requestContentBuilder, context, Constants.STATUS_CODE_TECHNICAL_ERROR,
+						"Error while sending NeoLoad Web Main statistics to Insights API: " + errorMessageInsight.get());
+			}
+
 			/**
 			 * 2.5 Send NeoLoad Web Element Values to Insights API
 			 */
 			requestContentBuilder.append("Send NeoLoad Web Element Values to Insights API.\n");
-			newRelicRestClient.sendNLWebElementValuesToInsightsAPI(nlWebElementValues);
-			errorMessage.map(e -> responseContentBuilder.append("Error while sending NeoLoad Web Element Values to Insights API: " + e + "\n"));		
-			
-		}		
+			final Optional<String> errorMessageInsightApi = newRelicRestClient.sendNLWebElementValuesToInsightsAPI(nlWebElementValues);
+			if (errorMessageInsightApi.isPresent()) {
+				return newErrorResult(requestContentBuilder, context, Constants.STATUS_CODE_TECHNICAL_ERROR,
+						"Error while sending NeoLoad Web Element Values to Insights API: " + errorMessageInsightApi.get());
+			}
+
+		}
 		sampleResult.sampleEnd();
 		sampleResult.setRequestContent(requestContentBuilder.toString());
 		sampleResult.setResponseContent(responseContentBuilder.toString());

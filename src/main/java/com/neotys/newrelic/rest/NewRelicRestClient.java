@@ -2,6 +2,7 @@ package com.neotys.newrelic.rest;
 
 import static com.neotys.newrelic.NewRelicUtils.getProxy;
 import static com.neotys.newrelic.rest.HTTPGenerator.HTTP_GET_METHOD;
+import static com.neotys.newrelic.rest.HTTPGenerator.HTTP_POST_METHOD;
 import static com.neotys.newrelic.rest.HttpResponseUtils.getJsonResponse;
 
 import java.io.IOException;
@@ -324,11 +325,13 @@ public class NewRelicRestClient {
 						+ "\"downloadedBytesPerSecond\":" + Constants.DECIMAL_FORMAT.format(nlWebElementValue.getThroughput()) + ","
 						+ "\"timestamp\" : " + System.currentTimeMillis() + "}]";
 
-				http = HTTPGenerator.newJsonHttpGenerator(HTTP_GET_METHOD, url, headers, ArrayListMultimap.create(), proxy, jsonString);
+				http = HTTPGenerator.newJsonHttpGenerator(HTTP_POST_METHOD, url, headers, ArrayListMultimap.create(), proxy, jsonString);
 				final HttpResponse httpResponse = http.execute();
-				final String exceptionMessage = HttpResponseUtils.getStringResponse(httpResponse);
-				if (exceptionMessage != null) {
-					return Optional.of(exceptionMessage);
+				if (httpResponse.getStatusLine().getStatusCode() >= 400) {
+					return Optional.of(
+							Optional.ofNullable(HttpResponseUtils.getStringResponse(httpResponse))
+									.orElse("ERROR HTTP " + httpResponse.getStatusLine().getStatusCode())
+					);
 				}
 			}
 		} catch (final Exception e) {
@@ -369,11 +372,13 @@ public class NewRelicRestClient {
 		HTTPGenerator http = null;
 		try {
 			final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
-			http = HTTPGenerator.newJsonHttpGenerator(HTTP_GET_METHOD, url, headers, ArrayListMultimap.create(), proxy, jsonString.toString());
+			http = HTTPGenerator.newJsonHttpGenerator(HTTP_POST_METHOD, url, headers, ArrayListMultimap.create(), proxy, jsonString.toString());
 			final HttpResponse httpResponse = http.execute();
-			final String exceptionMessage = HttpResponseUtils.getStringResponse(httpResponse);
-			if (exceptionMessage != null) {
-				return Optional.of(exceptionMessage);
+			if (httpResponse.getStatusLine().getStatusCode() >= 400) {
+				return Optional.of(
+						Optional.ofNullable(HttpResponseUtils.getStringResponse(httpResponse))
+								.orElse("ERROR HTTP " + httpResponse.getStatusLine().getStatusCode())
+				);
 			}
 		} catch (final Exception e) {
 			return Optional.of(e.getMessage());
@@ -417,11 +422,13 @@ public class NewRelicRestClient {
 						+ "]"
 						+ "}";
 
-				http = HTTPGenerator.newJsonHttpGenerator(HTTP_GET_METHOD, url, headers, ArrayListMultimap.create(), proxy, jsonString);
+				http = HTTPGenerator.newJsonHttpGenerator(HTTP_POST_METHOD, url, headers, ArrayListMultimap.create(), proxy, jsonString);
 				final HttpResponse httpResponse = http.execute();
-				final String exceptionMessage = HttpResponseUtils.getStringResponse(httpResponse);
-				if (exceptionMessage != null) {
-					return Optional.of(exceptionMessage);
+				if (httpResponse.getStatusLine().getStatusCode() >= 400) {
+					return Optional.of(
+							Optional.ofNullable(HttpResponseUtils.getStringResponse(httpResponse))
+									.orElse("ERROR HTTP " + httpResponse.getStatusLine().getStatusCode())
+					);
 				}
 			}
 		} catch (final Exception e) {

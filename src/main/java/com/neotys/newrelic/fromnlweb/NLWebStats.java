@@ -10,168 +10,114 @@ import io.swagger.client.model.TestStatistics;
 
 public class NLWebStats {
 
-	private float LastRequestCountPerSecond = 0;
-	private float LastRequestDurationAverage = 0;
+	/* Transactions */
+	private float totalTransactionCountPerSecond = 0;
 
-	private float LastTransactionDurationAverage = 0;
-	private int LastVirtualUserCount = 0;
-	private long TotalGlobalCountFailure = 0;
-	private float TotalGlobalDownloadedBytes = 0;
-	private float TotalGlobalDownloadedBytesPerSecond = 0;
-	private long TotalIterationCountFailure = 0;
-	private long TotalIterationCountSuccess = 0;
-	private long TotalRequestCountFailure = 0;
-	private float TotalRequestCountPerSecond = 0;
-	private long TotalRequestCountSuccess = 0;
-	private long TotalTransactionCountFailure = 0;
-	private long TotalTransactionCountSuccess = 0;
-	private float TotalTransactionCountPerSecond = 0;
+	private long deltaTransactionCountSuccess = 0;
+	private long totalTransactionCountSuccess = 0;
 
-	private static String LastRequestCountPerSecond_MetricName = "Request Count";
-	private static String LastRequestCountPerSecond_Component = "requestCount";
-	private static String LastRequestCountPerSecond_Unit = "request/Second";
+	private long deltaTransactionCountFailure = 0;
+	private long totalTransactionCountFailure = 0;
 
-	private static String LastRequestDurationAverage_MetricName = "Request duration";
-	private static String LastRequestDurationAverage_Component = "requestduration";
-	private static String LastRequestDurationAverage_Unit = "Second";
+	private float lastTransactionDurationAverage = 0;
 
-	private static String LastTransactionDurationAverage_MetricName = "Average Transaction Duration";
-	private static String LastTransactionDurationAverage_Component = "averageTransactionDuration";
-	private static String LastTransactionDurationAverage_Unit = "Second";
+	//	private float totalTransactionDurationAverage;
 
-	private static String LastVirtualUserCount_MetricName = "User Load";
-	private static String LastVirtualUserCount_Component = "userLoad";
-	private static String LastVirtualUserCount_Unit = "Count";
 
-	private static String TotalGlobalCountFailure_MetricName = "Number of Failure";
-	private static String TotalGlobalCountFailure_Component = "globalCountFailure";
-	private static String TotalGlobalCountFailure_Unit = "count";
+	/* Requests */
+	private float lastRequestCountPerSecond = 0;
+	private float totalRequestCountPerSecond = 0;
 
-	private static String TotalGlobalDownloadedBytes_MetricName = "Downloaded Bytes";
-	private static String TotalGlobalDownloadedBytes_Component = "dowLoadedBytes";
-	private static String TotalGlobalDownloadedBytes_Unit = "Bytes";
+	private long deltaRequestCountSuccess = 0;
+	private long totalRequestCountSuccess = 0;
 
-	private static String TotalGlobalDownloadedBytesPerSecond_MetricName = "Downloaded Bytes";
-	private static String TotalGlobalDownloadedBytesPerSecond_Component = "downloadedBytesPerSecond";
-	private static String TotalGlobalDownloadedBytesPerSecond_Unit = "Bytes/Second";
+	private long deltaRequestCountFailure = 0;
+	private long totalRequestCountFailure = 0;
 
-	private static String TotalIterationCountFailure_MetricName = "Iteration in Failure";
-	private static String TotalIterationCountFailure_Component = "iterationFailure";
-	private static String TotalIterationCountFailure_Unit = "Count";
+	private float totalRequestDurationAverage = 0;
 
-	private static String TotalIterationCountSuccess_MetricName = "Iteration in Success";
-	private static String TotalIterationCountSuccess_Component = "iterationSuccess";
-	private static String TotalIterationCountSuccess_Unit = "Count";
 
-	private static String TotalRequestCountFailure_MetricName = "Request in Failure";
-	private static String TotalRequestCountFailure_Component = "requestFailure";
-	private static String TotalRequestCountFailure_Unit = "Count";
+	/* Throughput */
+	private long deltaGlobalCountFailure = 0;
+	private long totalGlobalCountFailure = 0;
 
-	private static String TotalRequestCountPerSecond_MetricName = "Number of request";
-	private static String TotalRequestCountPerSecond_Component = "requestCount";
-	private static String TotalRequestCountPerSecond_Unit = "Request/Second";
+	private float totalGlobalDownloadedBytesPerSecond = 0;
 
-	private static String TotalRequestCountSuccess_MetricName = "Request in Success";
-	private static String TotalRequestCountSuccess_Component = "requestSuccess";
-	private static String TotalRequestCountSuccess_Unit = "Count";
+	private float deltaGlobalDownloadedBytes = 0;
+	private float totalGlobalDownloadedBytes = 0;
 
-	private static String TotalTransactionCountFailure_MetricName = "Transaction in Failure";
-	private static String TotalTransactionCountFailure_Component = "transactionFailure";
-	private static String TotalTransactionCountFailure_Unit = "Count";
 
-	private static String TotalTransactionCountSucess_MetricName = "Transaction in Success";
-	private static String TotalTransactionCountSucess_Component = "transactionSuccess";
-	private static String TotalTransactionCountSucess_Unit = "Count";
+	/* VU Iterations */
+	private long deltaIterationCountSuccess = 0;
+	private long totalIterationCountSuccess = 0;
 
-	private static String TotalTransactionCountPerSecond_MetricName = "Number of Transaction";
-	private static String TotalTransactionCountPerSecond_Component = "transactionCount";
-	private static String TotalTransactionCountPerSecond_Unit = "Transaction/Second";
+	private long deltaIterationCountFailure = 0;
+	private long totalIterationCountFailure = 0;
+
+	/** Last value received for the total number of Virtual Users executed in the test */
+	private long lastVirtualUserCount = 0;
 
 	private Optional<Long> lastTimestamp = Optional.empty();
 
-	public NLWebStats() {
-	}
+	private static final String LastRequestCountPerSecond_MetricName = "Last Request Count";
+	private static final String LastRequestCountPerSecond_Component = "lastRequestCount";
+	private static final String LastRequestCountPerSecond_Unit = "request/Second";
 
-	public float getLastRequestDurationAverage() {
-		return LastRequestDurationAverage;
-	}
+	private static final String LastRequestDurationAverage_MetricName = "Last Request duration";
+	private static final String LastRequestDurationAverage_Component = "lastRequestduration";
+	private static final String LastRequestDurationAverage_Unit = "Second";
 
-	public void setLastRequestDurationAverage(float lastRequestDurationAverage) {
-		LastRequestDurationAverage = lastRequestDurationAverage / 1000;
-	}
+	private static final String LastTransactionDurationAverage_MetricName = "Last Average Transaction Duration";
+	private static final String LastTransactionDurationAverage_Component = "lastAverageTransactionDuration";
+	private static final String LastTransactionDurationAverage_Unit = "Second";
 
-	public NLWebStats(float lastRequestCountPerSecond, float lastTransactionDurationAverage, int lastVirtualUserCount,
-			long totalGlobalCountFailure, float totalGlobalDownloadedBytes, float totalGlobalDownloadedBytesPerSecond,
-			long totalIterationCountFailure, long totalIterationCountSuccess, long totalRequestCountFailure,
-			float totalRequestCountPerSecond, long totalRequestCountSuccess,
-			long totalTransactionCountFailure, long totalTransactionCountSucess, float totalTransactionCountPerSecond, float lastrequestduration) {
-		super();
+	private static final String LastVirtualUserCount_MetricName = "Last User Load";
+	private static final String LastVirtualUserCount_Component = "lastUserLoad";
+	private static final String LastVirtualUserCount_Unit = "Count";
 
-		LastRequestCountPerSecond = lastRequestCountPerSecond;
-		LastTransactionDurationAverage = lastTransactionDurationAverage / 1000;
+	private static final String TotalGlobalCountFailure_MetricName = "Number of Failure";
+	private static final String TotalGlobalCountFailure_Component = "globalCountFailure";
+	private static final String TotalGlobalCountFailure_Unit = "count";
 
-		LastRequestDurationAverage = lastrequestduration / 1000;
+	private static final String TotalGlobalDownloadedBytes_MetricName = "Downloaded Bytes";
+	private static final String TotalGlobalDownloadedBytes_Component = "dowLoadedBytes";
+	private static final String TotalGlobalDownloadedBytes_Unit = "Bytes";
 
-		LastVirtualUserCount = lastVirtualUserCount;
+	private static final String TotalGlobalDownloadedBytesPerSecond_MetricName = "Downloaded Bytes";
+	private static final String TotalGlobalDownloadedBytesPerSecond_Component = "downloadedBytesPerSecond";
+	private static final String TotalGlobalDownloadedBytesPerSecond_Unit = "Bytes/Second";
 
-		TotalTransactionCountPerSecond = totalTransactionCountPerSecond;
+	private static final String TotalIterationCountFailure_MetricName = "Iteration in Failure";
+	private static final String TotalIterationCountFailure_Component = "iterationFailure";
+	private static final String TotalIterationCountFailure_Unit = "Count";
 
-		if (TotalGlobalCountFailure == 0)
-			TotalGlobalCountFailure = totalGlobalCountFailure;
-		else
-			TotalGlobalCountFailure = totalGlobalCountFailure - TotalGlobalCountFailure;
+	private static final String TotalIterationCountSuccess_MetricName = "Iteration in Success";
+	private static final String TotalIterationCountSuccess_Component = "iterationSuccess";
+	private static final String TotalIterationCountSuccess_Unit = "Count";
 
-		if (TotalGlobalDownloadedBytes == 0)
-			TotalGlobalDownloadedBytes = totalGlobalDownloadedBytes;
-		else
-			TotalGlobalDownloadedBytes = totalGlobalDownloadedBytes - TotalGlobalDownloadedBytes;
+	private static final String TotalRequestCountFailure_MetricName = "Request in Failure";
+	private static final String TotalRequestCountFailure_Component = "requestFailure";
+	private static final String TotalRequestCountFailure_Unit = "Count";
 
-		if (TotalGlobalDownloadedBytesPerSecond == 0)
-			TotalGlobalDownloadedBytesPerSecond = totalGlobalDownloadedBytesPerSecond;
-		else
-			TotalGlobalDownloadedBytesPerSecond = totalGlobalDownloadedBytesPerSecond - TotalGlobalDownloadedBytesPerSecond;
+	private static final String TotalRequestCountPerSecond_MetricName = "Number of request";
+	private static final String TotalRequestCountPerSecond_Component = "requestCount";
+	private static final String TotalRequestCountPerSecond_Unit = "Request/Second";
 
-		if (TotalIterationCountFailure == 0)
-			TotalIterationCountFailure = totalIterationCountFailure;
-		else
-			TotalIterationCountFailure = totalIterationCountFailure - TotalIterationCountFailure;
+	private static final String TotalRequestCountSuccess_MetricName = "Request in Success";
+	private static final String TotalRequestCountSuccess_Component = "requestSuccess";
+	private static final String TotalRequestCountSuccess_Unit = "Count";
 
-		if (TotalIterationCountSuccess == 0)
-			TotalIterationCountSuccess = totalIterationCountSuccess;
-		else
-			TotalIterationCountSuccess = totalIterationCountSuccess - TotalIterationCountSuccess;
+	private static final String TotalTransactionCountFailure_MetricName = "Transaction in Failure";
+	private static final String TotalTransactionCountFailure_Component = "transactionFailure";
+	private static final String TotalTransactionCountFailure_Unit = "Count";
 
-		if (TotalRequestCountFailure == 0)
-			TotalRequestCountFailure = totalRequestCountFailure;
-		else
-			TotalRequestCountFailure = totalRequestCountFailure - TotalRequestCountFailure;
+	private static final String TotalTransactionCountSucess_MetricName = "Transaction in Success";
+	private static final String TotalTransactionCountSucess_Component = "transactionSuccess";
+	private static final String TotalTransactionCountSucess_Unit = "Count";
 
-		if (TotalRequestCountPerSecond == 0)
-			TotalRequestCountPerSecond = totalRequestCountPerSecond;
-		else
-			TotalRequestCountPerSecond = totalRequestCountPerSecond - TotalRequestCountPerSecond;
-
-		if (TotalRequestCountSuccess == 0)
-			TotalRequestCountSuccess = totalRequestCountSuccess;
-		else
-			TotalRequestCountSuccess = totalRequestCountSuccess - TotalRequestCountSuccess;
-
-		if (TotalTransactionCountFailure == 0)
-			TotalTransactionCountFailure = totalTransactionCountFailure;
-		else
-			TotalTransactionCountFailure = totalTransactionCountFailure - TotalTransactionCountFailure;
-
-		if (TotalTransactionCountSuccess == 0)
-			TotalTransactionCountSuccess = totalTransactionCountSucess;
-		else
-			TotalTransactionCountSuccess = totalTransactionCountSucess - TotalTransactionCountSuccess;
-
-		if (TotalTransactionCountPerSecond == 0)
-			TotalTransactionCountPerSecond = totalTransactionCountPerSecond;
-		else
-			TotalTransactionCountPerSecond = totalTransactionCountPerSecond - TotalTransactionCountPerSecond;
-
-	}
+	private static final String TotalTransactionCountPerSecond_MetricName = "Number of Transaction";
+	private static final String TotalTransactionCountPerSecond_Component = "transactionCount";
+	private static final String TotalTransactionCountPerSecond_Unit = "Transaction/Second";
 
 	public Optional<Long> getLastTimestamp() {
 		return lastTimestamp;
@@ -182,128 +128,122 @@ public class NLWebStats {
 	}
 
 	public void updateTestStatistics(final TestStatistics response) {
-		setLastRequestCountPerSecond(response.getLastRequestCountPerSecond());
-		setLastTransactionDurationAverage(response.getLastTransactionDurationAverage());
-		setLastVirtualUserCount(response.getLastVirtualUserCount());
-		setTotalGlobalCountFailure(response.getTotalGlobalCountFailure());
-		setTotalGlobalDownloadedBytes(response.getTotalGlobalDownloadedBytes());
-		setTotalGlobalDownloadedBytesPerSecond(response.getTotalGlobalDownloadedBytesPerSecond());
-		setTotalIterationCountFailure(response.getTotalIterationCountFailure());
-		setTotalIterationCountSuccess(response.getTotalIterationCountSuccess());
-		setTotalRequestCountFailure(response.getTotalRequestCountFailure());
-		setTotalRequestCountPerSecond(response.getTotalRequestCountPerSecond());
-		setTotalRequestCountSuccess(response.getTotalRequestCountSuccess());
-		setTotalTransactionCountFailure(response.getTotalTransactionCountFailure());
-		setTotalTransactionCountPerSecond(response.getTotalTransactionCountPerSecond());
-		setTotalTransactionCountSucess(response.getTotalTransactionCountSuccess());
-		setLastRequestDurationAverage(response.getTotalRequestDurationAverage());
+		/* Transactions */
+		this.totalTransactionCountPerSecond = response.getTotalTransactionCountPerSecond();
+
+		this.deltaTransactionCountSuccess = response.getTotalTransactionCountSuccess() - this.totalTransactionCountSuccess;
+		this.totalTransactionCountSuccess = response.getTotalTransactionCountSuccess();
+
+		this.deltaTransactionCountFailure = response.getTotalTransactionCountFailure() - this.totalTransactionCountFailure;
+		this.totalTransactionCountFailure = response.getTotalTransactionCountFailure();
+
+		this.lastTransactionDurationAverage = response.getLastTransactionDurationAverage();
+
+
+		/* Requests */
+		this.lastRequestCountPerSecond = response.getLastRequestCountPerSecond();
+		this.totalRequestCountPerSecond = response.getTotalRequestCountPerSecond();
+
+		this.deltaRequestCountSuccess = response.getTotalRequestCountSuccess() - this.totalRequestCountSuccess;
+		this.totalRequestCountSuccess = response.getTotalRequestCountSuccess();
+
+		this.deltaRequestCountFailure = response.getTotalRequestCountFailure() - this.totalRequestCountFailure;
+		this.totalRequestCountFailure = response.getTotalRequestCountFailure();
+
+		this.totalRequestDurationAverage = response.getTotalRequestDurationAverage();
+
+
+		/* Throughput */
+		this.deltaGlobalCountFailure = response.getTotalGlobalCountFailure() - this.totalGlobalCountFailure;
+		this.totalGlobalCountFailure = response.getTotalGlobalCountFailure();
+
+		this.totalGlobalDownloadedBytesPerSecond = response.getTotalGlobalDownloadedBytesPerSecond();
+
+		this.deltaGlobalDownloadedBytes = response.getTotalGlobalDownloadedBytes() - this.totalGlobalDownloadedBytes;
+		this.totalGlobalDownloadedBytes = response.getTotalGlobalDownloadedBytes();
+
+
+		/* VU Iterations */
+		this.deltaIterationCountSuccess = response.getTotalIterationCountSuccess() - this.totalIterationCountSuccess;
+		this.totalIterationCountSuccess = response.getTotalIterationCountSuccess();
+
+		this.deltaIterationCountFailure = response.getTotalIterationCountFailure() - this.totalIterationCountFailure;
+		this.totalIterationCountFailure = response.getTotalIterationCountFailure();
+
+		/** Last value received for the total number of Virtual Users executed in the test */
+		this.lastVirtualUserCount = response.getLastVirtualUserCount();
 	}
 
-	public float getLastRequestCountPerSecond() {
-		return LastRequestCountPerSecond;
-	}
-
-	public String[] GetRequestrequestDuration() {
+	private String[] GetRequestrequestDuration() {
 		DecimalFormat df = new DecimalFormat("#.##########");
 
 		String[] result = new String[4];
 		result[0] = LastRequestDurationAverage_MetricName;
 		result[1] = LastRequestDurationAverage_Component;
 		result[2] = LastRequestDurationAverage_Unit;
-		result[3] = df.format(getLastRequestDurationAverage());
+		result[3] = df.format(totalRequestDurationAverage);
 		return result;
 
 	}
 
-	public String[] GetRequestCountData() {
+	private String[] GetRequestCountData() {
 		DecimalFormat df = new DecimalFormat("#.##########");
 
 		String[] result = new String[4];
 		result[0] = LastRequestCountPerSecond_MetricName;
 		result[1] = LastRequestCountPerSecond_Component;
 		result[2] = LastRequestCountPerSecond_Unit;
-		result[3] = df.format(getLastRequestCountPerSecond());
+		result[3] = df.format(lastRequestCountPerSecond);
 		return result;
 
 	}
 
-	public void setLastRequestCountPerSecond(float lastRequestCountPerSecond) {
-		LastRequestCountPerSecond = lastRequestCountPerSecond;
-	}
-
-	public float getLastTransactionDurationAverage() {
-		return LastTransactionDurationAverage;
-	}
-
-	public String[] GetTransactionDuractionData() {
+	private String[] GetTransactionDuractionData() {
 		DecimalFormat df = new DecimalFormat("#.##########");
 
 		String[] result = new String[4];
 		result[0] = LastTransactionDurationAverage_MetricName;
 		result[1] = LastTransactionDurationAverage_Component;
 		result[2] = LastTransactionDurationAverage_Unit;
-		result[3] = df.format(getLastTransactionDurationAverage());
+		result[3] = df.format(lastTransactionDurationAverage);
 		return result;
 
 	}
 
-	public void setLastTransactionDurationAverage(float lastTransactionDurationAverage) {
-		LastTransactionDurationAverage = lastTransactionDurationAverage / 1000;
-	}
-
-	public int getLastVirtualUserCount() {
-		return LastVirtualUserCount;
-	}
-
-	public String[] GetVirtualUserCountData() {
+	private String[] GetVirtualUserCountData() {
 		String[] result = new String[4];
 		result[0] = LastVirtualUserCount_MetricName;
 		result[1] = LastVirtualUserCount_Component;
 		result[2] = LastVirtualUserCount_Unit;
-		result[3] = String.valueOf(getLastVirtualUserCount());
+		result[3] = String.valueOf(lastVirtualUserCount);
 		return result;
 
 	}
 
-	public void setLastVirtualUserCount(int lastVirtualUserCount) {
-		LastVirtualUserCount = lastVirtualUserCount;
-	}
-
-	public long getTotalGlobalCountFailure() {
-		return TotalGlobalCountFailure;
-	}
-
-	public String[] GetTotalGlobalCountFailureData() {
+	private String[] getDeltaGlobalCountFailureData() {
 		String[] result = new String[4];
 		result[0] = TotalGlobalCountFailure_MetricName;
 		result[1] = TotalGlobalCountFailure_Component;
 		result[2] = TotalGlobalCountFailure_Unit;
-		result[3] = String.valueOf(getTotalGlobalCountFailure());
+		result[3] = String.valueOf(deltaGlobalCountFailure);
 		return result;
 
-	}
-
-	public void setTotalGlobalCountFailure(long totalGlobalCountFailure) {
-		if (TotalGlobalCountFailure == 0)
-			TotalGlobalCountFailure = totalGlobalCountFailure;
-		else
-			TotalGlobalCountFailure = totalGlobalCountFailure - TotalGlobalCountFailure;
 	}
 
 	public List<String[]> getNLData() {
 		final List<String[]> result = new ArrayList<>();
 		result.add(GetRequestCountData());
-		result.add(GetTotalGlobalCountFailureData());
-		result.add(GetTotalGlobalDownloadedBytesData());
+		result.add(getDeltaGlobalCountFailureData());
+		result.add(GetDeltaGlobalDownloadedBytesData());
 		result.add(GetTotalGlobalDownloadedBytesPerSecondData());
-		result.add(GetTotalIterationCountFailureData());
-		result.add(GetTotalIterationCountSuccessData());
-		result.add(GetTotalRequestCountFailureData());
+		result.add(GetDeltaIterationCountFailureData());
+		result.add(GetDeltaIterationCountSuccessData());
+		result.add(GetDeltaRequestCountFailureData());
 		result.add(GetTotalRequestCountPerSecondData());
-		result.add(GetTotalRequestCountSuccessData());
-		result.add(GetTransactionCountFailureData());
-		result.add(GetTransactionCountPefSecondData());
-		result.add(GetTransactionCountSucessData());
+		result.add(getDeltaRequestCountSuccessData());
+		result.add(GetDeltaTransactionCountFailureData());
+		result.add(GetTotalTransactionCountPerSecondData());
+		result.add(GetDeltaTransactionCountSucessData());
 		result.add(GetTransactionDuractionData());
 		result.add(GetVirtualUserCountData());
 		result.add(GetRequestrequestDuration());
@@ -311,224 +251,112 @@ public class NLWebStats {
 		return result;
 	}
 
-	public float getTotalGlobalDownloadedBytes() {
-		return TotalGlobalDownloadedBytes;
-	}
-
-	public String[] GetTotalGlobalDownloadedBytesData() {
+	private String[] GetDeltaGlobalDownloadedBytesData() {
 		DecimalFormat df = new DecimalFormat("#.##########");
 
 		String[] result = new String[4];
 		result[0] = TotalGlobalDownloadedBytes_MetricName;
 		result[1] = TotalGlobalDownloadedBytes_Component;
 		result[2] = TotalGlobalDownloadedBytes_Unit;
-		result[3] = df.format(getTotalGlobalDownloadedBytes());
+		result[3] = df.format(deltaGlobalDownloadedBytes);
 		return result;
 
 	}
 
-	public void setTotalGlobalDownloadedBytes(float totalGlobalDownloadedBytes) {
-		if (TotalGlobalDownloadedBytes == 0)
-			TotalGlobalDownloadedBytes = totalGlobalDownloadedBytes;
-		else
-			TotalGlobalDownloadedBytes = totalGlobalDownloadedBytes - TotalGlobalDownloadedBytes;
-	}
-
-	public float getTotalGlobalDownloadedBytesPerSecond() {
-		return TotalGlobalDownloadedBytesPerSecond;
-	}
-
-	public String[] GetTotalGlobalDownloadedBytesPerSecondData() {
+	private String[] GetTotalGlobalDownloadedBytesPerSecondData() {
 		DecimalFormat df = new DecimalFormat("#.##########");
 
 		String[] result = new String[4];
 		result[0] = TotalGlobalDownloadedBytesPerSecond_MetricName;
 		result[1] = TotalGlobalDownloadedBytesPerSecond_Component;
 		result[2] = TotalGlobalDownloadedBytesPerSecond_Unit;
-		result[3] = df.format(getTotalGlobalDownloadedBytesPerSecond());
+		result[3] = df.format(totalGlobalDownloadedBytesPerSecond);
 		return result;
 
 	}
 
-	public void setTotalGlobalDownloadedBytesPerSecond(float totalGlobalDownloadedBytesPerSecond) {
-		if (TotalGlobalDownloadedBytesPerSecond == 0)
-			TotalGlobalDownloadedBytesPerSecond = totalGlobalDownloadedBytesPerSecond;
-		else
-			TotalGlobalDownloadedBytesPerSecond = totalGlobalDownloadedBytesPerSecond - TotalGlobalDownloadedBytesPerSecond;
-
-	}
-
-	public long getTotalIterationCountFailure() {
-		return TotalIterationCountFailure;
-	}
-
-	public String[] GetTotalIterationCountFailureData() {
+	private String[] GetDeltaIterationCountFailureData() {
 		String[] result = new String[4];
 		result[0] = TotalIterationCountFailure_MetricName;
 		result[1] = TotalIterationCountFailure_Component;
 		result[2] = TotalIterationCountFailure_Unit;
-		result[3] = String.valueOf(getTotalIterationCountFailure());
+		result[3] = String.valueOf(deltaIterationCountFailure);
 		return result;
 
 	}
 
-	public void setTotalIterationCountFailure(long totalIterationCountFailure) {
-		if (TotalIterationCountFailure == 0)
-			TotalIterationCountFailure = totalIterationCountFailure;
-		else
-			TotalIterationCountFailure = totalIterationCountFailure - TotalIterationCountFailure;
-	}
-
-	public long getTotalIterationCountSuccess() {
-		return TotalIterationCountSuccess;
-	}
-
-	public String[] GetTotalIterationCountSuccessData() {
+	private String[] GetDeltaIterationCountSuccessData() {
 		String[] result = new String[4];
 		result[0] = TotalIterationCountSuccess_MetricName;
 		result[1] = TotalIterationCountSuccess_Component;
 		result[2] = TotalIterationCountSuccess_Unit;
-		result[3] = String.valueOf(getTotalIterationCountSuccess());
+		result[3] = String.valueOf(deltaIterationCountSuccess);
 		return result;
 
 	}
 
-	public void setTotalIterationCountSuccess(long totalIterationCountSuccess) {
-		if (TotalIterationCountSuccess == 0)
-			TotalIterationCountSuccess = totalIterationCountSuccess;
-		else
-			TotalIterationCountSuccess = totalIterationCountSuccess - TotalIterationCountSuccess;
-	}
-
-	public long getTotalRequestCountFailure() {
-		return TotalRequestCountFailure;
-	}
-
-	public String[] GetTotalRequestCountFailureData() {
+	private String[] GetDeltaRequestCountFailureData() {
 		String[] result = new String[4];
 		result[0] = TotalRequestCountFailure_MetricName;
 		result[1] = TotalRequestCountFailure_Component;
 		result[2] = TotalRequestCountFailure_Unit;
-		result[3] = String.valueOf(getTotalRequestCountFailure());
+		result[3] = String.valueOf(deltaRequestCountFailure);
 		return result;
 
 	}
 
-	public void setTotalRequestCountFailure(long totalRequestCountFailure) {
-		if (TotalRequestCountFailure == 0)
-			TotalRequestCountFailure = totalRequestCountFailure;
-		else
-			TotalRequestCountFailure = totalRequestCountFailure - TotalRequestCountFailure;
-	}
-
-	public float getTotalRequestCountPerSecond() {
-		return TotalRequestCountPerSecond;
-	}
-
-	public String[] GetTotalRequestCountPerSecondData() {
+	private String[] GetTotalRequestCountPerSecondData() {
 		DecimalFormat df = new DecimalFormat("#.##########");
 
 		String[] result = new String[4];
 		result[0] = TotalRequestCountPerSecond_MetricName;
 		result[1] = TotalRequestCountPerSecond_Component;
 		result[2] = TotalRequestCountPerSecond_Unit;
-		result[3] = df.format(getTotalRequestCountPerSecond());
+		result[3] = df.format(totalRequestCountPerSecond);
 		return result;
 
 	}
 
-	public void setTotalRequestCountPerSecond(Float totalRequestCountPerSecond) {
-		if (TotalRequestCountPerSecond == 0)
-			TotalRequestCountPerSecond = totalRequestCountPerSecond;
-		else
-			TotalRequestCountPerSecond = totalRequestCountPerSecond - TotalRequestCountPerSecond;
-	}
-
-	public long getTotalRequestCountSuccess() {
-		return TotalRequestCountSuccess;
-	}
-
-	public String[] GetTotalRequestCountSuccessData() {
+	private String[] getDeltaRequestCountSuccessData() {
 		String[] result = new String[4];
 		result[0] = TotalRequestCountSuccess_MetricName;
 		result[1] = TotalRequestCountSuccess_Component;
 		result[2] = TotalRequestCountSuccess_Unit;
-		result[3] = String.valueOf(getTotalRequestCountSuccess());
+		result[3] = String.valueOf(deltaRequestCountSuccess);
 		return result;
 
 	}
 
-	public void setTotalRequestCountSuccess(long totalRequestCountSuccess) {
-		if (TotalRequestCountSuccess == 0)
-			TotalRequestCountSuccess = totalRequestCountSuccess;
-		else
-			TotalRequestCountSuccess = totalRequestCountSuccess - TotalRequestCountSuccess;
-	}
-
-	public long getTotalTransactionCountFailure() {
-		return TotalTransactionCountFailure;
-	}
-
-	public String[] GetTransactionCountFailureData() {
+	private String[] GetDeltaTransactionCountFailureData() {
 		String[] result = new String[4];
 		result[0] = TotalTransactionCountFailure_MetricName;
 		result[1] = TotalTransactionCountFailure_Component;
 		result[2] = TotalTransactionCountFailure_Unit;
-		result[3] = String.valueOf(getTotalTransactionCountFailure());
+		result[3] = String.valueOf(deltaTransactionCountFailure);
 		return result;
 
 	}
 
-	public void setTotalTransactionCountFailure(long totalTransactionCountFailure) {
-		if (TotalTransactionCountFailure == 0)
-			TotalTransactionCountFailure = totalTransactionCountFailure;
-		else
-			TotalTransactionCountFailure = totalTransactionCountFailure - TotalTransactionCountFailure;
-	}
-
-	public long getTotalTransactionCountSucess() {
-		return TotalTransactionCountSuccess;
-	}
-
-	public String[] GetTransactionCountSucessData() {
+	private String[] GetDeltaTransactionCountSucessData() {
 
 		String[] result = new String[4];
 		result[0] = TotalTransactionCountSucess_MetricName;
 		result[1] = TotalTransactionCountSucess_Component;
 		result[2] = TotalTransactionCountSucess_Unit;
-		result[3] = String.valueOf(getTotalTransactionCountSucess());
+		result[3] = String.valueOf(deltaTransactionCountSuccess);
 		return result;
 
 	}
 
-	public void setTotalTransactionCountSucess(long totalTransactionCountFailure) {
-		if (TotalTransactionCountSuccess == 0)
-			TotalTransactionCountSuccess = totalTransactionCountFailure;
-		else
-			TotalTransactionCountSuccess = totalTransactionCountFailure - TotalTransactionCountSuccess;
-	}
-
-	public float getTotalTransactionCountPerSecond() {
-		return TotalTransactionCountPerSecond;
-	}
-
-	public String[] GetTransactionCountPefSecondData() {
+	private String[] GetTotalTransactionCountPerSecondData() {
 		DecimalFormat df = new DecimalFormat("#.##########");
 
 		String[] result = new String[4];
 		result[0] = TotalTransactionCountPerSecond_MetricName;
 		result[1] = TotalTransactionCountPerSecond_Component;
 		result[2] = TotalTransactionCountPerSecond_Unit;
-		result[3] = df.format(getTotalTransactionCountPerSecond());
+		result[3] = df.format(totalTransactionCountPerSecond);
 		return result;
 
 	}
-
-	public void setTotalTransactionCountPerSecond(float totalTransactionCountPerSecond) {
-		if (TotalTransactionCountPerSecond == 0)
-			TotalTransactionCountPerSecond = totalTransactionCountPerSecond;
-		else
-			TotalTransactionCountPerSecond = totalTransactionCountPerSecond - TotalTransactionCountPerSecond;
-	}
-
 }

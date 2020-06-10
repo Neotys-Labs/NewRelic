@@ -141,18 +141,32 @@ NeoLoad sends statistics in two Insights tables: "NeoLoadData" and "NeoLoadValue
 These data are the [Main Statistics](https://www.neotys.com/documents/doc/nlweb/latest/en/html/#22968.htm) from NeoLoad Web. They are retrieved from [NeoLoad Web API](https://neoload-api.saas.neotys.com/explore/index.html) with REST call "/tests/{testId}/statistics".
 
 NeoLoadData table has all the global statistics of the test:
-* Timestamp
-* Metric Unit
-* Account
-* App ID
-* Application Name
-* Average Transaction Duration
-* Dow Loaded Bytes
-* Downloaded Bytes Per Second
-* Global Count Failure
-* Iteration Failure
-* Iteration Success
-* Request 
+
+| Name                               | Unit    | Description  |
+| --------------------------------   | ------- | ------------ |
+| Timestamp                          | Date    |   |
+| Metric Unit                        | -       | Always empty |
+| Account                            | -       | ID of the NewRelic account  |
+| App ID                             | -       | ID of the application  |
+| Application Name                   | -       |   |
+| Scenario Name                      | -       | Name of the Neoload scenario  |
+| Test Name                          | -       | Name of the Neoload test result  |
+| transactionInstantDuration         | Second  | Average transaction duration at this timestamp  |
+| transactionSuccess                 | Count   | Transaction in success since the previous event  |
+| transactionFailure                 | Count   | Transaction in failure since the previous event  |
+| transactionCount                   | Transaction/Second | Number of transaction per second from start of test  |
+| transactionAverageDuration         | Second  | Average transaction duration from start of test  |
+| downloadedBytes                    | Bytes   | Downloaded bytes since previous event |
+| downloadedBytesPerSecond           | Bytes/Second | Downloaded bytes per second from start of test  |
+| userLoad                           | Count   | User load at this timestamp  |
+| iterationFailure                   | Count   | Iteration in failure since the previous event  |
+| iterationSuccess                   | Count   | Iteration in success since the previous event  |
+| globalCountFailure                 | Count   | Number of failure since previous event |
+| requestInstantRate                 | Request/Second | Request rate at this timestamp  |
+| requestInstantDuration             | Second  | Last request duration at this timestamp  |
+| requestSuccess                     | Count   | Request in success since the previous event  |
+| requestFailure                     | Count   | Request in failure since the previous event  |
+| requestCount                       | Request/Second | Number of request per second from start  |
 
 ### NeoLoadValues Insights table
 

@@ -6,6 +6,8 @@ import static com.neotys.newrelic.rest.HTTPGenerator.HTTP_POST_METHOD;
 import static com.neotys.newrelic.rest.HttpResponseUtils.getJsonResponse;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.ZoneOffset;
@@ -22,6 +24,7 @@ import java.util.SimpleTimeZone;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -298,6 +301,7 @@ public class NewRelicRestClient {
 	 * @return Optional<String>: error message if any
 	 */
 	public Optional<String> sendNLWebElementValuesToInsightsAPI(final List<NLWebElementValue> nlWebElementValues) {
+		final StringBuilder errorMessages = new StringBuilder();
 		HTTPGenerator http = null;
 		try {
 			final String accountId = newRelicActionArguments.getNewRelicAccountId().orElse("");
@@ -327,21 +331,16 @@ public class NewRelicRestClient {
 
 				http = HTTPGenerator.newJsonHttpGenerator(HTTP_POST_METHOD, url, headers, ArrayListMultimap.create(), proxy, jsonString);
 				final HttpResponse httpResponse = http.execute();
-				if (httpResponse.getStatusLine().getStatusCode() >= 400) {
-					return Optional.of(
-							Optional.ofNullable(HttpResponseUtils.getStringResponse(httpResponse))
-									.orElse("ERROR HTTP " + httpResponse.getStatusLine().getStatusCode())
-					);
-				}
+				buildErrorMessage(http.getRequest(), httpResponse).ifPresent(errorMessages::append);
 			}
 		} catch (final Exception e) {
-			return Optional.of(e.getMessage());
+			return Optional.of(e.getClass().getCanonicalName() + e.getMessage());
 		} finally {
 			if (http != null) {
 				http.closeHttpClient();
 			}
 		}
-		return Optional.empty();
+		return Optional.ofNullable(errorMessages.length() > 0 ? errorMessages.toString() : null);
 	}
 
 	/**
@@ -374,12 +373,7 @@ public class NewRelicRestClient {
 			final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
 			http = HTTPGenerator.newJsonHttpGenerator(HTTP_POST_METHOD, url, headers, ArrayListMultimap.create(), proxy, jsonString.toString());
 			final HttpResponse httpResponse = http.execute();
-			if (httpResponse.getStatusLine().getStatusCode() >= 400) {
-				return Optional.of(
-						Optional.ofNullable(HttpResponseUtils.getStringResponse(httpResponse))
-								.orElse("ERROR HTTP " + httpResponse.getStatusLine().getStatusCode())
-				);
-			}
+			return buildErrorMessage(http.getRequest(), httpResponse);
 		} catch (final Exception e) {
 			return Optional.of(e.getMessage());
 		} finally {
@@ -387,7 +381,6 @@ public class NewRelicRestClient {
 				http.closeHttpClient();
 			}
 		}
-		return Optional.empty();
 	}
 
 	/**
@@ -397,6 +390,7 @@ public class NewRelicRestClient {
 	 * @return Optional<String>: error message if any
 	 */
 	public Optional<String> sendNLWebMainStatisticsToPlateformAPI(final NLWebMainStatistics nlWebMainStatistics) {
+		final StringBuilder errorMessages = new StringBuilder();
 		HTTPGenerator http = null;
 		try {
 			final String url = Constants.NEW_RELIC_PLATFORM_API_URL;
@@ -424,19 +418,35 @@ public class NewRelicRestClient {
 
 				http = HTTPGenerator.newJsonHttpGenerator(HTTP_POST_METHOD, url, headers, ArrayListMultimap.create(), proxy, jsonString);
 				final HttpResponse httpResponse = http.execute();
-				if (httpResponse.getStatusLine().getStatusCode() >= 400) {
-					return Optional.of(
-							Optional.ofNullable(HttpResponseUtils.getStringResponse(httpResponse))
-									.orElse("ERROR HTTP " + httpResponse.getStatusLine().getStatusCode())
-					);
-				}
+				buildErrorMessage(http.getRequest(), httpResponse).ifPresent(errorMessages::append);
 			}
 		} catch (final Exception e) {
-			return Optional.of(e.getMessage());
+			StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw);
+			e.printStackTrace(pw);
+			return Optional.of(e.getClass().getCanonicalName() + e.getMessage()+sw.toString());
 		} finally {
 			if (http != null) {
 				http.closeHttpClient();
 			}
+		}
+		return Optional.ofNullable(errorMessages.length() > 0 ? errorMessages.toString() : null);
+	}
+
+	private Optional<String> buildErrorMessage(final HttpRequestBase request, final HttpResponse httpResponse) {
+		String stringResponse;
+		try {
+			stringResponse = HttpResponseUtils.getStringResponse(httpResponse);
+		} catch (IOException e) {
+			stringResponse = "IOException while reading response : " + e.getMessage();
+		}
+		final int httpCode = httpResponse.getStatusLine().getStatusCode();
+		if (httpCode >= 400) {
+			final StringBuilder errorMessage = new StringBuilder();
+			errorMessage.append("Error HTTP ").append(httpCode);
+			errorMessage.append(". Request ").append(request.getMethod()).append(" ").append(request.getURI().toString());
+			errorMessage.append(". Response is: ").append(stringResponse);
+			return Optional.of(errorMessage.toString());
 		}
 		return Optional.empty();
 	}

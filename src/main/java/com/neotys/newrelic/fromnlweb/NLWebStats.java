@@ -21,7 +21,7 @@ public class NLWebStats {
 
 	private float lastTransactionDurationAverage = 0;
 
-	//	private float totalTransactionDurationAverage;
+	private float totalTransactionDurationAverage = 0;
 
 
 	/* Requests */
@@ -59,64 +59,68 @@ public class NLWebStats {
 
 	private Optional<Long> lastTimestamp = Optional.empty();
 
-	private static final String LastRequestCountPerSecond_MetricName = "Last Request Count";
-	private static final String LastRequestCountPerSecond_Component = "lastRequestCount";
-	private static final String LastRequestCountPerSecond_Unit = "request/Second";
+	private static final String LastRequestCountPerSecond_MetricName = "Request rate at this timestamp";
+	private static final String LastRequestCountPerSecond_Component = "requestInstantRate";
+	private static final String LastRequestCountPerSecond_Unit = "Request/Second";
 
-	private static final String LastRequestDurationAverage_MetricName = "Last Request duration";
-	private static final String LastRequestDurationAverage_Component = "lastRequestduration";
+	private static final String LastRequestDurationAverage_MetricName = "Last request duration at this timestamp";
+	private static final String LastRequestDurationAverage_Component = "requestInstantDuration";
 	private static final String LastRequestDurationAverage_Unit = "Second";
 
-	private static final String LastTransactionDurationAverage_MetricName = "Last Average Transaction Duration";
-	private static final String LastTransactionDurationAverage_Component = "lastAverageTransactionDuration";
+	private static final String LastTransactionDurationAverage_MetricName = "Average transaction duration at this timestamp";
+	private static final String LastTransactionDurationAverage_Component = "transactionInstantDuration";
 	private static final String LastTransactionDurationAverage_Unit = "Second";
 
-	private static final String LastVirtualUserCount_MetricName = "Last User Load";
-	private static final String LastVirtualUserCount_Component = "lastUserLoad";
+	private static final String totalTransactionDurationAverage_MetricName = "Average transaction duration from start";
+	private static final String totalTransactionDurationAverage_Component = "transactionAverageDuration";
+	private static final String totalTransactionDurationAverage_Unit = "Second";
+
+	private static final String LastVirtualUserCount_MetricName = "User load at this timestamp";
+	private static final String LastVirtualUserCount_Component = "userLoad";
 	private static final String LastVirtualUserCount_Unit = "Count";
 
-	private static final String TotalGlobalCountFailure_MetricName = "Number of Failure";
+	private static final String TotalGlobalCountFailure_MetricName = "Number of failure since previous event";
 	private static final String TotalGlobalCountFailure_Component = "globalCountFailure";
-	private static final String TotalGlobalCountFailure_Unit = "count";
+	private static final String TotalGlobalCountFailure_Unit = "Count";
 
-	private static final String TotalGlobalDownloadedBytes_MetricName = "Downloaded Bytes";
-	private static final String TotalGlobalDownloadedBytes_Component = "dowLoadedBytes";
+	private static final String TotalGlobalDownloadedBytes_MetricName = "Downloaded bytes since previous event";
+	private static final String TotalGlobalDownloadedBytes_Component = "downloadedBytes";
 	private static final String TotalGlobalDownloadedBytes_Unit = "Bytes";
 
-	private static final String TotalGlobalDownloadedBytesPerSecond_MetricName = "Downloaded Bytes";
+	private static final String TotalGlobalDownloadedBytesPerSecond_MetricName = "Downloaded bytes per second from start";
 	private static final String TotalGlobalDownloadedBytesPerSecond_Component = "downloadedBytesPerSecond";
 	private static final String TotalGlobalDownloadedBytesPerSecond_Unit = "Bytes/Second";
 
-	private static final String TotalIterationCountFailure_MetricName = "Iteration in Failure";
+	private static final String TotalIterationCountFailure_MetricName = "Iteration in failure since the previous event";
 	private static final String TotalIterationCountFailure_Component = "iterationFailure";
 	private static final String TotalIterationCountFailure_Unit = "Count";
 
-	private static final String TotalIterationCountSuccess_MetricName = "Iteration in Success";
+	private static final String TotalIterationCountSuccess_MetricName = "Iteration in success since the previous event";
 	private static final String TotalIterationCountSuccess_Component = "iterationSuccess";
 	private static final String TotalIterationCountSuccess_Unit = "Count";
 
-	private static final String TotalRequestCountFailure_MetricName = "Request in Failure";
+	private static final String TotalRequestCountFailure_MetricName = "Request in failure since the previous event";
 	private static final String TotalRequestCountFailure_Component = "requestFailure";
 	private static final String TotalRequestCountFailure_Unit = "Count";
 
-	private static final String TotalRequestCountPerSecond_MetricName = "Number of request";
-	private static final String TotalRequestCountPerSecond_Component = "requestCount";
+	private static final String TotalRequestCountPerSecond_MetricName = "Number of request per second from start";
+	private static final String TotalRequestCountPerSecond_Component = "requestAverageRate";
 	private static final String TotalRequestCountPerSecond_Unit = "Request/Second";
 
-	private static final String TotalRequestCountSuccess_MetricName = "Request in Success";
+	private static final String TotalRequestCountSuccess_MetricName = "Request in success since the previous event";
 	private static final String TotalRequestCountSuccess_Component = "requestSuccess";
 	private static final String TotalRequestCountSuccess_Unit = "Count";
 
-	private static final String TotalTransactionCountFailure_MetricName = "Transaction in Failure";
+	private static final String TotalTransactionCountFailure_MetricName = "Transaction in failure since the previous event";
 	private static final String TotalTransactionCountFailure_Component = "transactionFailure";
 	private static final String TotalTransactionCountFailure_Unit = "Count";
 
-	private static final String TotalTransactionCountSucess_MetricName = "Transaction in Success";
+	private static final String TotalTransactionCountSucess_MetricName = "Transaction in success since the previous event";
 	private static final String TotalTransactionCountSucess_Component = "transactionSuccess";
 	private static final String TotalTransactionCountSucess_Unit = "Count";
 
-	private static final String TotalTransactionCountPerSecond_MetricName = "Number of Transaction";
-	private static final String TotalTransactionCountPerSecond_Component = "transactionCount";
+	private static final String TotalTransactionCountPerSecond_MetricName = "Number of transaction per second from start";
+	private static final String TotalTransactionCountPerSecond_Component = "transactionAverageRate";
 	private static final String TotalTransactionCountPerSecond_Unit = "Transaction/Second";
 
 	public Optional<Long> getLastTimestamp() {
@@ -137,7 +141,9 @@ public class NLWebStats {
 		this.deltaTransactionCountFailure = response.getTotalTransactionCountFailure() - this.totalTransactionCountFailure;
 		this.totalTransactionCountFailure = response.getTotalTransactionCountFailure();
 
-		this.lastTransactionDurationAverage = response.getLastTransactionDurationAverage();
+		this.lastTransactionDurationAverage = response.getLastTransactionDurationAverage() / 1000;
+
+		this.totalTransactionDurationAverage = response.getTotalTransactionDurationAverage() / 1000;
 
 
 		/* Requests */
@@ -150,7 +156,7 @@ public class NLWebStats {
 		this.deltaRequestCountFailure = response.getTotalRequestCountFailure() - this.totalRequestCountFailure;
 		this.totalRequestCountFailure = response.getTotalRequestCountFailure();
 
-		this.totalRequestDurationAverage = response.getTotalRequestDurationAverage();
+		this.totalRequestDurationAverage = response.getTotalRequestDurationAverage() / 1000;
 
 
 		/* Throughput */
@@ -210,6 +216,18 @@ public class NLWebStats {
 
 	}
 
+	private String[] GetTotalTransactionDuractionData() {
+		DecimalFormat df = new DecimalFormat("#.##########");
+
+		String[] result = new String[4];
+		result[0] = totalTransactionDurationAverage_MetricName;
+		result[1] = totalTransactionDurationAverage_Component;
+		result[2] = totalTransactionDurationAverage_Unit;
+		result[3] = df.format(totalTransactionDurationAverage);
+		return result;
+
+	}
+
 	private String[] GetVirtualUserCountData() {
 		String[] result = new String[4];
 		result[0] = LastVirtualUserCount_MetricName;
@@ -245,6 +263,7 @@ public class NLWebStats {
 		result.add(GetTotalTransactionCountPerSecondData());
 		result.add(GetDeltaTransactionCountSucessData());
 		result.add(GetTransactionDuractionData());
+		result.add(GetTotalTransactionDuractionData());
 		result.add(GetVirtualUserCountData());
 		result.add(GetRequestrequestDuration());
 

@@ -23,7 +23,7 @@ This bundle provides both an inbound and an outbound integration:
 | Requirements | <ul><li>License FREE edition, or Enterprise edition, or Professional with Integration & Advanced Usage</li><li>New Relic account with Infrastructures and Plugins</li></ul>|
 | Optionals | <ul><li>NeoLoad Web SaaS subscription (for option to send data from NeoLoad Web to New Relic)</li><li>New Relic account with Insights</li></ul>|
 | Bundled in NeoLoad | No |
-| Download Binaries    |  <ul><li>[latest release](https://github.com/Neotys-Labs/NewRelic/releases/latest) is only compatible with NeoLoad from version 6.7</li><li> Use this [release](https://github.com/Neotys-Labs/NewRelic/releases/tag/1.0.2) for previous NeoLoad versions</li></ul>|
+| Download Binaries    | <ul><li>[latest release](https://github.com/Neotys-Labs/NewRelic/releases/latest) is only compatible with NeoLoad from version 9.1</li><li> Use [this release 2.1.1](https://github.com/Neotys-Labs/NewRelic/releases/tag/Neotys-Labs%2FNewRelic.git-2.1.1) for NeoLoad 6.7 to 9.0</li><li> Use [this release 1.0.2](https://github.com/Neotys-Labs/NewRelic/releases/tag/1.0.2) for previous NeoLoad versions</li></ul> |
 
 
 ## Installation
@@ -201,6 +201,7 @@ See New Relic [Documentation](https://docs.newrelic.com/docs/insights/use-insigh
 * NL-NEW_RELIC_ACTION-04: Not enough delay between the two executions of the New Relic advanced action. Make sure to have at least 60 seconds pacing on the Actions container.  
 
 ## ChangeLog
+* Version 3.0.0 (January 10, 2022): Update version of NeoLoad DataExchange API client that is now compatible with java modules. Bump a dependency.
 * Version 2.1.0 (April 15, 2019): 
     * The number of default counters to return has been decreased.
     * Bug fix: The Advanced Action can now retrieve all the existing metric names.

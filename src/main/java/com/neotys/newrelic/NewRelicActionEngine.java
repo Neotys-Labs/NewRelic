@@ -12,7 +12,7 @@ import com.neotys.newrelic.rest.NewRelicApplicationHost;
 import com.neotys.newrelic.rest.NewRelicMetricData;
 import com.neotys.newrelic.rest.NewRelicRestClient;
 import com.neotys.rest.dataexchange.client.DataExchangeAPIClient;
-import com.neotys.rest.dataexchange.client.DataExchangeAPIClientFactory;
+import com.neotys.rest.dataexchange.client.olingo.DataExchangeAPIClientFactory;
 import com.neotys.rest.dataexchange.model.ContextBuilder;
 
 import java.util.List;

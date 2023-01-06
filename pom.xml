@@ -5,7 +5,7 @@
     <groupId>com.neotys.NewRelic</groupId>
     <artifactId>NewRelicAction</artifactId>
     <name>NewRelicAction</name>
-    <version>2.1.2-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
 
     <properties>
         <swagger-core-version>1.5.12</swagger-core-version>
@@ -67,7 +67,7 @@
         <dependency>
             <groupId>com.neotys.rest</groupId>
             <artifactId>neotys-rest-api-dataexchange-client-olingo</artifactId>
-            <version>1.0.4</version>
+            <version>1.1.1</version>
             <!-- already in NeoLoad: can cause conflicts -->
             <scope>provided</scope>
         </dependency>

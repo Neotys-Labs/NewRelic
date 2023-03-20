@@ -78,5 +78,8 @@ public final class Constants {
 	
 	/*** Retrieve Data from New Relic to NeoLoad ***/
 	public static final String NEW_RELIC_DEFAULT_RELEVANT_METRIC_NAMES = "Datastore/statement,Datastore/instance,CPU/main,Memory,Error/,connects";
-	public static final String NEW_RELIC_DEFAULT_RELEVANT_METRIC_VALUES = "min,max,average,used_mb,percent";	
+	public static final String NEW_RELIC_DEFAULT_RELEVANT_METRIC_VALUES = "min,max,average,used_mb,percent";
+
+
+	public static final String TLS_INSECURE_KEY_DESCRIPTION = "By default set to false, it only accept TLS valid certificates. Set to true to ignore TLS certificates issues.";
 }

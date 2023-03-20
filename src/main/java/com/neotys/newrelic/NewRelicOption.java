@@ -11,6 +11,7 @@ import static com.neotys.action.argument.Option.AppearsByDefault.True;
 import static com.neotys.action.argument.Option.OptionalRequired.Optional;
 import static com.neotys.action.argument.Option.OptionalRequired.Required;
 import static com.neotys.extensions.action.ActionParameter.Type.*;
+import static com.neotys.newrelic.Constants.TLS_INSECURE_KEY_DESCRIPTION;
 
 /**
  * Created by anouvel on 05/02/2018.
@@ -30,7 +31,8 @@ public enum NewRelicOption implements Option {
 	NeoLoadDataExchangeApiKey("dataExchangeApiKey", Optional, False, PASSWORD, "", "Identification key specified in NeoLoad.", NON_EMPTY),
 	NeoLoadProxy("proxyName", Optional, False, TEXT, "", "The NeoLoad proxy name to access New Relic.", NON_EMPTY),
 	NewRelicRelevantMetricNames("newRelicRelevantMetricNames", Optional, False, TEXT, Constants.NEW_RELIC_DEFAULT_RELEVANT_METRIC_NAMES, "Specify the comma separated list of the matching names (contains) of the New Relic metric names to retrieve (by default: Datastore/statement,Datastore/instance,CPU/main,Memory,Error/,connects).", NON_EMPTY),
-	NewRelicRelevantMetricValues("newRelicRelevantMetricValues", Optional, False, TEXT, Constants.NEW_RELIC_DEFAULT_RELEVANT_METRIC_VALUES, "Specify the comma separated list of the matching names (contains) of the New Relic metric statistics to retrieve (by default: min,max,average,used_mb,percent).", NON_EMPTY);
+	NewRelicRelevantMetricValues("newRelicRelevantMetricValues", Optional, False, TEXT, Constants.NEW_RELIC_DEFAULT_RELEVANT_METRIC_VALUES, "Specify the comma separated list of the matching names (contains) of the New Relic metric statistics to retrieve (by default: min,max,average,used_mb,percent).", NON_EMPTY),
+	TLSInsecure("tls.insecure", Optional, False, TEXT, "", TLS_INSECURE_KEY_DESCRIPTION, BOOLEAN_VALIDATOR);
 	
 	private final String name;
 	private final Option.OptionalRequired optionalRequired;

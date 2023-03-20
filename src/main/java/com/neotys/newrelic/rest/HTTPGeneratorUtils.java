@@ -30,9 +30,7 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.apache.http.conn.ssl.TrustStrategy;
-import org.apache.http.conn.ssl.X509HostnameVerifier;
+import org.apache.http.conn.ssl.*;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.SingleClientConnManager;
@@ -54,9 +52,9 @@ class HTTPGeneratorUtils {
 		request.setURI(new URL(urlWithParameters).toURI());
 	}
 
-	static DefaultHttpClient newHttpClient(final boolean isHttps) throws Exception {
+	static DefaultHttpClient newHttpClient(final boolean isHttps, final boolean tlsInsecure) throws Exception {
 		if (isHttps) {
-			return newHttpsClient();
+			return newHttpsClient(tlsInsecure);
 		} else {
 			final DefaultHttpClient httpClient = new DefaultHttpClient();
 			httpClient.getConnectionManager();
@@ -65,10 +63,13 @@ class HTTPGeneratorUtils {
 	}
 
 	@SuppressWarnings("deprecation")
-	private static DefaultHttpClient newHttpsClient() throws Exception {
-		TrustStrategy acceptingTrustStrategy = (cert, authType) -> true;
-		X509HostnameVerifier allowAllHostnameVerifier = SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER;
-		SSLSocketFactory sslSocketFactory = new SSLSocketFactory(acceptingTrustStrategy, allowAllHostnameVerifier);
+	private static DefaultHttpClient newHttpsClient(final boolean tlsInsecure) throws Exception {
+		final SSLContextBuilder sslContextBuilder = SSLContexts.custom();
+		if (tlsInsecure) {
+			sslContextBuilder.loadTrustMaterial(null, (cert, authType) -> true);
+		}
+		final X509HostnameVerifier allowAllHostnameVerifier = tlsInsecure ? SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER : SSLSocketFactory.STRICT_HOSTNAME_VERIFIER;
+		SSLSocketFactory sslSocketFactory = new SSLSocketFactory(sslContextBuilder.build(), allowAllHostnameVerifier);
 		final SchemeRegistry registry = new SchemeRegistry();
 		registry.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
 		registry.register(new Scheme("https", 443, sslSocketFactory));

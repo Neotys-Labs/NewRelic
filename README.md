@@ -107,6 +107,8 @@ If you use option to send data from NeoLoad Web to New Relic, follow the steps b
 | proxyName | The NeoLoad proxy name to access New Relic. |Optional|
 | newRelicRelevantMetricNames | Specify the comma separated list of the matching names (contains) of the New Relic metric names to retrieve (by default: Datastore/statement, Datastore/instance, CPU/main, Memory, Error/, connects).|Optional|
 | newRelicRelevantMetricValues | Specify the comma separated list of the matching names (contains) of the New Relic metric statistics to retrieve (by default: min,max,average,used_mb,percent). |Optional|
+| tls.insecure | By default set to false, it only accept TLS valid certificates. Set to true to ignore TLS certificates issues. |Optional|
+
 
 <p align="center"><img src="/screenshots/parameters.png" alt="New Relic Monitoring Advanced Action Parameters" /></p>
 

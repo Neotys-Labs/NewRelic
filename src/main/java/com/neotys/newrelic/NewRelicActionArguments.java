@@ -19,7 +19,9 @@ public class NewRelicActionArguments {
 	private final Optional<String> newRelicInsightsAPIKey;
 	private final List<String> newRelicRelevantMetricNames;
 	private final List<String> newRelicRelevantMetricValues;
-		
+
+	private final boolean tlsInsecure;
+
 	// NeoLoad -> New Relic
 	private final boolean sendNLWebDataToNewRelic;
 	private final Optional<String> proxyName;
@@ -46,6 +48,7 @@ public class NewRelicActionArguments {
 		this.newRelicRelevantMetricNames = new ArrayList<>(Arrays.asList(newRelicRelevantMetricNamesString.split("\\s*,\\s*")));
 		final String newRelicRelevantMetricValuesString = parsedArgs.get(NewRelicOption.NewRelicRelevantMetricValues.getName()).or(Constants.NEW_RELIC_DEFAULT_RELEVANT_METRIC_VALUES);
 		this.newRelicRelevantMetricValues = new ArrayList<>(Arrays.asList(newRelicRelevantMetricValuesString.split("\\s*,\\s*")));
+		this.tlsInsecure = parsedArgs.get(NewRelicOption.TLSInsecure.getName()).transform(a -> "true".equals(a)).or(false);
 	}
 	
 	public String getNewRelicAPIKey() {
@@ -88,5 +91,9 @@ public class NewRelicActionArguments {
 	
 	public List<String> getNewRelicRelevantMetricValues() {
 		return newRelicRelevantMetricValues;
+	}
+
+	public boolean isTlsInsecure() {
+		return tlsInsecure;
 	}
 }

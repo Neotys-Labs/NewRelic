@@ -48,6 +48,7 @@ public class NewRelicRestClient {
 	private final Context context;
 	private final String applicationId;
 	private final HashMap<String, String> headers = new HashMap<>();
+	private final boolean tlsInsecure;
 
 	public NewRelicRestClient(final NewRelicActionArguments newRelicActionArguments, final Context context) throws Exception {
 		this.newRelicActionArguments = newRelicActionArguments;
@@ -57,6 +58,7 @@ public class NewRelicRestClient {
 		this.headers.put(Constants.HTTP_ACCEPT, Constants.HTTP_APPLICATION_JSON);
 		newRelicActionArguments.getNewRelicInsightsAPIKey().map(k -> this.headers.put(Constants.NEW_RELIC_X_INSERT_KEY, k));
 		newRelicActionArguments.getNewRelicLicenseKey().map(k -> this.headers.put(Constants.NEW_RELIC_X_LICENSE_KEY, k));
+		this.tlsInsecure = newRelicActionArguments.isTlsInsecure();
 		this.applicationId = getApplicationId();
 	}
 
@@ -75,7 +77,7 @@ public class NewRelicRestClient {
 		HTTPGenerator http = null;
 		try {
 			final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
-			http = new HTTPGenerator(HTTP_GET_METHOD, url, headers, parameters, proxy);
+			http = new HTTPGenerator(HTTP_GET_METHOD, url, headers, parameters, proxy, tlsInsecure);
 			final HttpResponse httpResponse = http.execute();
 			if (HttpResponseUtils.isSuccessHttpCode(httpResponse.getStatusLine().getStatusCode())) {
 				final JSONObject jsonObject = getJsonResponse(httpResponse);
@@ -110,7 +112,7 @@ public class NewRelicRestClient {
 		final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
 		HTTPGenerator http = null;
 		try {
-			http = new HTTPGenerator(HTTP_GET_METHOD, url, headers, ArrayListMultimap.create(), proxy);
+			http = new HTTPGenerator(HTTP_GET_METHOD, url, headers, ArrayListMultimap.create(), proxy, tlsInsecure);
 			final HttpResponse httpResponse = http.execute();
 			if (HttpResponseUtils.isSuccessHttpCode(httpResponse.getStatusLine().getStatusCode())) {
 				final JSONObject jsonObject = getJsonResponse(httpResponse);
@@ -148,7 +150,7 @@ public class NewRelicRestClient {
 			HTTPGenerator http = null;
 			hasNextPage = false;
 			try {
-				http = new HTTPGenerator(HTTP_GET_METHOD, url, headers, params, proxy);
+				http = new HTTPGenerator(HTTP_GET_METHOD, url, headers, params, proxy, tlsInsecure);
 				final HttpResponse httpResponse = http.execute();
 				if (HttpResponseUtils.isSuccessHttpCode(httpResponse.getStatusLine().getStatusCode())) {
 
@@ -222,7 +224,7 @@ public class NewRelicRestClient {
 				// There is no need to use pagination the get the whole response here, because we are requesting the last
 				// data for each metric name (at least 30 names) for the last minute, then we summarize the data, so at
 				// least we will have 30 objects, where the limit for a page is 200 objects.
-				http = new HTTPGenerator(HTTP_GET_METHOD, url, headers, parameters, proxy);
+				http = new HTTPGenerator(HTTP_GET_METHOD, url, headers, parameters, proxy, tlsInsecure);
 				final HttpResponse httpResponse = http.execute();
 				if (HttpResponseUtils.isSuccessHttpCode(httpResponse.getStatusLine().getStatusCode())) {
 					retrieveMetricDataFromJson(hostName, newRelicMetricData, httpResponse);
@@ -329,7 +331,7 @@ public class NewRelicRestClient {
 						+ "\"downloadedBytesPerSecond\":" + Constants.DECIMAL_FORMAT.format(nlWebElementValue.getThroughput()) + ","
 						+ "\"timestamp\" : " + System.currentTimeMillis() + "}]";
 
-				http = HTTPGenerator.newJsonHttpGenerator(HTTP_POST_METHOD, url, headers, ArrayListMultimap.create(), proxy, jsonString);
+				http = HTTPGenerator.newJsonHttpGenerator(HTTP_POST_METHOD, url, headers, ArrayListMultimap.create(), proxy, jsonString, tlsInsecure);
 				final HttpResponse httpResponse = http.execute();
 				buildErrorMessage(http.getRequest(), httpResponse).ifPresent(errorMessages::append);
 			}
@@ -371,7 +373,7 @@ public class NewRelicRestClient {
 		HTTPGenerator http = null;
 		try {
 			final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
-			http = HTTPGenerator.newJsonHttpGenerator(HTTP_POST_METHOD, url, headers, ArrayListMultimap.create(), proxy, jsonString.toString());
+			http = HTTPGenerator.newJsonHttpGenerator(HTTP_POST_METHOD, url, headers, ArrayListMultimap.create(), proxy, jsonString.toString(), tlsInsecure);
 			final HttpResponse httpResponse = http.execute();
 			return buildErrorMessage(http.getRequest(), httpResponse);
 		} catch (final Exception e) {
@@ -416,7 +418,7 @@ public class NewRelicRestClient {
 						+ "]"
 						+ "}";
 
-				http = HTTPGenerator.newJsonHttpGenerator(HTTP_POST_METHOD, url, headers, ArrayListMultimap.create(), proxy, jsonString);
+				http = HTTPGenerator.newJsonHttpGenerator(HTTP_POST_METHOD, url, headers, ArrayListMultimap.create(), proxy, jsonString, tlsInsecure);
 				final HttpResponse httpResponse = http.execute();
 				buildErrorMessage(http.getRequest(), httpResponse).ifPresent(errorMessages::append);
 			}

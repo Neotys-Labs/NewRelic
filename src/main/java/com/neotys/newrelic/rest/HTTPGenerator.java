@@ -38,11 +38,12 @@ public class HTTPGenerator {
 						 final String url,
 						 final Map<String, String> headers,
 						 final Multimap<String, String> params,
-						 final Optional<Proxy> proxy)
+						 final Optional<Proxy> proxy,
+						 final boolean tlsInsecure)
 			throws Exception {
 		this.request = generateHttpRequest(httpMethod, url);
 		final boolean isHttps = url.contains("https");
-		this.httpClient = newHttpClient(isHttps);
+		this.httpClient = newHttpClient(isHttps, tlsInsecure);
 
 		if (proxy.isPresent()) {
 			initProxy(proxy.get());
@@ -58,9 +59,10 @@ public class HTTPGenerator {
 													 final Map<String, String> headers,
 													 final Multimap<String, String> params,
 													 final Optional<Proxy> proxy,
-													 final String bodyJson)
+													 final String bodyJson,
+													 final boolean tlsInsecure)
 			throws Exception {
-		final HTTPGenerator httpGenerator = new HTTPGenerator(httpMethod, url, headers, params, proxy);
+		final HTTPGenerator httpGenerator = new HTTPGenerator(httpMethod, url, headers, params, proxy, tlsInsecure);
 		final StringEntity requestEntity = new StringEntity(bodyJson, "application/json","utf8");
 		addJsonParameters(httpGenerator.request, requestEntity, httpMethod);
 		return httpGenerator;

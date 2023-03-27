@@ -203,6 +203,7 @@ See New Relic [Documentation](https://docs.newrelic.com/docs/insights/use-insigh
 * NL-NEW_RELIC_ACTION-04: Not enough delay between the two executions of the New Relic advanced action. Make sure to have at least 60 seconds pacing on the Actions container.  
 
 ## ChangeLog
+* Version 2.2.0 (March 2023): For security purpose, do not ignore TLS certificates issues (use parameter tls.insecure for backward compatibility).
 * Version 2.1.0 (April 15, 2019): 
     * The number of default counters to return has been decreased.
     * Bug fix: The Advanced Action can now retrieve all the existing metric names.

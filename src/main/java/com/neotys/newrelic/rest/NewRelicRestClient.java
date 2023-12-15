@@ -75,6 +75,7 @@ public class NewRelicRestClient {
 		final Multimap<String, String> parameters = ArrayListMultimap.create();
 		parameters.put("filter[name]", newRelicActionArguments.getNewRelicApplicationName());
 		HTTPGenerator http = null;
+		String cause = "Cause is: ";
 		try {
 			final Optional<Proxy> proxy = getProxy(context, newRelicActionArguments.getProxyName(), url);
 			http = new HTTPGenerator(HTTP_GET_METHOD, url, headers, parameters, proxy, tlsInsecure);
@@ -87,16 +88,24 @@ public class NewRelicRestClient {
 						final String id = String.valueOf(jsonArray.getJSONObject(0).getInt("id"));
 						if (!Strings.isNullOrEmpty(id)) {
 							return id;
+						} else {
+							cause += "JSON response should have an application with an 'id' not empty: " + jsonObject.toString(2);
 						}
+					} else {
+						cause += "JSON response should have only 1 application.: " + jsonObject.toString(2);
 					}
+				} else {
+					cause += "JSON response should have 'applications' field: " + jsonObject.toString(2);
 				}
+			} else {
+				cause += "HTTP response is error: " + httpResponse.getStatusLine();
 			}
 		} finally {
 			if (http != null) {
 				http.closeHttpClient();
 			}
 		}
-		throw new NewRelicException("No Application found for name '" + newRelicActionArguments.getNewRelicApplicationName() + "'.");
+		throw new NewRelicException("No Application found for name '" + newRelicActionArguments.getNewRelicApplicationName() + "'." + cause);
 	}
 
 	/**

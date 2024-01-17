@@ -4,13 +4,13 @@
 
 ## Overview
 
-This Advanced Action allows you to integrate [NeoLoad](https://www.neotys.com/neoload/overview) with [New Relic](https://newrelic.com/) in order to correlate data from one tool to another. 
+This Advanced Action allows you to integrate [NeoLoad](https://www.tricentis.com/products/performance-testing-neoload) with [New Relic](https://newrelic.com/) in order to correlate data from one tool to another. 
 
 This bundle provides both an inbound and an outbound integration:
-* **Inbound (New Relic &rarr; NeoLoad)**: Retrieves metrics of the SUT from New Relic and injects them in NeoLoad Controller through the [Data Exchange API](https://www.neotys.com/documents/doc/neoload/latest/en/html/#7676.htm). This allows the correlation of load performance and APM results from the NeoLoad's [Dashboards](https://www.neotys.com/documents/doc/neoload/latest/en/html/#1440.htm). Since NeoLoad GUI 6.8 version, these metrics are sent to NeoLoad Web.
+* **Inbound (New Relic &rarr; NeoLoad)**: Retrieves metrics of the SUT from New Relic and injects them in NeoLoad Controller through the [Data Exchange API](https://documentation.tricentis.com/neoload/latest/en/content/apis/data_exchange_api.htm). This allows the correlation of load performance and APM results from the NeoLoad's [Dashboards](https://documentation.tricentis.com/nlweb/latest/en/content/reference_guide/dashboards.htm). Since NeoLoad GUI 6.8 version, these metrics are sent to NeoLoad Web.
 * **Outbound (NeoLoad Web &rarr; New Relic)**: With load testing data in New Relic, a tester can build complex dashboards correlating several types of metrics.
-   * Retrieves the NeoLoad [Main Statistics](https://www.neotys.com/documents/doc/nlweb/latest/en/html/#22968.htm) from NeoLoad Web (Indicators of the Test overview) and injects them to the [New Relic Plugins](https://newrelic.com/plugins) [API](https://docs.newrelic.com/docs/plugins/plugin-developer-resources/developer-reference/work-directly-plugin-api) and  [New Relic Insights](https://newrelic.com/insights) [API](https://docs.newrelic.com/docs/insights/insights-data-sources/custom-data/insert-custom-events-insights-api).
-   * Retrieves the NeoLoad [Transaction values](https://www.neotys.com/documents/doc/nlweb/latest/en/html/#26321.htm) from NeoLoad Web and injects them to [New Relic Insights](https://newrelic.com/insights) [API](https://docs.newrelic.com/docs/insights/insights-data-sources/custom-data/insert-custom-events-insights-api).
+   * Retrieves the NeoLoad [Main Statistics](https://documentation.tricentis.com/nlweb/latest/en/content/views_and_features/overview_indicators_panel.htm) from NeoLoad Web (Indicators of the Test overview) and injects them to the [New Relic Plugins](https://newrelic.com/plugins) [API](https://docs.newrelic.com/docs/plugins/plugin-developer-resources/developer-reference/work-directly-plugin-api) and  [New Relic Insights](https://newrelic.com/insights) [API](https://docs.newrelic.com/docs/insights/insights-data-sources/custom-data/insert-custom-events-insights-api).
+   * Retrieves the NeoLoad [Transaction values](https://documentation.tricentis.com/nlweb/latest/en/content/views_and_features/values_tab.htm) from NeoLoad Web and injects them to [New Relic Insights](https://newrelic.com/insights) [API](https://docs.newrelic.com/docs/insights/insights-data-sources/custom-data/insert-custom-events-insights-api).
 
 
 
@@ -29,7 +29,7 @@ This bundle provides both an inbound and an outbound integration:
 ## Installation
 
 1. Download the [latest release](https://github.com/Neotys-Labs/NewRelic/releases/latest) for NeoLoad from version 6.7 or this [release](https://github.com/Neotys-Labs/NewRelic/releases/tag/1.0.2) for previous NeoLoad versions.
-1. Read the NeoLoad documentation to see [How to install a custom Advanced Action](https://www.neotys.com/documents/doc/neoload/latest/en/html/#25928.htm).
+1. Read the NeoLoad documentation to see [How to install a custom Advanced Action](https://documentation.tricentis.com/neoload/latest/en/content/reference_guide/manage_advanced_actions.htm).
 
 <p align="center"><img src="/screenshots/new_relic_advanced_action.png" alt="New Relic Advanced Action" /></p>
 
@@ -140,7 +140,7 @@ NeoLoad sends statistics in two Insights tables: "NeoLoadData" and "NeoLoadValue
 
 ### NeoLoadData Insights table
 
-These data are the [Main Statistics](https://www.neotys.com/documents/doc/nlweb/latest/en/html/#22968.htm) from NeoLoad Web. They are retrieved from [NeoLoad Web API](https://neoload-api.saas.neotys.com/explore/index.html) with REST call "/tests/{testId}/statistics".
+These data are the [Main Statistics](https://documentation.tricentis.com/nlweb/latest/en/content/views_and_features/overview_indicators_panel.htm) from NeoLoad Web. They are retrieved from [NeoLoad Web API](https://neoload-api.saas.neotys.com/explore/index.html) with REST call "/tests/{testId}/statistics".
 
 NeoLoadData table has all the global statistics of the test:
 
@@ -172,7 +172,7 @@ NeoLoadData table has all the global statistics of the test:
 
 ### NeoLoadValues Insights table
 
-These data are the [Transaction values](https://www.neotys.com/documents/doc/nlweb/latest/en/html/#26321.htm) from NeoLoad Web. They are retrieved from [NeoLoad Web API](https://neoload-api.saas.neotys.com/explore/index.html) with REST call "/tests/{testId}/elements/{elementId}/values".
+These data are the [Transaction values](https://documentation.tricentis.com/nlweb/latest/en/content/views_and_features/values_tab.htm) from NeoLoad Web. They are retrieved from [NeoLoad Web API](https://neoload-api.saas.neotys.com/explore/index.html) with REST call "/tests/{testId}/elements/{elementId}/values".
 
 NeoLoadValues table has all the Transaction values of the test:
 * Timestamp
